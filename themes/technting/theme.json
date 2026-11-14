@@ -1,0 +1,1898 @@
+{
+ "name": "technting",
+ "label": "Technting Starter",
+ "templates": {
+  "home": {
+   "label": "Home page"
+  },
+  "default": {
+   "label": "Standard page"
+  }
+ },
+ "blocks": {
+  "hero": {
+   "label": "Hero",
+   "icon": "sparkles",
+   "group": "Headers",
+   "fields": [
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text",
+     "required": true
+    },
+    {
+     "name": "title_highlight",
+     "label": "Highlighted end of title",
+     "type": "text"
+    },
+    {
+     "name": "lede",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "primary",
+     "label": "Main button",
+     "type": "link"
+    },
+    {
+     "name": "secondary",
+     "label": "Second button",
+     "type": "link"
+    },
+    {
+     "name": "points",
+     "label": "Short points under the buttons",
+     "type": "repeater",
+     "fields": [
+      {
+       "name": "text",
+       "label": "Point",
+       "type": "text"
+      }
+     ]
+    },
+    {
+     "name": "note",
+     "label": "Small note",
+     "type": "text"
+    },
+    {
+     "name": "image",
+     "label": "Picture beside the text (optional; the pixel graphic shows when empty)",
+     "type": "image"
+    },
+    {
+     "name": "style",
+     "label": "Colour",
+     "type": "select",
+     "options": [
+      "dark",
+      "light"
+     ]
+    }
+   ]
+  },
+  "page_hero": {
+   "label": "Page header",
+   "icon": "heading",
+   "group": "Headers",
+   "fields": [
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title (leave empty to use the page title)",
+     "type": "text"
+    },
+    {
+     "name": "lead",
+     "label": "Lead",
+     "type": "textarea"
+    },
+    {
+     "name": "text",
+     "label": "Smaller text",
+     "type": "textarea"
+    }
+   ]
+  },
+  "features": {
+   "label": "Features grid",
+   "icon": "grid",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "features"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "columns",
+     "label": "Columns",
+     "type": "select",
+     "options": [
+      "3",
+      "2",
+      "4"
+     ]
+    },
+    {
+     "name": "items",
+     "label": "Features",
+     "type": "repeater",
+     "item_label": "feature",
+     "fields": [
+      {
+       "name": "icon",
+       "label": "Icon",
+       "type": "select",
+       "options": [
+        "spark",
+        "layers",
+        "shield",
+        "chart",
+        "chat",
+        "clock",
+        "globe",
+        "code",
+        "heart",
+        "check",
+        "users",
+        "mail"
+       ]
+      },
+      {
+       "name": "title",
+       "label": "Title",
+       "type": "text"
+      },
+      {
+       "name": "text",
+       "label": "Text",
+       "type": "textarea"
+      },
+      {
+       "name": "link",
+       "label": "Link (optional)",
+       "type": "link"
+      }
+     ]
+    }
+   ]
+  },
+  "split": {
+   "label": "Text with picture",
+   "icon": "columns",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": ""
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "text",
+     "label": "Text",
+     "type": "textarea"
+    },
+    {
+     "name": "points",
+     "label": "Points",
+     "type": "repeater",
+     "fields": [
+      {
+       "name": "text",
+       "label": "Point",
+       "type": "text"
+      }
+     ]
+    },
+    {
+     "name": "link",
+     "label": "Button",
+     "type": "link"
+    },
+    {
+     "name": "image",
+     "label": "Picture (optional; the pixel graphic shows when empty)",
+     "type": "image"
+    },
+    {
+     "name": "image_side",
+     "label": "Picture side",
+     "type": "select",
+     "options": [
+      "end",
+      "start"
+     ]
+    }
+   ]
+  },
+  "cards": {
+   "label": "Cards",
+   "icon": "grid",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": ""
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "items",
+     "label": "Cards",
+     "type": "repeater",
+     "item_label": "card",
+     "fields": [
+      {
+       "name": "image",
+       "label": "Image",
+       "type": "image"
+      },
+      {
+       "name": "label",
+       "label": "Label",
+       "type": "text"
+      },
+      {
+       "name": "title",
+       "label": "Title",
+       "type": "text"
+      },
+      {
+       "name": "text",
+       "label": "Text",
+       "type": "textarea"
+      },
+      {
+       "name": "link",
+       "label": "Link",
+       "type": "link"
+      }
+     ]
+    }
+   ]
+  },
+  "services": {
+   "label": "Services list",
+   "icon": "list",
+   "group": "Sections",
+   "source": "service",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "services"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "featured_only",
+     "label": "Only featured services",
+     "type": "bool"
+    },
+    {
+     "name": "link_label",
+     "label": "Card link text",
+     "type": "text"
+    },
+    {
+     "name": "more",
+     "label": "Link under the section",
+     "type": "link"
+    }
+   ]
+  },
+  "steps": {
+   "label": "Steps",
+   "icon": "list-ordered",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "how"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "items",
+     "label": "Steps",
+     "type": "repeater",
+     "item_label": "step",
+     "fields": [
+      {
+       "name": "title",
+       "label": "Step",
+       "type": "text"
+      },
+      {
+       "name": "text",
+       "label": "Text",
+       "type": "textarea"
+      }
+     ]
+    }
+   ]
+  },
+  "stats": {
+   "label": "Numbers",
+   "icon": "chart",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "style",
+     "label": "Colour",
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "name": "items",
+     "label": "Numbers",
+     "type": "repeater",
+     "item_label": "number",
+     "fields": [
+      {
+       "name": "value",
+       "label": "Number (e.g. 98%)",
+       "type": "text"
+      },
+      {
+       "name": "label",
+       "label": "Label",
+       "type": "text"
+      },
+      {
+       "name": "text",
+       "label": "Text",
+       "type": "text"
+      }
+     ]
+    }
+   ]
+  },
+  "testimonials": {
+   "label": "Testimonials",
+   "icon": "quote",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "items",
+     "label": "Quotes",
+     "type": "repeater",
+     "item_label": "quote",
+     "fields": [
+      {
+       "name": "quote",
+       "label": "Quote",
+       "type": "textarea"
+      },
+      {
+       "name": "name",
+       "label": "Name",
+       "type": "text"
+      },
+      {
+       "name": "role",
+       "label": "Role or company",
+       "type": "text"
+      },
+      {
+       "name": "photo",
+       "label": "Photo",
+       "type": "image"
+      }
+     ]
+    }
+   ]
+  },
+  "team": {
+   "label": "Team",
+   "icon": "users",
+   "group": "Sections",
+   "source": "team",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "team"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "compact",
+     "label": "Short version (photo, name and role only)",
+     "type": "bool"
+    },
+    {
+     "name": "more",
+     "label": "Link under the section",
+     "type": "link"
+    }
+   ]
+  },
+  "pricing": {
+   "label": "Pricing table",
+   "icon": "tag",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "pricing"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "plans",
+     "label": "Plans",
+     "type": "repeater",
+     "item_label": "plan",
+     "fields": [
+      {
+       "name": "name",
+       "label": "Name",
+       "type": "text"
+      },
+      {
+       "name": "price",
+       "label": "Price (empty = Per quote)",
+       "type": "text"
+      },
+      {
+       "name": "period",
+       "label": "Period (e.g. per month)",
+       "type": "text"
+      },
+      {
+       "name": "summary",
+       "label": "Summary",
+       "type": "textarea"
+      },
+      {
+       "name": "features",
+       "label": "What is included",
+       "type": "repeater",
+       "fields": [
+        {
+         "name": "text",
+         "label": "Item",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "name": "button",
+       "label": "Button",
+       "type": "link"
+      },
+      {
+       "name": "featured",
+       "label": "Highlight this plan",
+       "type": "bool"
+      }
+     ]
+    },
+    {
+     "name": "note",
+     "label": "Note under the plans",
+     "type": "textarea"
+    }
+   ]
+  },
+  "faq": {
+   "label": "Frequently asked questions",
+   "icon": "help",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "faq"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro",
+     "type": "textarea"
+    },
+    {
+     "name": "items",
+     "label": "Questions",
+     "type": "repeater",
+     "item_label": "question",
+     "fields": [
+      {
+       "name": "question",
+       "label": "Question",
+       "type": "text"
+      },
+      {
+       "name": "answer",
+       "label": "Answer",
+       "type": "textarea"
+      }
+     ]
+    }
+   ]
+  },
+  "questions": {
+   "label": "Question cards",
+   "icon": "help",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "who"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "items",
+     "label": "Cards",
+     "type": "repeater",
+     "fields": [
+      {
+       "name": "label",
+       "label": "Label",
+       "type": "text"
+      },
+      {
+       "name": "title",
+       "label": "Question",
+       "type": "text"
+      },
+      {
+       "name": "text",
+       "label": "Text",
+       "type": "textarea"
+      },
+      {
+       "name": "link",
+       "label": "Link",
+       "type": "link"
+      }
+     ]
+    }
+   ]
+  },
+  "logos": {
+   "label": "Logo strip",
+   "icon": "images",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "items",
+     "label": "Logos",
+     "type": "repeater",
+     "item_label": "logo",
+     "fields": [
+      {
+       "name": "image",
+       "label": "Logo",
+       "type": "image"
+      },
+      {
+       "name": "name",
+       "label": "Name",
+       "type": "text"
+      },
+      {
+       "name": "url",
+       "label": "Link (optional)",
+       "type": "url"
+      }
+     ]
+    }
+   ]
+  },
+  "cta": {
+   "label": "Call to action",
+   "icon": "megaphone",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "anchor",
+     "label": "Anchor id",
+     "type": "text",
+     "default": "contact"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "text",
+     "label": "Text",
+     "type": "textarea"
+    },
+    {
+     "name": "button",
+     "label": "Button text (opens the contact form)",
+     "type": "text"
+    },
+    {
+     "name": "primary",
+     "label": "Main button",
+     "type": "link"
+    },
+    {
+     "name": "secondary",
+     "label": "Second button",
+     "type": "link"
+    }
+   ]
+  },
+  "closing": {
+   "label": "Closing band with buttons",
+   "icon": "megaphone",
+   "group": "Sections",
+   "fields": [
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "buttons",
+     "label": "Buttons",
+     "type": "repeater",
+     "fields": [
+      {
+       "name": "link",
+       "label": "Button",
+       "type": "link"
+      }
+     ]
+    }
+   ]
+  },
+  "posts_list": {
+   "label": "Blog post list",
+   "icon": "list",
+   "group": "Content",
+   "fields": [
+    {
+     "name": "limit",
+     "label": "How many posts (0 = all)",
+     "type": "number",
+     "default": 0
+    },
+    {
+     "name": "empty_text",
+     "label": "Text when there are no posts yet",
+     "type": "text"
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow (teaser only)",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Heading (fill it to show a short teaser, e.g. on the home page)",
+     "type": "text"
+    },
+    {
+     "name": "intro",
+     "label": "Intro (teaser only)",
+     "type": "textarea"
+    },
+    {
+     "name": "more",
+     "label": "Link under the section",
+     "type": "link"
+    }
+   ],
+   "source": "post"
+  },
+  "rich_text": {
+   "label": "Text",
+   "icon": "text",
+   "group": "Content",
+   "fields": [
+    {
+     "name": "body",
+     "label": "Text",
+     "type": "richtext"
+    }
+   ]
+  },
+  "form_embed": {
+   "label": "Form (Technting Forms)",
+   "icon": "list",
+   "group": "Content",
+   "fields": [
+    {
+     "name": "form",
+     "label": "Form slug (Forms in the dashboard, e.g. contact-us)",
+     "type": "text",
+     "required": true
+    },
+    {
+     "name": "eyebrow",
+     "label": "Eyebrow",
+     "type": "text"
+    },
+    {
+     "name": "title",
+     "label": "Heading above the form (optional)",
+     "type": "text"
+    },
+    {
+     "name": "note",
+     "label": "Small text under the form (optional)",
+     "type": "textarea"
+    }
+   ]
+  },
+  "enquiry": {
+   "label": "Enquiry form",
+   "icon": "mail",
+   "group": "Content",
+   "fields": [
+    {
+     "name": "title",
+     "label": "Heading (leave empty for the standard one)",
+     "type": "text"
+    }
+   ]
+  },
+  "image": {
+   "label": "Image",
+   "icon": "image",
+   "group": "Media",
+   "fields": [
+    {
+     "name": "image",
+     "label": "Image",
+     "type": "image",
+     "required": true
+    },
+    {
+     "name": "alt",
+     "label": "Alternative text (leave empty to use the library text)",
+     "type": "text"
+    },
+    {
+     "name": "caption",
+     "label": "Caption",
+     "type": "text"
+    },
+    {
+     "name": "size",
+     "label": "Width",
+     "type": "select",
+     "options": [
+      "normal",
+      "wide",
+      "full"
+     ]
+    },
+    {
+     "name": "link",
+     "label": "Link (optional)",
+     "type": "link"
+    }
+   ]
+  },
+  "gallery": {
+   "label": "Gallery",
+   "icon": "images",
+   "group": "Media",
+   "fields": [
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text"
+    },
+    {
+     "name": "columns",
+     "label": "Columns",
+     "type": "select",
+     "options": [
+      "3",
+      "2",
+      "4"
+     ]
+    },
+    {
+     "name": "items",
+     "label": "Images",
+     "type": "repeater",
+     "item_label": "image",
+     "fields": [
+      {
+       "name": "image",
+       "label": "Image",
+       "type": "image"
+      },
+      {
+       "name": "caption",
+       "label": "Caption",
+       "type": "text"
+      }
+     ]
+    }
+   ]
+  },
+  "video": {
+   "label": "Video",
+   "icon": "video",
+   "group": "Media",
+   "fields": [
+    {
+     "name": "source",
+     "label": "Source",
+     "type": "select",
+     "options": [
+      "upload",
+      "youtube",
+      "vimeo"
+     ]
+    },
+    {
+     "name": "video",
+     "label": "Uploaded video (MP4 or WebM)",
+     "type": "video"
+    },
+    {
+     "name": "url",
+     "label": "YouTube or Vimeo address",
+     "type": "url"
+    },
+    {
+     "name": "poster",
+     "label": "Cover image (shown before playing)",
+     "type": "image"
+    },
+    {
+     "name": "title",
+     "label": "Title (for accessibility)",
+     "type": "text"
+    },
+    {
+     "name": "caption",
+     "label": "Caption",
+     "type": "text"
+    }
+   ]
+  },
+  "html": {
+   "label": "Custom HTML",
+   "icon": "code",
+   "group": "Advanced",
+   "fields": [
+    {
+     "name": "code",
+     "label": "HTML",
+     "type": "code",
+     "help": "Inserted as is. Use only trusted markup."
+    }
+   ]
+  }
+ },
+ "collections": {
+  "service": {
+   "label": "Services",
+   "singular": "Service",
+   "title_field": "name",
+   "route": "/services/{key}/",
+   "route_template": "service",
+   "fields": [
+    {
+     "name": "area",
+     "label": "Area",
+     "type": "select",
+     "options": [
+      "",
+      "websites",
+      "content",
+      "marketing",
+      "support"
+     ],
+     "help": "Area keys are set in cms/areas.py; the dashboard and the CRM use them."
+    },
+    {
+     "name": "icon",
+     "label": "Icon",
+     "type": "select",
+     "options": [
+      "spark",
+      "layers",
+      "shield",
+      "chart",
+      "chat",
+      "clock",
+      "globe",
+      "code",
+      "heart",
+      "check",
+      "users",
+      "mail"
+     ]
+    },
+    {
+     "name": "featured",
+     "label": "Featured",
+     "type": "bool"
+    },
+    {
+     "name": "price_min",
+     "label": "Lowest price (USD, for search engines)",
+     "type": "number"
+    },
+    {
+     "name": "name",
+     "label": "Name",
+     "type": "text",
+     "translatable": true,
+     "required": true
+    },
+    {
+     "name": "summary",
+     "label": "Summary",
+     "type": "textarea",
+     "translatable": true
+    },
+    {
+     "name": "body",
+     "label": "Full description",
+     "type": "richtext",
+     "translatable": true
+    },
+    {
+     "name": "includes",
+     "label": "Includes",
+     "type": "repeater",
+     "translatable": true,
+     "fields": [
+      {
+       "name": "name",
+       "label": "Item",
+       "type": "text"
+      }
+     ]
+    },
+    {
+     "name": "price",
+     "label": "Price text",
+     "type": "text",
+     "translatable": true
+    },
+    {
+     "name": "seo_title",
+     "label": "SEO title",
+     "type": "text",
+     "translatable": true
+    },
+    {
+     "name": "seo_description",
+     "label": "SEO description",
+     "type": "textarea",
+     "translatable": true
+    }
+   ]
+  },
+  "team": {
+   "label": "Team",
+   "singular": "Team member",
+   "title_field": "name",
+   "fields": [
+    {
+     "name": "name",
+     "label": "Name",
+     "type": "text",
+     "required": true
+    },
+    {
+     "name": "photo",
+     "label": "Photo",
+     "type": "image"
+    },
+    {
+     "name": "linkedin",
+     "label": "LinkedIn address",
+     "type": "url"
+    },
+    {
+     "name": "role",
+     "label": "Role",
+     "type": "text",
+     "translatable": true
+    },
+    {
+     "name": "focus",
+     "label": "What they look after",
+     "type": "textarea",
+     "translatable": true
+    },
+    {
+     "name": "bio",
+     "label": "Biography",
+     "type": "textarea",
+     "translatable": true
+    }
+   ]
+  },
+  "post": {
+   "label": "Blog posts",
+   "singular": "Post",
+   "title_field": "title",
+   "route": "/blog/{key}/",
+   "route_template": "post",
+   "sort": "-date",
+   "fields": [
+    {
+     "name": "date",
+     "label": "Publication date",
+     "type": "date",
+     "required": true,
+     "default_today": true
+    },
+    {
+     "name": "cover",
+     "label": "Cover image (1600x900 works best)",
+     "type": "image"
+    },
+    {
+     "name": "author",
+     "label": "Author",
+     "type": "entry",
+     "collection": "team"
+    },
+    {
+     "name": "area",
+     "label": "Related area",
+     "type": "select",
+     "options": [
+      "",
+      "websites",
+      "content",
+      "marketing",
+      "support"
+     ]
+    },
+    {
+     "name": "services",
+     "label": "Services this article is about",
+     "type": "entries",
+     "collection": "service"
+    },
+    {
+     "name": "updated",
+     "label": "Last reviewed (optional; shown as 'Updated')",
+     "type": "date"
+    },
+    {
+     "name": "title",
+     "label": "Title",
+     "type": "text",
+     "translatable": true,
+     "required": true
+    },
+    {
+     "name": "excerpt",
+     "label": "Summary (shown in lists and search results)",
+     "type": "textarea",
+     "translatable": true
+    },
+    {
+     "name": "body",
+     "label": "Article",
+     "type": "richtext",
+     "translatable": true
+    },
+    {
+     "name": "faq",
+     "label": "Frequently asked questions",
+     "type": "repeater",
+     "translatable": true,
+     "fields": [
+      {
+       "name": "question",
+       "label": "Question",
+       "type": "text"
+      },
+      {
+       "name": "answer",
+       "label": "Answer",
+       "type": "textarea"
+      }
+     ]
+    },
+    {
+     "name": "focus_keyword",
+     "label": "Focus keyword (the search phrase this article should rank for)",
+     "type": "text",
+     "translatable": true
+    },
+    {
+     "name": "seo_title",
+     "label": "SEO title",
+     "type": "text",
+     "translatable": true
+    },
+    {
+     "name": "seo_description",
+     "label": "SEO description",
+     "type": "textarea",
+     "translatable": true
+    }
+   ]
+  }
+ },
+ "strings": {
+  "skip": {
+   "en": "Skip to content",
+   "ar": "تخطَّ إلى المحتوى"
+  },
+  "open_menu": {
+   "en": "Open menu",
+   "ar": "فتح القائمة"
+  },
+  "main_nav": {
+   "en": "Main navigation",
+   "ar": "القائمة الرئيسية"
+  },
+  "home": {
+   "en": "Home",
+   "ar": "الرئيسية"
+  },
+  "breadcrumb": {
+   "en": "Breadcrumb",
+   "ar": "مسار التنقل"
+  },
+  "services": {
+   "en": "Services",
+   "ar": "الخدمات"
+  },
+  "includes": {
+   "en": "Includes",
+   "ar": "تشمل الخدمة"
+  },
+  "price": {
+   "en": "Price",
+   "ar": "السعر"
+  },
+  "price_notes": {
+   "en": "Final scope and price are agreed in writing before work begins.",
+   "ar": "نتفق كتابياً على النطاق والسعر النهائيين قبل بدء العمل."
+  },
+  "ask": {
+   "en": "Ask about this service",
+   "ar": "استفسروا عن هذه الخدمة"
+  },
+  "arrow": {
+   "en": "↗",
+   "ar": "↖"
+  },
+  "privacy": {
+   "en": "Privacy notice",
+   "ar": "إشعار الخصوصية"
+  },
+  "rights": {
+   "en": "All rights reserved.",
+   "ar": "جميع الحقوق محفوظة."
+  },
+  "tagline": {
+   "en": "Ideas, engineered.",
+   "ar": "نهندس الأفكار."
+  },
+  "c_eyebrow": {
+   "en": "Start a conversation",
+   "ar": "ابدأوا المحادثة"
+  },
+  "c_title": {
+   "en": "Tell us what you need.",
+   "ar": "أخبرونا بما تحتاجون إليه."
+  },
+  "c_intro": {
+   "en": "A little context helps us direct your enquiry to the right person.",
+   "ar": "تساعدنا بعض التفاصيل على توجيه استفساركم إلى الشخص المناسب."
+  },
+  "c_close": {
+   "en": "Close contact form",
+   "ar": "إغلاق نموذج التواصل"
+  },
+  "c_close_btn": {
+   "en": "Close",
+   "ar": "إغلاق"
+  },
+  "c_ready": {
+   "en": "Your enquiry will be sent securely to our team.",
+   "ar": "سيصل استفساركم إلى فريقنا عبر قناة آمنة."
+  },
+  "c_checking": {
+   "en": "Checking enquiry availability…",
+   "ar": "جارٍ التحقق من إمكانية الإرسال…"
+  },
+  "c_paused": {
+   "en": "The online form is paused for now. Please email",
+   "ar": "النموذج متوقف مؤقتاً. راسلونا على"
+  },
+  "c_error": {
+   "en": "We couldn't send your enquiry right now. Please try again later.",
+   "ar": "تعذّر إرسال استفساركم الآن. يرجى المحاولة لاحقاً."
+  },
+  "c_sending": {
+   "en": "Sending…",
+   "ar": "جارٍ الإرسال…"
+  },
+  "c_send": {
+   "en": "Send enquiry",
+   "ar": "أرسلوا الاستفسار"
+  },
+  "c_name": {
+   "en": "Full name",
+   "ar": "الاسم الكامل"
+  },
+  "c_email": {
+   "en": "Work email",
+   "ar": "البريد الإلكتروني للعمل"
+  },
+  "c_org": {
+   "en": "Organisation",
+   "ar": "المؤسسة"
+  },
+  "c_phone": {
+   "en": "Phone",
+   "ar": "الهاتف"
+  },
+  "c_interest": {
+   "en": "Area of interest",
+   "ar": "مجال الاهتمام"
+  },
+  "c_i_ns": {
+   "en": "Not sure yet",
+   "ar": "لست متأكداً بعد"
+  },
+  "c_message": {
+   "en": "How can we help?",
+   "ar": "كيف يمكننا المساعدة؟"
+  },
+  "c_placeholder": {
+   "en": "Tell us about the challenge, your goal, or the question you need answered.",
+   "ar": "حدّثونا عن التحدي أو الهدف أو السؤال الذي تبحثون عن إجابته."
+  },
+  "c_privacy_1": {
+   "en": "We’ll use your details to respond to this enquiry",
+   "ar": "نستخدم بياناتكم للرد على هذا الاستفسار فقط"
+  },
+  "c_privacy_2": {
+   "en": "Please don’t include passwords or confidential client data.",
+   "ar": "يرجى عدم إدخال كلمات مرور أو بيانات سرية تخص العملاء."
+  },
+  "c_thanks": {
+   "en": "Thank you. Your enquiry has been sent.",
+   "ar": "شكراً لكم. وصلنا استفساركم."
+  },
+  "c_thanks_text": {
+   "en": "Our team will review it and reply to the email address you provided.",
+   "ar": "سيراجعه فريقنا ويرد على البريد الإلكتروني الذي أدخلتموه."
+  },
+  "blog": {
+   "en": "Insights",
+   "ar": "المقالات"
+  },
+  "read_article": {
+   "en": "Read the article",
+   "ar": "اقرؤوا المقال"
+  },
+  "by": {
+   "en": "By",
+   "ar": "بقلم"
+  },
+  "more_posts": {
+   "en": "More insights",
+   "ar": "مقالات أخرى"
+  },
+  "rss": {
+   "en": "RSS feed",
+   "ar": "خلاصة RSS"
+  },
+  "play_video": {
+   "en": "Play video",
+   "ar": "تشغيل الفيديو"
+  },
+  "on_this_page": {
+   "en": "On this page",
+   "ar": "في هذه الصفحة"
+  },
+  "min_read": {
+   "en": "min read",
+   "ar": "دقائق قراءة"
+  },
+  "updated_on": {
+   "en": "Updated",
+   "ar": "حُدّث في"
+  },
+  "faq": {
+   "en": "Frequently asked questions",
+   "ar": "أسئلة شائعة"
+  },
+  "services_in_article": {
+   "en": "Services in this article",
+   "ar": "الخدمات في هذا المقال"
+  },
+  "share": {
+   "en": "Share this article",
+   "ar": "شاركوا المقال"
+  },
+  "share_email": {
+   "en": "Email",
+   "ar": "البريد"
+  },
+  "copy_link": {
+   "en": "Copy link",
+   "ar": "نسخ الرابط"
+  },
+  "link_copied": {
+   "en": "Link copied",
+   "ar": "تم نسخ الرابط"
+  },
+  "all_articles": {
+   "en": "All articles",
+   "ar": "كل المقالات"
+  },
+  "search": {
+   "en": "Search",
+   "ar": "بحث"
+  },
+  "search_title": {
+   "en": "Search the site",
+   "ar": "ابحث في الموقع"
+  },
+  "search_placeholder": {
+   "en": "Search articles, services and pages",
+   "ar": "ابحثوا في المقالات والخدمات والصفحات"
+  },
+  "search_none": {
+   "en": "No results. Try fewer or different words.",
+   "ar": "لا توجد نتائج. جرّبوا كلمات أقل أو مختلفة."
+  },
+  "search_results": {
+   "en": "{n} results",
+   "ar": "عدد النتائج: {n}"
+  },
+  "search_hint": {
+   "en": "Type at least two letters.",
+   "ar": "اكتبوا حرفين على الأقل."
+  },
+  "search_articles": {
+   "en": "Search articles",
+   "ar": "ابحث في المقالات"
+  },
+  "read_service": {
+   "en": "Service details",
+   "ar": "تفاصيل الخدمة"
+  },
+  "per_quote": {
+   "en": "Per quote",
+   "ar": "حسب عرض السعر"
+  },
+  "ef_eyebrow": {
+   "en": "Send an enquiry",
+   "ar": "أرسلوا استفساركم"
+  },
+  "ef_title_post": {
+   "en": "Want to talk to us about this topic?",
+   "ar": "تريدون التحدث معنا في هذا الموضوع؟"
+  },
+  "ef_title_contact": {
+   "en": "Tell us what you need",
+   "ar": "أخبرونا بما تحتاجون إليه"
+  },
+  "ef_intro": {
+   "en": "Fill in this short form. Our team reads every enquiry and replies by email.",
+   "ar": "املؤوا هذا النموذج القصير. يقرأ فريقنا كل استفسار ويرد عليكم بالبريد الإلكتروني."
+  },
+  "ef_about": {
+   "en": "About",
+   "ar": "بخصوص"
+  },
+  "ef_step_1": {
+   "en": "We read your message and pass it to the right team.",
+   "ar": "نقرأ رسالتكم ونرسلها إلى الفريق المناسب."
+  },
+  "ef_step_2": {
+   "en": "We reply by email to agree on next steps, such as a short call.",
+   "ar": "نرد عليكم بالبريد الإلكتروني لنتفق على الخطوة التالية، مثل مكالمة قصيرة."
+  },
+  "ef_email": {
+   "en": "Work email",
+   "ar": "بريد العمل الإلكتروني"
+  },
+  "ef_service": {
+   "en": "Which service?",
+   "ar": "أي خدمة تهمّكم؟"
+  },
+  "ef_service_any": {
+   "en": "Not sure yet",
+   "ar": "لم نحدد بعد"
+  },
+  "ef_again": {
+   "en": "Send another enquiry",
+   "ar": "إرسال استفسار آخر"
+  },
+  "ef_noscript": {
+   "en": "This form needs JavaScript. You can also email us at",
+   "ar": "يحتاج هذا النموذج إلى تفعيل JavaScript. ويمكنكم أيضاً مراسلتنا على"
+  },
+  "send_enquiry": {
+   "en": "Send an enquiry",
+   "ar": "أرسلوا استفساراً"
+  },
+  "ef_choose_service": {
+   "en": "Choose a service",
+   "ar": "اختاروا الخدمة"
+  },
+  "ef_choose": {
+   "en": "Choose one",
+   "ar": "اختاروا مجالاً"
+  },
+  "fr_noscript": {
+   "en": "This form needs JavaScript. Please turn it on, or write to us and we will send you the questions.",
+   "ar": "يحتاج هذا النموذج إلى تفعيل JavaScript. فعّلوه من فضلكم، أو راسلونا وسنرسل إليكم الأسئلة."
+  },
+  "ef_check": {
+   "en": "Please complete the security check above the send button.",
+   "ar": "يرجى إكمال التحقق الأمني الظاهر فوق زر الإرسال."
+  },
+  "phone": {
+   "en": "Phone",
+   "ar": "الهاتف"
+  },
+  "whatsapp": {
+   "en": "WhatsApp",
+   "ar": "واتساب"
+  },
+  "social_label": {
+   "en": "Social media",
+   "ar": "وسائل التواصل الاجتماعي"
+  },
+  "direct_title": {
+   "en": "Or reach us directly",
+   "ar": "أو تواصلوا معنا مباشرة"
+  },
+  "links": {
+   "en": "Links",
+   "ar": "روابط"
+  },
+  "links_description": {
+   "en": "Main links: services, articles and contact.",
+   "ar": "أهم الروابط: الخدمات والمقالات والتواصل."
+  },
+  "links_lead": {
+   "en": "Clear websites, useful content and quick replies.",
+   "ar": "مواقع واضحة ومحتوى مفيد وردود سريعة."
+  },
+  "links_services": {
+   "en": "Our services",
+   "ar": "خدماتنا"
+  },
+  "links_services_note": {
+   "en": "Everything we offer",
+   "ar": "كل ما نقدّمه"
+  },
+  "links_scan": {
+   "en": "Featured",
+   "ar": "رابط مميّز"
+  },
+  "links_scan_note": {
+   "en": "Our latest highlight",
+   "ar": "أحدث ما لدينا"
+  },
+  "links_blog": {
+   "en": "Insights",
+   "ar": "المقالات"
+  },
+  "links_blog_note": {
+   "en": "Practical articles",
+   "ar": "مقالات عملية"
+  },
+  "links_contact": {
+   "en": "Contact us",
+   "ar": "تواصلوا معنا"
+  },
+  "links_contact_note": {
+   "en": "Send us an enquiry",
+   "ar": "أرسلوا لنا استفساركم"
+  },
+  "links_whatsapp": {
+   "en": "Message us on WhatsApp",
+   "ar": "راسلونا على واتساب"
+  },
+  "links_site": {
+   "en": "Website",
+   "ar": "الموقع"
+  },
+  "c_i_web": {
+   "en": "Websites",
+   "ar": "المواقع"
+  },
+  "c_i_con": {
+   "en": "Content",
+   "ar": "المحتوى"
+  },
+  "c_i_mkt": {
+   "en": "Marketing",
+   "ar": "التسويق"
+  },
+  "c_i_sup": {
+   "en": "Support",
+   "ar": "الدعم"
+  },
+  "all_services": {
+   "en": "See all services",
+   "ar": "اطّلعوا على كل الخدمات"
+  },
+  "close_menu": {
+   "en": "Close menu",
+   "ar": "إغلاق القائمة"
+  },
+  "ef_more": {
+   "en": "Want to compare first?",
+   "ar": "تريدون المقارنة أولاً؟"
+  },
+  "ef_title_service": {
+   "en": "Ask us about this service",
+   "ar": "اسألونا عن هذه الخدمة"
+  },
+  "popular": {
+   "en": "Most chosen",
+   "ar": "الأكثر اختياراً"
+  },
+  "read_more": {
+   "en": "Read more",
+   "ar": "اقرؤوا المزيد"
+  }
+ },
+ "outputs": [
+  {
+   "template": "special/feed.xml",
+   "path": "{prefix}blog/feed.xml",
+   "per_language": true,
+   "requires_page": "blog"
+  },
+  {
+   "template": "special/search-index.json",
+   "path": "{prefix}search-index.json",
+   "per_language": true
+  },
+  {
+   "template": "special/search.html",
+   "path": "{prefix}search/index.html",
+   "per_language": true,
+   "page": "search"
+  },
+  {
+   "template": "special/links.html",
+   "path": "{prefix}links/index.html",
+   "per_language": true,
+   "page": "links",
+   "noindex": false,
+   "sitemap": true
+  }
+ ],
+ "admin_strings": {
+  "ar": {
+   "Advanced": "متقدم",
+   "Alternative text (leave empty to use the library text)": "النص البديل (اتركوه فارغاً لاستخدام نص المكتبة)",
+   "Anchor id": "معرّف الرابط الداخلي",
+   "Answer": "الإجابة",
+   "Area": "المجال",
+   "Area keys are set in cms/areas.py; the dashboard and the CRM use them.": "تُحدَّد مفاتيح المجالات في الملف cms/areas.py، وتستخدمها لوحة التحكم ونظام إدارة العملاء.",
+   "Article": "المقال",
+   "Author": "الكاتب",
+   "Biography": "النبذة",
+   "Blog post list": "قائمة المقالات",
+   "Blog posts": "المقالات",
+   "Button": "زر",
+   "Button text (opens the contact form)": "نص الزر (يفتح نموذج التواصل)",
+   "Buttons": "الأزرار",
+   "Call to action": "دعوة إلى التواصل",
+   "Caption": "التعليق",
+   "Card link text": "نص رابط البطاقة",
+   "Cards": "البطاقات",
+   "Closing band with buttons": "شريط ختامي بأزرار",
+   "Colour": "اللون",
+   "Columns": "عدد الأعمدة",
+   "Content": "المحتوى",
+   "Cover image (1600x900 works best)": "صورة الغلاف (يُفضّل 1600x900)",
+   "Cover image (shown before playing)": "صورة الغلاف (تظهر قبل التشغيل)",
+   "Custom HTML": "HTML مخصص",
+   "Enquiry form": "نموذج الاستفسار",
+   "Eyebrow": "عنوان صغير",
+   "Eyebrow (teaser only)": "عنوان صغير (للنسخة المختصرة فقط)",
+   "Featured": "مميّزة",
+   "Features": "المزايا",
+   "Features grid": "شبكة المزايا",
+   "Focus keyword (the search phrase this article should rank for)": "الكلمة المفتاحية (عبارة البحث التي نريد الظهور بها)",
+   "Form (Technting Forms)": "نموذج (Technting Forms)",
+   "Form slug (Forms in the dashboard, e.g. contact-us)": "الاسم المختصر للنموذج (من قسم النماذج في لوحة التحكم، مثل contact-us)",
+   "Frequently asked questions": "الأسئلة الشائعة",
+   "Full description": "الوصف الكامل",
+   "Gallery": "معرض صور",
+   "HTML": "HTML",
+   "Headers": "الواجهات",
+   "Heading (fill it to show a short teaser, e.g. on the home page)": "العنوان (اكتبوه لعرض نسخة مختصرة، كما في الصفحة الرئيسية)",
+   "Heading (leave empty for the standard one)": "العنوان (اتركوه فارغاً لاستخدام العنوان المعتاد)",
+   "Heading above the form (optional)": "عنوان فوق النموذج (اختياري)",
+   "Hero": "الواجهة الرئيسية",
+   "Highlight this plan": "إبراز هذه الباقة",
+   "Highlighted end of title": "نهاية العنوان المميّزة باللون",
+   "Home page": "الصفحة الرئيسية",
+   "How many posts (0 = all)": "عدد المقالات (0 = الكل)",
+   "Icon": "الأيقونة",
+   "Image": "صورة",
+   "Images": "الصور",
+   "Includes": "تشمل",
+   "Inserted as is. Use only trusted markup.": "يُدرج كما هو. استخدموا شيفرة موثوقة فقط.",
+   "Intro": "مقدمة",
+   "Intro (teaser only)": "مقدمة (للنسخة المختصرة فقط)",
+   "Item": "عنصر",
+   "Label": "التسمية",
+   "Last reviewed (optional; shown as 'Updated')": "آخر مراجعة (اختياري؛ يظهر بصيغة «حُدّث»)",
+   "Lead": "النص التمهيدي",
+   "Link": "الرابط",
+   "Link (optional)": "رابط (اختياري)",
+   "Link under the section": "رابط أسفل القسم",
+   "LinkedIn address": "رابط LinkedIn",
+   "Logo": "الشعار",
+   "Logo strip": "شريط الشعارات",
+   "Logos": "الشعارات",
+   "Lowest price (USD, for search engines)": "أدنى سعر (بالدولار، لمحركات البحث)",
+   "Main button": "الزر الرئيسي",
+   "Media": "الوسائط",
+   "Name": "الاسم",
+   "Note under the plans": "ملاحظة أسفل الباقات",
+   "Number (e.g. 98%)": "الرقم (مثل 98%)",
+   "Numbers": "الأرقام",
+   "Only featured services": "الخدمات المميّزة فقط",
+   "Page header": "رأس الصفحة",
+   "Period (e.g. per month)": "المدة (مثل شهرياً)",
+   "Photo": "الصورة",
+   "Picture (optional; the pixel graphic shows when empty)": "الصورة (اختيارية؛ يظهر رسم المربعات إن تُركت فارغة)",
+   "Picture beside the text (optional; the pixel graphic shows when empty)": "صورة بجانب النص (اختيارية؛ يظهر رسم المربعات إن تُركت فارغة)",
+   "Picture side": "جهة الصورة",
+   "Plans": "الباقات",
+   "Point": "نقطة",
+   "Points": "النقاط",
+   "Post": "مقال",
+   "Price (empty = Per quote)": "السعر (فارغ = حسب عرض السعر)",
+   "Price text": "نص السعر",
+   "Pricing table": "جدول الأسعار",
+   "Publication date": "تاريخ النشر",
+   "Question": "السؤال",
+   "Question cards": "بطاقات الأسئلة",
+   "Questions": "الأسئلة",
+   "Quote": "الاقتباس",
+   "Quotes": "الاقتباسات",
+   "Related area": "المجال المرتبط",
+   "Role": "الدور",
+   "Role or company": "الدور أو الشركة",
+   "SEO description": "وصف SEO",
+   "SEO title": "عنوان SEO",
+   "Second button": "الزر الثاني",
+   "Sections": "الأقسام",
+   "Service": "خدمة",
+   "Services": "الخدمات",
+   "Services list": "قائمة الخدمات",
+   "Services this article is about": "الخدمات التي يتناولها المقال",
+   "Short points under the buttons": "نقاط قصيرة أسفل الأزرار",
+   "Short version (photo, name and role only)": "نسخة قصيرة (الصورة والاسم والدور فقط)",
+   "Small note": "ملاحظة صغيرة",
+   "Small text under the form (optional)": "نص صغير أسفل النموذج (اختياري)",
+   "Smaller text": "نص أصغر",
+   "Source": "المصدر",
+   "Standard page": "صفحة عادية",
+   "Step": "الخطوة",
+   "Steps": "الخطوات",
+   "Summary": "الملخص",
+   "Summary (shown in lists and search results)": "الملخص (يظهر في القوائم ونتائج البحث)",
+   "Team": "الفريق",
+   "Team member": "عضو الفريق",
+   "Testimonials": "آراء العملاء",
+   "Text": "نص",
+   "Text when there are no posts yet": "نص عند عدم وجود مقالات",
+   "Text with picture": "نص مع صورة",
+   "Title": "العنوان",
+   "Title (for accessibility)": "العنوان (لإمكانية الوصول)",
+   "Title (leave empty to use the page title)": "العنوان (اتركوه فارغاً لاستخدام عنوان الصفحة)",
+   "Uploaded video (MP4 or WebM)": "فيديو مرفوع (MP4 أو WebM)",
+   "Video": "فيديو",
+   "What is included": "ما تشمله الباقة",
+   "What they look after": "مجال المسؤولية",
+   "Width": "العرض",
+   "YouTube or Vimeo address": "رابط YouTube أو Vimeo",
+   "card": "بطاقة",
+   "feature": "ميزة",
+   "image": "صورة",
+   "logo": "شعار",
+   "number": "رقم",
+   "plan": "باقة",
+   "question": "سؤال",
+   "quote": "اقتباس",
+   "step": "خطوة",
+   "Required": "مطلوب"
+  }
+ },
+ "root_files": {
+  "favicon.ico": "img/favicon.ico",
+  "favicon.svg": "img/favicon.svg",
+  "apple-touch-icon.png": "img/apple-touch-icon.png",
+  "icon-192.png": "img/icon-192.png",
+  "icon-512.png": "img/icon-512.png",
+  "maskable-512.png": "img/maskable-512.png",
+  "site.webmanifest": "site.webmanifest"
+ }
+}

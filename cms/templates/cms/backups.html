@@ -1,0 +1,64 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Backups" %}{% endblock %}{% block heading %}{% tr "Backups" %}{% endblock %}
+{% block actions %}<form method="post">{% csrf_token %}<button class="btn primary">{% tr "Back up now" %}</button></form>{% endblock %}
+{% block content %}
+<p class="help" style="margin:0 0 14px">{% tr "A full backup (database and uploaded files) is made every night and the last 14 are kept on the server. Download one at least once a month and keep it somewhere else, such as a company drive, so the site can be rebuilt even if the server is lost." %}</p>
+{% with o=offsite %}
+<div class="card" style="margin-bottom:16px" id="offsite"><div class="hd">{% tr "Offsite copies" %}<span style="flex:1"></span>
+  {% if not o.enabled %}<span class="pill off">{% tr "Off" %}</span>{% elif not o.ready %}<span class="pill off">{% tr "Not set up" %}</span>{% elif o.problems %}<span class="pill draft">{% tr "Needs attention" %}</span>{% else %}<span class="pill ok">{% tr "Working" %}</span>{% endif %}</div>
+<div class="bd">
+{% if not o.enabled %}
+  <p style="margin-top:0">{% tr "Backups are kept only on this server. Turn on the Technting Backup plugin to copy them, encrypted, to Cloudflare R2, Backblaze B2 or another S3-compatible storage." %}</p>
+  <a class="btn" href="{% url 'cms:plugins' %}">{% tr "Plugins" %}</a>
+{% elif not o.ready %}
+  <p style="margin-top:0">{% tr "Choose where the encrypted copies go and set a passphrase. It takes about 10 minutes with the guide on the next page." %}</p>
+  <a class="btn primary" href="{% url 'cms:offsite_settings' %}">{% tr "Set up offsite copies" %}</a>
+{% else %}
+  {% for p in o.problems %}<p class="small" style="margin-top:0"><span class="pill {% if p.level == 'high' %}bad{% else %}warn{% endif %}">!</span> {% tr p.text %}{% if p.detail %} <span class="muted" dir="ltr">({{ p.detail }})</span>{% endif %}</p>{% endfor %}
+  <div class="kv">
+    <span class="muted">{% tr "Storage" %}</span><span dir="ltr" style="text-align:start">{{ o.provider }} · {{ o.cfg.bucket }}/{{ o.cfg.prefix }}</span>
+    <span class="muted">{% tr "Last upload" %}</span><span>{% if o.upload.at %}<span dir="ltr">{{ o.upload.at|slice:":10" }} {{ o.upload.at|slice:"11:16" }}</span> · {% if o.upload.ok %}<span class="pill ok">{% tr "OK" %}</span> <span class="muted small" dir="ltr">{{ o.upload.bytes|filesizeformat }}, {{ o.upload.seconds }} s</span>{% else %}<span class="pill off">{% tr "Failed" %}</span> <span class="muted small" dir="ltr">{{ o.upload.error }}</span>{% endif %}{% else %}-{% endif %}</span>
+    <span class="muted">{% tr "Copies in storage" %}</span><span>{{ o.remote.count|default:0 }} · <span dir="ltr">{{ o.remote.bytes|default:0|filesizeformat }}{% if o.quota %} / {{ o.quota|filesizeformat }}{% endif %}</span></span>
+    <span class="muted">{% tr "Integrity check" %}</span><span>{% if o.verify.at %}<span dir="ltr">{{ o.verify.at|slice:":10" }}</span> · {% if o.verify.ok %}<span class="pill ok">{% tr "OK" %}</span>{% else %}<span class="pill off">{% tr "Failed" %}</span> <span class="muted small" dir="ltr">{{ o.verify.detail }}</span>{% endif %}{% else %}-{% endif %}</span>
+    <span class="muted">{% tr "Restore test" %}</span><span>{% if o.restore.at %}<span dir="ltr">{{ o.restore.at|slice:":10" }}</span> · {% if o.restore.ok %}<span class="pill ok">{% tr "OK" %}</span> <span class="muted small" dir="ltr">{{ o.restore.name }}: {{ o.restore.detail }}</span>{% else %}<span class="pill off">{% tr "Failed" %}</span> <span class="muted small" dir="ltr">{{ o.restore.detail }}</span>{% endif %}{% else %}{% tr "Runs once a month at night" %}{% endif %}</span>
+    <span class="muted">{% tr "Keep" %}</span><span>{% tr "daily" %} {{ o.cfg.keep_daily }} · {% tr "weekly" %} {{ o.cfg.keep_weekly }} · {% tr "monthly" %} {{ o.cfg.keep_monthly }}</span>
+  </div>
+  <form method="post" action="{% url 'cms:offsite_run' %}" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">{% csrf_token %}
+    <button class="btn" name="action" value="upload" {% if o.busy %}disabled{% endif %}>{% tr "Copy offsite now" %}</button>
+    <button class="btn" name="action" value="restore" {% if o.busy %}disabled{% endif %}>{% tr "Run a restore test now" %}</button>
+    <a class="btn" href="{% url 'cms:offsite_settings' %}">{% tr "Offsite settings" %}</a>
+    {% if o.busy %}<span class="muted small" style="align-self:center">{% tr "An offsite job is running…" %}</span>{% endif %}
+  </form>
+{% endif %}
+{% if o.ready and o.remote.copies %}
+  <details style="margin-top:14px"><summary style="cursor:pointer">{% tr "Copies in storage" %} ({{ o.remote.copies|length }})</summary>
+  <table class="list" style="margin-top:8px"><thead><tr><th>{% tr "Backup" %}</th><th>{% tr "Kept as" %}</th><th class="num">{% tr "Size" %}</th><th></th></tr></thead><tbody>
+  {% for c in o.remote.copies %}<tr><td dir="ltr" style="text-align:start">{{ c.name|slice:"7:11" }}-{{ c.name|slice:"11:13" }}-{{ c.name|slice:"13:15" }} {{ c.name|slice:"16:18" }}:{{ c.name|slice:"18:20" }}</td>
+    <td class="small">{% for k in c.keep %}<span class="pill{% if k == 'newest' %} ok{% endif %}">{% tr k %}</span> {% endfor %}</td>
+    <td class="num" dir="ltr">{{ c.bytes|filesizeformat }}</td>
+    <td style="text-align:end"><form method="post" action="{% url 'cms:offsite_download' c.name %}">{% csrf_token %}<button class="btn sm" title="{% tr "Download from the storage and decrypt" %}">{% tr "Download" %}</button></form></td></tr>{% endfor %}
+  </tbody></table>
+  <p class="help">{% tr "Download gets the copy from the storage and decrypts it on the server; it may take a minute. Copies outside the plan are removed once a day." %}</p>
+  </details>
+{% endif %}
+{% if o.enabled %}
+  <form method="post" action="{% url 'cms:offsite_run' %}" style="margin-top:14px">{% csrf_token %}
+    <input type="hidden" name="action" value="{% if alerts_on %}alerts_off{% else %}alerts_on{% endif %}">
+    <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" {% if alerts_on %}checked{% endif %} onchange="this.form.submit()">
+      <span>{% tr "Email me when a backup or upload fails, or the newest backup is more than 36 hours old" %}</span></label>
+    <noscript><button class="btn sm">{% tr "Save" %}</button></noscript>
+  </form>
+{% endif %}
+</div></div>
+
+<div class="card"><table class="list"><thead><tr><th>{% tr "Backup" %}</th><th>{% tr "Contents" %}</th><th class="num">{% tr "Size" %}</th>{% if o.ready %}<th>{% tr "Offsite" %}</th>{% endif %}<th></th></tr></thead><tbody>
+{% for b in snapshots %}<tr><td dir="ltr" style="text-align:start"><b>{{ b.when }}</b></td>
+<td class="muted small">{% if b.manifest.media %}{% count b.manifest.media.files "files" %}{% endif %}</td>
+<td class="num" dir="ltr">{{ b.size|filesizeformat }}</td>
+{% if o.ready %}<td>{% if b.name in o.uploaded %}<span class="pill ok">✓</span>{% else %}<span class="muted">-</span>{% endif %}</td>{% endif %}
+<td style="text-align:end"><a class="btn sm" href="{% url 'cms:backup_download' b.name %}">{% tr "Download" %}</a></td></tr>
+{% empty %}<tr><td class="muted" colspan="5">{% tr "No backups yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endwith %}
+<p class="muted small" style="margin-top:14px">{% tr "Restoring replaces the whole site with the backup, so it is done by a developer on the server" %} (<code dir="ltr">manage.py restore_backup</code>{% if offsite.ready %}, <code dir="ltr">manage.py offsite_backup --fetch</code>{% endif %}).</p>
+{% endblock %}

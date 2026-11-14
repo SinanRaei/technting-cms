@@ -1,0 +1,56 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<p><a href="{% url 'formbuilder:questions' form.pk %}">← {% tr "Back to questions" %}</a></p>
+<form method="post">{% csrf_token %}
+<div class="card"><div class="hd">{% tr "Question" %} <code dir="ltr">{{ field.key }}</code></div><div class="bd">
+  <div class="fb-row">
+    <label class="f"><span>{% tr "Key" %}</span><input name="key" value="{{ field.key }}" dir="ltr" maxlength="40" required></label>
+    <label class="f"><span>{% tr "Type" %}</span><select name="type">{% for k, l in types %}<option value="{{ k }}" {% if field.type == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label>
+    <label class="f"><span>{% tr "Step" %}</span><select name="step">{% for s in steps %}<option value="{{ s.pk }}" {% if s.pk == field.step_id %}selected{% endif %}>{{ s.title.en|default:s.key }}</option>{% endfor %}</select></label>
+    <label class="f" style="flex:0"><span>{% tr "Required" %}</span><input type="checkbox" name="required" value="1" {% if field.required %}checked{% endif %}></label>
+  </div>
+  {% tr "Question" as l %}{% include "formbuilder/_pair.html" with name="label" val=field.label label=l rows=3 %}
+  {% tr "Help text" as l %}{% include "formbuilder/_pair.html" with name="help" val=field.help label=l rows=2 %}
+  {% tr "Why it matters (shown only in results)" as l %}{% include "formbuilder/_pair.html" with name="why" val=field.why label=l rows=2 %}
+  <label class="f"><span>{% tr "Show only when" %}</span><input name="visible_if" value="{{ field.visible_if }}" class="fb-code" placeholder="{% tr 'Empty = always' %}"></label>
+  <div class="fb-row">
+    <label class="f"><span>{% tr "Group" %}</span><input name="x_group" value="{{ extra.group|default:'' }}" dir="ltr" placeholder="G"></label>
+    <label class="f"><span>{% tr "Most characters" %}</span><input name="x_max_length" value="{{ extra.max_length|default:'' }}" dir="ltr"></label>
+    <label class="f"><span>autocomplete</span><input name="x_autocomplete" value="{{ extra.autocomplete|default:'' }}" dir="ltr" placeholder="name, organization, email, tel"></label>
+  </div>
+  {% if field.type == 'scale' %}<div class="fb-row">
+    <label class="f"><span>{% tr "Smallest" %}</span><input name="x_min" value="{{ extra.min|default:'' }}" dir="ltr"></label>
+    <label class="f"><span>{% tr "Largest" %}</span><input name="x_max" value="{{ extra.max|default:'' }}" dir="ltr"></label>
+    <label class="f"><span>step</span><input name="x_step" value="{{ extra.step|default:'' }}" dir="ltr"></label></div>
+    {% include "formbuilder/_pair.html" with name="x_min_label" val=extra.min_label label="min label" %}
+    {% include "formbuilder/_pair.html" with name="x_max_label" val=extra.max_label label="max label" %}{% endif %}
+  {% if field.type == 'text' or field.type == 'email' or field.type == 'phone' or field.type == 'textarea' %}{% tr "Placeholder" as l %}{% include "formbuilder/_pair.html" with name="x_placeholder" val=extra.placeholder label=l %}{% endif %}
+</div></div>
+
+{% if field.has_options %}
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Options" %}</div><div class="bd" style="overflow-x:auto">
+<table class="fb-tbl"><thead><tr><th style="width:90px">{% tr "Key" %}</th><th>{% tr "Label" %} (EN)</th><th>{% tr "Label" %} (AR)</th><th style="width:150px">{% tr "Values" %}</th><th style="width:80px">{% tr "I don't know" %}</th><th style="width:200px">{% tr "Show only when" %}</th><th style="width:60px">{% tr "Delete" %}</th></tr></thead><tbody>
+{% for o in options %}<tr><td><input type="hidden" name="o_id" value="{{ o.pk }}"><input name="o_key" value="{{ o.key }}" dir="ltr" class="fb-code"></td>
+  <td><textarea name="o_label_en" rows="2" dir="ltr">{{ o.label.en|default:'' }}</textarea></td><td><textarea name="o_label_ar" rows="2" dir="rtl" class="ar-text">{{ o.label.ar|default:'' }}</textarea></td>
+  <td><input name="o_values" value="{{ o.values_text }}" class="fb-code" placeholder="score=1"></td>
+  <td><select name="o_unknown"><option value="0">-</option><option value="1" {% if o.is_unknown %}selected{% endif %}>✓</option></select></td>
+  <td><input name="o_if" value="{{ o.visible_if }}" class="fb-code"></td><td><select name="o_delete"><option value="0">-</option><option value="1">✕</option></select></td></tr>{% endfor %}
+{% for o in blank %}<tr><td><input type="hidden" name="o_id" value=""><input name="o_key" value="" dir="ltr" class="fb-code" placeholder="new"></td>
+  <td><textarea name="o_label_en" rows="2" dir="ltr"></textarea></td><td><textarea name="o_label_ar" rows="2" dir="rtl" class="ar-text"></textarea></td>
+  <td><input name="o_values" value="" class="fb-code" placeholder="score=0"></td><td><select name="o_unknown"><option value="0">-</option><option value="1">✓</option></select></td>
+  <td><input name="o_if" value="" class="fb-code"></td><td><select name="o_delete"><option value="0">-</option><option value="1">✕</option></select></td></tr>{% endfor %}
+</tbody></table>
+<label class="f" style="margin-top:10px"><input type="checkbox" name="add_unknown" value="1"> {% tr "Add an “I don't know” option" %}</label>
+</div></div>
+{% endif %}
+
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Text under the question when" %}</div><div class="bd" style="overflow-x:auto">
+<table class="fb-tbl"><thead><tr><th style="width:28%">{% tr "Show only when" %}</th><th>{% tr "Text" %} (EN)</th><th>{% tr "Text" %} (AR)</th></tr></thead><tbody>
+{% for t in texts %}<tr><td><input name="t_if" value="{{ t.if }}" class="fb-code" placeholder='answer("P6") == "retail"'></td>
+  <td><textarea name="t_text_en" rows="2" dir="ltr">{{ t.text.en|default:'' }}</textarea></td><td><textarea name="t_text_ar" rows="2" dir="rtl" class="ar-text">{{ t.text.ar|default:'' }}</textarea></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% if can_edit %}<p style="margin-top:14px"><button class="btn primary">{% tr "Save" %}</button></p>{% endif %}
+</form>
+<p class="small muted">{% tr "Rules use answers" %}: {% for k in keys %}<code dir="ltr">{{ k }}</code> {% endfor %}</p>
+{% include "formbuilder/_rules_help.html" %}
+{% endblock %}

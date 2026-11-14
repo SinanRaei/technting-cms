@@ -1,0 +1,41 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Email settings" %}{% endblock %}{% block heading %}{% tr "Email settings" %}{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 360px;align-items:start">
+  <div>
+    <div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Email delivery" %}</div><div class="bd">
+      <div class="kv">
+        <span class="muted">{% tr "Status" %}</span>
+        <span>{% if cfg and cfg.password %}<span class="pill ok">{% tr "Working" %}</span>{% else %}<span class="pill off">{% tr "Not set up" %}</span>{% endif %}</span>
+        {% if cfg %}<span class="muted">{% tr "Sender" %}</span><span dir="ltr">{{ cfg.from_name }} &lt;{{ cfg.username }}&gt;{% if cfg.source == 'env' %} <span class="muted small">({% tr "configured in .env on the server" %})</span>{% endif %}</span>{% endif %}
+      </div>
+    </div></div>
+
+    <form class="card" method="post" autocomplete="off">{% csrf_token %}<div class="hd">Gmail</div><div class="bd">
+      <label class="f"><span>{% tr "Gmail address" %}</span><input type="email" name="username" value="{{ current.username }}" required dir="ltr" placeholder="name@gmail.com"></label>
+      <label class="f"><span>{% tr "App password" %}</span><input type="password" name="password" dir="ltr" autocomplete="new-password" placeholder="xxxx xxxx xxxx xxxx" {% if not current.password %}required{% endif %}>
+        {% if current.password %}<div class="help">{% tr "Leave empty to keep the saved password." %}</div>{% endif %}</label>
+      <label class="f"><span>{% tr "Sender name" %}</span><input type="text" name="from_name" value="{{ current.from_name|default:'Technting' }}"></label>
+      <p class="help">{% tr "The password is stored encrypted and is never shown again. Technting CMS tests the sign-in before saving." %}</p>
+      <button class="btn primary" name="action" value="save">{% tr "Test and save" %}</button>
+    </div></form>
+
+    {% if cfg and cfg.password %}
+    <form class="card" method="post" style="margin-top:16px">{% csrf_token %}<div class="bd" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+      <label class="f" style="margin:0;flex:1;min-width:220px"><span>{% tr "Send a test email to" %}</span><input type="email" name="test_to" value="{{ user.email }}" dir="ltr"></label>
+      <button class="btn" name="action" value="test">{% tr "Send test email" %}</button>
+      {% if current.username %}<button class="btn danger" name="action" value="remove" formnovalidate onclick="return confirm('{% tr "Remove email settings?" %}')">{% tr "Remove email settings" %}</button>{% endif %}
+    </div></form>
+    {% endif %}
+  </div>
+
+  <div class="card"><div class="hd">{% tr "How to get an app password" %}</div><div class="bd">
+    <ol style="margin:0;padding-inline-start:20px;line-height:1.9">
+      <li>{% tr "Sign in to the Gmail account that will send the emails." %}</li>
+      <li>{% tr "Turn on 2-Step Verification in the Google account (required for app passwords)." %}</li>
+      <li>{% tr "Open myaccount.google.com/apppasswords, name it Technting CMS and press Create." %} <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">↗</a></li>
+      <li>{% tr "Copy the 16 letters here. Google shows them only once." %}</li>
+    </ol>
+  </div></div>
+</div>
+{% endblock %}

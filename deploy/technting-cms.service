@@ -1,0 +1,19 @@
+[Unit]
+Description=Technting CMS (cms.example.com)
+After=network.target
+
+[Service]
+Type=notify
+User=technting
+Group=technting
+WorkingDirectory=/home/technting/technting-cms
+ExecStart=/home/technting/technting-cms/.venv/bin/gunicorn technting_cms.wsgi:application --bind 127.0.0.1:18150 --workers 2 --threads 2 --timeout 60 --access-logfile - --error-logfile -
+Restart=on-failure
+RestartSec=3s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+{% extends "crm/_base.html" %}{% load cms_i18n humanize crm_tags %}
+{% block title %}{{ o.name }}{% endblock %}{% block heading %}CRM · {% tr "Organisation" %}{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'crm:organization_edit' o.pk %}">{% tr "Edit" %}</a><a class="btn" href="{% url 'crm:contact_new' %}?organization={{ o.pk }}">{% tr "+ Contact" %}</a><a class="btn primary" href="{% url 'crm:deal_new' %}?organization={{ o.pk }}">{% tr "+ New deal" %}</a>{% endblock %}
+{% block crm %}
+<div class="deal-head"><div style="min-width:0"><h2>{{ o.name }}</h2><div class="sub">{% if o.industry %}{{ o.industry }}{% endif %}{% if o.country %} · {{ o.country }}{% endif %}{% if o.website %} · <a href="{{ o.website }}" target="_blank" rel="noopener" dir="ltr">{{ o.website }}</a>{% endif %}</div></div>
+<div class="amt"><b>{{ won|floatformat:0|intcomma }}</b><span class="muted small">{% tr "won value" %}</span></div></div>
+<div class="deal-grid">
+  <div>
+    <div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Deals" %}</div><table class="list"><tbody>
+    {% for d in deals %}<tr><td class="title"><a href="{% url 'crm:deal' d.pk %}">{{ d.title }}</a><div class="muted small">{% if d.contact %}{{ d.contact.name }}{% endif %}</div></td><td><span class="st st-{{ d.stage }}">{% tr d.get_stage_display %}</span></td><td style="text-align:end" class="small">{% if d.value %}{{ d.currency }} {{ d.value|floatformat:0|intcomma }}{% endif %}</td></tr>
+    {% empty %}<tr><td class="empty">{% tr "No deals yet." %}</td></tr>{% endfor %}</tbody></table></div>
+    <ol class="timeline">{% for a in timeline %}<li><span class="ic {{ a.kind }}" aria-hidden="true">{% if a.kind == 'call' %}☏{% elif a.kind == 'email' or a.kind == 'enquiry' %}✉{% elif a.kind == 'meeting' %}◎{% elif a.kind == 'stage' %}➜{% elif a.kind == 'task' %}☐{% else %}✎{% endif %}</span>
+      <div class="box {% if a.kind == 'stage' or a.kind == 'system' %}plain{% endif %}"><div class="hd"><b>{% if a.subject %}{{ a.subject|subj:request }}{% else %}{% tr a.get_kind_display %}{% endif %}</b><span>{{ a.created_at|date:"j M Y, H:i" }}</span>{% if a.deal %}<span>· <a href="{% url 'crm:deal' a.deal_id %}">{{ a.deal.title|truncatechars:40 }}</a></span>{% endif %}</div>
+      {% if a.body %}<div class="txt" dir="auto">{{ a.body|truncatechars:600 }}</div>{% endif %}</div></li>
+    {% empty %}<li><div class="box plain muted">{% tr "No activity yet." %}</div></li>{% endfor %}</ol>
+  </div>
+  <aside>
+    <div class="side-card"><div class="hd">{% tr "People" %}</div><div class="bd">
+      {% for c in contacts %}<div class="person" style="margin-bottom:10px"><span class="av">{{ c.initials }}</span><div style="min-width:0"><a class="nm" href="{% url 'crm:contact' c.pk %}">{{ c.name }}</a><div class="em">{{ c.job_title|default:c.email }}</div></div></div>
+      {% empty %}<p class="muted" style="margin:0">{% tr "No contacts yet." %}</p>{% endfor %}
+    </div></div>
+    <div class="side-card"><div class="hd">{% tr "Details" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Domain" %}</dt><dd dir="ltr" style="text-align:start">{{ o.domain|default:"-" }}</dd><dt>{% tr "Size" %}</dt><dd>{{ o.size|default:"-" }}</dd>
+      <dt>{% tr "Owner" %}</dt><dd>{% if o.owner %}{{ o.owner.get_full_name|default:o.owner.username }}{% else %}-{% endif %}</dd><dt>{% tr "Added" %}</dt><dd>{{ o.created_at|date:"j M Y" }}</dd></dl>
+      {% if o.notes %}<p style="margin:12px 0 0;white-space:pre-wrap" dir="auto">{{ o.notes }}</p>{% endif %}</div></div>
+  </aside>
+</div>
+{% endblock %}

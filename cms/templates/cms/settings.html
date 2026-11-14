@@ -1,0 +1,28 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Settings" %}{% endblock %}{% block heading %}{% tr "Settings" %}{% endblock %}
+{% block content %}
+<div class="grid g2">
+<form class="card" method="post">{% csrf_token %}<div class="hd">{% tr "Site" %}</div><div class="bd">
+  <label class="f"><span>{% tr "Contact email" %}</span><input type="email" name="contact_email" value="{{ values.contact_email }}" dir="ltr"></label>
+  <label class="f"><span>{% tr "Leads email" %}</span><input type="email" name="leads_email" value="{{ values.leads_email }}" dir="ltr" placeholder="leads@example.com"><span class="help">{% tr "Every enquiry from the website forms is emailed here, and also saved in the Inbox and the CRM." %}</span></label>
+  {% for l in langs %}
+  <div class="grid g2"><label class="f"><span>{% tr "Header button text" %} ({% tr l.name %})</span><input type="text" name="cta_label_{{ l.code }}" dir="{{ l.direction }}" value="{% for k, v in values.header_cta.items %}{% if k == l.code %}{{ v.label }}{% endif %}{% endfor %}"></label>
+  <label class="f"><span>{% tr "Header button address" %} ({% tr l.name %})</span><input type="text" name="cta_url_{{ l.code }}" dir="ltr" value="{% for k, v in values.header_cta.items %}{% if k == l.code %}{{ v.url }}{% endif %}{% endfor %}"></label></div>
+  {% endfor %}
+  <label style="display:flex;gap:6px;align-items:center;margin:4px 0 14px"><input type="checkbox" name="require_2fa" {% if values.require_2fa %}checked{% endif %}> {% tr "Require two-step verification for every user" %}</label>
+  <button class="btn primary">{% tr "Save and publish" %}</button>
+</div></form>
+<div class="card"><div class="hd">{% tr "Email" %}</div><div class="bd"><p style="margin-top:0">{% tr "Account that sends invitations and copies of website enquiries." %}</p><a class="btn" href="{% url 'cms:email_settings' %}">{% tr "Email settings" %}</a></div></div>
+<div class="card"><div class="hd">{% tr "Social profiles and phone" %}</div><div class="bd"><p style="margin-top:0">{% tr "Profile addresses for the footer icons and search engines, and the phone and WhatsApp number shown on the site." %}</p><a class="btn" href="{% url 'cms:social_settings' %}">{% tr "Social profiles and phone" %}</a></div></div>
+<div class="card"><div class="hd">{% tr "Theme" %}</div><div class="bd">
+  <div class="kv"><span class="muted">{% tr "Active theme" %}</span><b>{{ theme.label }}</b><span class="muted">{% tr "Page templates" %}</span><span>{{ theme.templates|length }}</span>
+  <span class="muted">{% tr "Block types" %}</span><span>{{ theme.blocks|length }}</span><span class="muted">{% tr "Collections" %}</span><span>{{ theme.collections|length }}</span></div>
+  <p class="help">{% tr "Themes live in the themes/ folder of Technting CMS and are changed by a developer." %}</p>
+</div></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Redirects" %}</div><div class="bd">
+  <p class="muted" style="margin-top:0">{% tr "Send an old address to a new one (301). Useful when you rename a page." %}</p>
+  <form method="post" action="{% url 'cms:redirect_add' %}" class="toolbar">{% csrf_token %}<input type="text" name="source" placeholder="/old-address/" dir="ltr" style="max-width:280px" value="{{ request.GET.from }}"{% if request.GET.from %} autofocus{% endif %}><span>→</span><input type="text" name="target" placeholder="/new-address/" dir="ltr" style="max-width:280px"><button class="btn">{% tr "Add" %}</button></form>
+  <table class="list"><tbody>{% for r in redirects %}<tr><td dir="ltr"><code>{{ r.source }}</code></td><td dir="ltr"><code>{{ r.target }}</code></td><td style="text-align:end"><form method="post" action="{% url 'cms:redirect_delete' r.pk %}">{% csrf_token %}<button class="btn sm danger">{% tr "Remove" %}</button></form></td></tr>{% empty %}<tr><td class="muted">{% tr "No redirects." %}</td></tr>{% endfor %}</tbody></table>
+</div></div>
+{% endblock %}

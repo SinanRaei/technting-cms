@@ -1,0 +1,35 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{{ spec.label|tl:request }}{% endblock %}{% block heading %}{{ spec.label|tl:request }}{% endblock %}
+{% block actions %}<a class="btn primary" href="{% url 'cms:entry_new' collection %}">{% tr "+ New" %} {{ spec.singular|default:"record"|tl:request }}</a>{% endblock %}
+{% block content %}
+<form class="toolbar" method="get"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search' %}"><button class="btn">{% tr "Search" %}</button>
+{% if spec.route %}<span class="muted small">{% tr "Each record has its own page at" %} <code dir="ltr">{{ spec.route }}</code></span>{% endif %}</form>
+{% if cms_role != "author" and rows %}<form method="post" action="{% url 'cms:entries_bulk' collection %}" id="bulk" class="toolbar" style="margin-bottom:10px">{% csrf_token %}
+<select name="action" aria-label="{% tr 'Bulk action' %}" style="width:auto"><option value="">{% tr "With the selected…" %}</option><option value="show">{% tr "Show on the site" %}</option><option value="hide">{% tr "Hide from the site" %}</option><option value="delete">{% tr "Delete" %}</option></select>
+<button class="btn" data-q="{% tr 'Apply to the selected records?' %}" data-qd="{% tr 'Delete the selected records in every language? This cannot be undone.' %}">{% tr "Apply" %}</button><span class="muted small" id="bulk-n"></span></form>{% endif %}
+<div class="card"><table class="list">
+<thead><tr>{% if cms_role != "author" and rows %}<th style="width:28px"><input type="checkbox" id="bulk-all" aria-label="{% tr 'Select all' %}"></th>{% endif %}<th>{% tr "Key" %}</th><th>{% tr "Title" %}</th><th>{% tr "Languages" %}</th><th>{% tr "Status" %}</th><th>{% tr "Order" %}</th></tr></thead><tbody>
+{% for r in rows %}<tr>
+  {% if cms_role != "author" %}<td><input type="checkbox" name="ids" value="{{ r.entry.pk }}" form="bulk" aria-label="{{ r.title }}"></td>{% endif %}
+  <td><code>{{ r.entry.key }}</code></td>
+  <td class="title"><a href="{% url 'cms:entry_edit' collection r.entry.pk 'en' %}">{{ r.title }}</a></td>
+  <td><div class="langs">{% for l in langs %}<a class="pill {% if l in r.langs %}ok{% endif %}" href="{% url 'cms:entry_edit' collection r.entry.pk l.code %}">{{ l.code|upper }}{% if l not in r.langs %} +{% endif %}</a>{% endfor %}</div></td>
+  <td>{% if r.entry.is_published and r.entry.publish_at and r.entry.publish_at > now %}<span class="pill">{% tr "Scheduled" %} {{ r.entry.publish_at|date:"M j, H:i" }}</span>{% elif r.entry.is_published %}<span class="pill ok">{% tr "Published" %}</span>{% else %}<span class="pill draft">{% tr "Hidden" %}</span>{% endif %}</td>
+  <td class="muted">{{ r.entry.order }}</td>
+</tr>{% empty %}<tr><td colspan="5" class="muted">{% tr "Nothing here yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
+{% block scripts %}<script>
+(function () {
+  var form = document.getElementById("bulk"); if (!form) return;
+  var boxes = [].slice.call(document.querySelectorAll('input[name=ids]')), all = document.getElementById("bulk-all"), n = document.getElementById("bulk-n");
+  function count() { var k = boxes.filter(function (b) { return b.checked; }).length; n.textContent = k ? k + " ✓" : ""; }
+  boxes.forEach(function (b) { b.addEventListener("change", count); });
+  all.addEventListener("change", function () { boxes.forEach(function (b) { b.checked = all.checked; }); count(); });
+  form.addEventListener("submit", function (e) {
+    var act = form.querySelector("select").value, btn = form.querySelector("button");
+    if (!act || !boxes.some(function (b) { return b.checked; })) { e.preventDefault(); return; }
+    if (!confirm(act === "delete" ? btn.dataset.qd : btn.dataset.q)) e.preventDefault();
+  });
+})();
+</script>{% endblock %}

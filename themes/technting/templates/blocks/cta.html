@@ -1,0 +1,13 @@
+{% from "layouts/_macros.html" import words, pixel_trail with context %}
+<section class="section cta" id="{{ block.anchor or 'contact' }}" aria-labelledby="{{ block_id }}-title">
+  {{ pixel_trail('trail trail-cta', [6, 4, 5]) }}
+  <div class="wrap cta-inner reveal">
+    {% if block.eyebrow %}<p class="eyebrow">{{ block.eyebrow }}</p>{% endif %}
+    <h2 id="{{ block_id }}-title">{{ words(block.title) }}</h2>
+    {% if block.text %}<p class="cta-text">{{ block.text }}</p>{% endif %}
+    <div class="actions">
+      {% if block.button %}<a class="button button-primary" href="#contact" data-contact-open aria-haspopup="dialog">{{ block.button }} <span aria-hidden="true">{{ t('arrow') }}</span></a>{% endif %}
+      {% for l in [block.primary, block.secondary] if l and l.url %}<a class="button {{ 'button-primary' if loop.first and not block.button else 'button-ghost' }}" href="{{ l.url }}"{% if l.url == '#contact' %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ l.label }}</a>{% endfor %}
+    </div>
+  </div>
+</section>

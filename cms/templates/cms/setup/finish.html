@@ -1,0 +1,17 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post">{% csrf_token %}
+<h2>{% tr "Check and finish" %}</h2>
+<dl>
+<dt>{% tr "Site name" %}</dt><dd><bdi>{{ summary.site.site_name }}</bdi></dd>
+<dt>{% tr "Site address" %}</dt><dd dir="ltr">{{ summary.site.site_url }}</dd>
+<dt>{% tr "Languages" %}</dt><dd>{{ summary.languages|join:" · " }}{% if summary.languages|length > 1 %} ({% tr "Default language" %}: {{ summary.default }}){% endif %}</dd>
+<dt>{% tr "Administrator" %}</dt><dd><bdi>{{ summary.admin }}</bdi></dd>
+<dt>{% tr "Theme" %}</dt><dd><bdi>{{ summary.theme }}</bdi></dd>
+<dt>{% tr "Email" %}</dt><dd>{% if summary.email %}{% tr "Set up" %}{% else %}{% tr "Not set up" %}{% endif %}</dd>
+<dt>{% tr "Database" %}</dt><dd><bdi dir="ltr">{{ summary.database }}</bdi> <span class="muted small">{% tr "Set with TECHNTING_CMS_DB_ENGINE in the server environment." %}</span></dd>
+</dl>
+{% if demo_mode %}<div class="msg info" style="margin-bottom:10px">{% tr "This server runs in demo mode." %}</div>{% endif %}
+<label class="opt"><input type="checkbox" name="demo"{% if demo_mode %} checked{% endif %}> <span><strong>{% tr "Add demo content" %}</strong><br><span class="muted small">{% tr "A home page, a privacy page and the header menu, so you can see the theme at work. Edit or delete them later." %}</span></span></label>
+<p class="muted small">{% tr "The site name, address and theme are saved in" %} <bdi dir="ltr">{{ env_file }}</bdi></p>
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'licence' %}">{% tr "Back" %}</a><span class="sp"></span><button class="btn primary">{% tr "Finish setup" %}</button></div>
+</form>{% endblock %}

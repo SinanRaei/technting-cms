@@ -1,0 +1,30 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<form method="post" class="card">{% csrf_token %}<div class="hd">{% tr "Calculations" %}</div><div class="bd" style="overflow-x:auto">
+<p class="help">{% tr "Calculations run in order; each can use the ones above it." %} {% tr "Internal (dashboard only)" %}: {% tr "Only in the dashboard. Never sent to the person." %}</p>
+<table class="fb-tbl"><thead><tr><th style="width:150px">{% tr "Name" %}</th><th>{% tr "Calculation" %}</th><th style="width:190px">{% tr "Shown as" %}</th><th style="width:90px">{% tr "Internal" %}</th><th style="width:60px">{% tr "Delete" %}</th></tr></thead><tbody>
+{% for c in rows %}<tr><td><input name="c_name" value="{{ c.name }}" class="fb-code"></td><td><textarea name="c_expr" rows="{% if c.expr|length > 90 %}3{% else %}1{% endif %}" class="fb-code">{{ c.expr }}</textarea></td>
+<td><input name="c_label" value="{{ c.label }}"></td><td><select name="c_internal"><option value="0">-</option><option value="1" {% if c.internal %}selected{% endif %}>✓</option></select></td>
+<td><select name="c_delete"><option value="0">-</option><option value="1">✕</option></select></td></tr>{% endfor %}
+</tbody></table>
+{% if can_edit %}<p style="margin-top:12px"><button class="btn primary">{% tr "Save" %}</button></p>{% endif %}
+</div></form>
+
+<form method="post" class="card" style="margin-top:16px">{% csrf_token %}<input type="hidden" name="action" value="test"><div class="hd">{% tr "Try with answers" %}</div><div class="bd">
+<textarea name="answers" rows="6" class="fb-code" style="width:100%">{% if test.answers %}{{ test.answers }}{% else %}{{ sample }}{% endif %}</textarea>
+<div class="fb-row" style="margin-top:8px"><label class="f" style="flex:0"><span>{% tr "Language" %}</span><select name="lang"><option value="en">English</option><option value="ar" {% if test.lang == 'ar' %}selected{% endif %}>العربية</option></select></label><button class="btn">{% tr "Run" %}</button></div>
+{% if test %}
+  {% if test.error %}<p class="fb-err">{{ test.error }}</p>{% endif %}
+  {% if test.errors %}<p class="fb-err">{% for k, v in test.errors.items %}{{ k }}: {{ v }}; {% endfor %}</p>{% endif %}
+  {% if test.calc_errors %}<p class="fb-err">{% for k, v in test.calc_errors.items %}{{ k }}: {{ v }}; {% endfor %}</p>{% endif %}
+  <div class="grid g2" style="align-items:start;margin-top:12px">
+  <table class="fb-tbl"><thead><tr><th>{% tr "Name" %}</th><th>{% tr "Value" %}</th></tr></thead><tbody>
+  {% for n, v, internal in test.calcs %}<tr><td class="fb-code">{{ n }}{% if internal %} <span class="pill draft">{% tr "Internal" %}</span>{% endif %}</td><td class="fb-code">{{ v }}</td></tr>{% endfor %}
+  {% if test.tags %}<tr><td>{% tr "Tags" %}</td><td>{{ test.tags|join:", " }}</td></tr>{% endif %}
+  </tbody></table>
+  <div class="fb-results" {% if test.lang == 'ar' %}dir="rtl" lang="ar" class="ar-text"{% endif %}>{{ test.html|safe }}</div>
+  </div>
+{% endif %}
+</div></form>
+{% include "formbuilder/_rules_help.html" %}
+{% endblock %}

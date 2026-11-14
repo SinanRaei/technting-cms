@@ -1,0 +1,91 @@
+{% extends "crm/_base.html" %}{% load static cms_i18n humanize crm_tags %}
+{% block title %}{{ deal.title }}{% endblock %}{% block heading %}CRM · {% tr "Deal" %}{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'crm:pipeline' %}">{% tr "Pipeline" %}</a>{% endblock %}
+{% block crm %}
+<div class="deal-head">
+  <div style="min-width:0">
+    <h2><bdi>{{ deal.title }}</bdi></h2>
+    <div class="sub">{% if deal.organization %}<a href="{% url 'crm:organization' deal.organization_id %}">{{ deal.organization.name }}</a>{% endif %}{% if deal.contact %}{% if deal.organization %} · {% endif %}<a href="{% url 'crm:contact' deal.contact_id %}">{{ deal.contact.name }}</a>{% endif %}
+      · {% tr deal.get_source_display %} · {% tr "created" %} {{ deal.created_at|date:"j M Y" }}</div>
+  </div>
+  <div class="amt"><b>{{ deal.currency }} {{ deal.value|floatformat:0|intcomma }}</b><span class="muted small">{{ deal.probability }}% · {% tr "weighted" %} {{ deal.weighted|floatformat:0|intcomma }}</span></div>
+</div>
+<form method="post" class="stepper" aria-label="{% tr 'Stage' %}">{% csrf_token %}<input type="hidden" name="action" value="stage">
+  {% for k in open_stages %}<button name="stage" value="{{ k }}" class="{% if k == deal.stage %}cur{% elif forloop.counter0 < stage_index %}done{% endif %}">{% for sk, sl in stages %}{% if sk == k %}{% tr sl %}{% endif %}{% endfor %}</button>{% endfor %}
+  <button name="stage" value="won" class="won">✓ {% tr "Won" %}</button>
+  <button type="button" class="lost" data-lost-open>✕ {% tr "Lost" %}</button>
+</form>
+{% if deal.stage == 'won' or deal.stage == 'lost' %}<div class="msg {% if deal.stage == 'won' %}success{% else %}error{% endif %}" style="margin-bottom:14px">
+  {% if deal.stage == 'won' %}{% tr "Won on" %}{% else %}{% tr "Lost on" %}{% endif %} {{ deal.closed_at|date:"j M Y" }}{% if deal.lost_reason %} · {% tr deal.get_lost_reason_display %}{% endif %}{% if deal.lost_note %}: {{ deal.lost_note }}{% endif %}</div>{% endif %}
+<div class="deal-grid">
+  <div>
+    <form method="post" class="composer">{% csrf_token %}<input type="hidden" name="action" value="log"><input type="hidden" name="kind" value="note">
+      <div class="ctabs" role="tablist">
+        <button type="button" class="on" data-kind="note" data-placeholder="{% tr 'Write a note…' %}">✎ {% tr "Note" %}</button>
+        <button type="button" data-kind="call" data-placeholder="{% tr 'What was discussed on the call?' %}">☏ {% tr "Call" %}</button>
+        <button type="button" data-kind="email" data-placeholder="{% tr 'Summary of the email you sent or received' %}">✉ {% tr "Email" %}</button>
+        <button type="button" data-kind="meeting" data-placeholder="{% tr 'Meeting notes and agreed next steps' %}">◎ {% tr "Meeting" %}</button>
+        <button type="button" data-kind="task" data-placeholder="{% tr 'Details (optional)' %}">☐ {% tr "Task" %}</button>
+      </div>
+      <div class="cbody">
+        <input type="text" name="subject" placeholder="{% tr 'Title (optional)' %}" data-only="call email meeting task note" maxlength="200">
+        <textarea name="body" rows="3" placeholder="{% tr 'Write a note…' %}"></textarea>
+        <div class="row" data-only="task" hidden>
+          <label class="f" style="margin:0"><span>{% tr "Due" %}</span><input type="datetime-local" name="due_at"></label>
+          <label class="f" style="margin:0"><span>{% tr "Assign to" %}</span><select name="assigned_to">{% for u in users %}<option value="{{ u.pk }}" {% if u == request.user %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}</select></label>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn primary">{% tr "Add to timeline" %}</button></div>
+      </div>
+    </form>
+    <ol class="timeline">
+      {% for a in timeline %}
+      <li><span class="ic {{ a.kind }}" aria-hidden="true">{% if a.kind == 'enquiry' %}✉{% elif a.kind == 'call' %}☏{% elif a.kind == 'email' %}✉{% elif a.kind == 'meeting' %}◎{% elif a.kind == 'stage' %}➜{% elif a.kind == 'system' %}•{% else %}✎{% endif %}</span>
+        <div class="box {% if a.kind == 'stage' or a.kind == 'system' %}plain{% endif %}">
+          <div class="hd"><b>{% if a.subject %}{{ a.subject|subj:request }}{% else %}{% tr a.get_kind_display %}{% endif %}</b><span>{{ a.created_at|date:"j M Y, H:i" }}</span>{% if a.created_by %}<span>· {{ a.created_by.get_full_name|default:a.created_by.username }}</span>{% endif %}</div>
+          {% if a.body %}<div class="txt" dir="auto">{{ a.body }}</div>{% endif %}
+        </div></li>
+      {% empty %}<li><div class="box plain muted">{% tr "No activity yet." %}</div></li>{% endfor %}
+    </ol>
+  </div>
+  <aside>
+    <div class="side-card"><div class="hd">{% tr "Tasks" %}</div><div class="bd">
+      {% for t in tasks %}{% include "crm/_task.html" with show_assignee=True %}{% empty %}<p class="muted" style="margin:0">{% tr "No tasks. Add one above." %}</p>{% endfor %}
+    </div></div>
+    {% if deal.contact %}<div class="side-card"><div class="hd">{% tr "Contact" %}</div><div class="bd">
+      <div class="person"><span class="av lg teal">{{ deal.contact.initials }}</span><div style="min-width:0"><a class="nm" href="{% url 'crm:contact' deal.contact_id %}">{{ deal.contact.name }}</a>
+      {% if deal.contact.job_title %}<div class="em">{{ deal.contact.job_title }}</div>{% endif %}
+      {% if deal.contact.email %}<div class="em"><a href="mailto:{{ deal.contact.email }}" dir="ltr">{{ deal.contact.email }}</a></div>{% endif %}
+      {% if deal.contact.phone %}<div class="em"><a href="tel:{{ deal.contact.phone }}" dir="ltr">{{ deal.contact.phone }}</a></div>{% endif %}</div></div>
+    </div></div>{% endif %}
+    <div class="side-card"><div class="hd">{% tr "Questionnaire links" %}</div><div class="bd">
+      {% for l in form_links %}<div style="margin-bottom:10px"><a href="{% url 'formbuilder:link' l.pk %}"><b>{{ l.label|default:l.form.slug }}</b></a> <span class="chip">{% tr l.st %}</span>
+        <div style="height:6px;background:#eef1f5;border-radius:99px;overflow:hidden;margin-top:4px" title="{{ l.done }}/{{ l.total }}"><span style="display:block;height:100%;width:{{ l.pct }}%;background:#00a99a"></span></div><div class="em">{{ l.done }}/{{ l.total }}{% if l.contact %} · {{ l.contact.name }}{% endif %}</div></div>
+      {% endfor %}{% for s in scans %}<div style="margin-bottom:8px"><a href="{% url 'formbuilder:submission' s.pk %}">{{ s.form.title.en|default:s.form.slug }}</a> <span class="em">{{ s.completed_at|date:"j M Y" }}</span></div>{% endfor %}
+      <a class="btn sm" href="{% url 'formbuilder:list' %}?deal={{ deal.pk }}">{% tr "+ Questionnaire link" %}</a>
+    </div></div>
+    {% if svc_names or deal.lab %}<div class="side-card"><div class="hd">{% tr "Services" %}</div><div class="bd chips">
+      {% if deal.lab %}<span class="chip">{% tr lab_name %}</span>{% endif %}{% for code, name in svc_names %}<span class="chip" title="{{ name }}">{{ code }}{% if name %} · {{ name|truncatechars:28 }}{% endif %}</span>{% endfor %}
+    </div></div>{% endif %}
+    {% if deal.enquiry %}<div class="side-card"><div class="hd">{% tr "Website enquiry" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Received" %}</dt><dd>{{ deal.enquiry.created_at|date:"j M Y, H:i" }}</dd>
+      <dt>{% tr "Interest" %}</dt><dd>{{ deal.enquiry.interest|default:"-" }}</dd>
+      {% if deal.enquiry.source %}<dt>{% tr "Came from" %}</dt><dd>{% tr deal.enquiry.get_source_display %}{% if deal.enquiry.topic %}: <span dir="auto">{{ deal.enquiry.topic }}</span>{% endif %}{% if deal.enquiry.page %}<br><a class="small" href="{{ deal.enquiry.page }}" target="_blank" rel="noopener" dir="ltr">{{ deal.enquiry.page|cut:"https://example.com" }} ↗</a>{% endif %}</dd>{% endif %}
+      <dt>{% tr "Email copy" %}</dt><dd>{% if deal.enquiry.email_sent %}{% tr "Sent" %}{% else %}<a class="pill off" href="{% url 'cms:inbox_item' deal.enquiry.pk %}">{% tr "email not sent" %}</a>{% endif %}</dd>
+      <dt>{% tr "Language" %}</dt><dd>{{ deal.enquiry.language|upper|default:"-" }}</dd>
+      <dt>{% tr "First reply" %}</dt><dd>{% if deal.first_response_at %}{{ deal.first_response_at|date:"j M, H:i" }}{% else %}<span class="pill off">{% tr "Not yet" %}</span>{% endif %}</dd>
+    </dl></div></div>{% endif %}
+    <form method="post" class="side-card">{% csrf_token %}<input type="hidden" name="action" value="update"><div class="hd">{% tr "Details" %}</div><div class="bd">
+      {% for field in form %}<label class="f"><span>{{ field.label }}</span>{{ field }}{% for e in field.errors %}<div class="help" style="color:var(--danger)">{{ e }}</div>{% endfor %}</label>{% endfor %}
+      <button class="btn primary" style="width:100%">{% tr "Save details" %}</button>
+    </div></form>
+    {% if user.is_superuser %}<form method="post" class="side-card" onsubmit="return confirm('{% tr "Delete this deal and its timeline?" %}')">{% csrf_token %}<input type="hidden" name="action" value="delete"><div class="bd"><button class="btn sm danger">{% tr "Delete deal" %}</button></div></form>{% endif %}
+  </aside>
+</div>
+<div class="modal" id="deal-lost" role="dialog" aria-modal="true" aria-labelledby="dl-title"><form method="post" class="box">{% csrf_token %}<input type="hidden" name="action" value="stage"><input type="hidden" name="stage" value="lost">
+  <h3 id="dl-title">{% tr "Why was this deal lost?" %}</h3>
+  <label class="f"><span>{% tr "Reason" %}</span><select name="lost_reason" required>{% for k, l in lost_reasons %}<option value="{{ k }}">{% tr l %}</option>{% endfor %}</select></label>
+  <label class="f"><span>{% tr "Note (optional)" %}</span><input type="text" name="lost_note" maxlength="300"></label>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="button" data-close-modal>{% tr "Cancel" %}</button><button class="btn primary">{% tr "Mark as lost" %}</button></div>
+</form></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'crm/crm.js' %}?v=1"></script>{% endblock %}

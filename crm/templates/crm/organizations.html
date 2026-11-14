@@ -1,0 +1,11 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Organisations" %}{% endblock %}{% block heading %}CRM · {% tr "Organisations" %}{% endblock %}
+{% block actions %}<a class="btn primary" href="{% url 'crm:organization_new' %}">{% tr "+ New organisation" %}</a>{% endblock %}
+{% block crm %}
+<form method="get" class="toolbar"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search by name, domain, industry or country' %}" style="max-width:360px"><button class="btn">{% tr "Search" %}</button><span class="muted small">{% count total "organisations" %}</span></form>
+<div class="card"><table class="list"><thead><tr><th>{% tr "Organisation" %}</th><th>{% tr "Industry" %}</th><th>{% tr "Country" %}</th><th>{% tr "Contacts" %}</th><th>{% tr "Deals" %}</th></tr></thead><tbody>
+{% for o in orgs %}<tr><td class="title"><a href="{% url 'crm:organization' o.pk %}">{{ o.name }}</a>{% if o.domain %}<div class="muted small" dir="ltr" style="text-align:start">{{ o.domain }}</div>{% endif %}</td>
+<td class="small">{{ o.industry|default:"-" }}</td><td class="small">{{ o.country|default:"-" }}</td><td>{{ o.n_contacts }}</td><td>{{ o.n_deals }}</td></tr>
+{% empty %}<tr><td colspan="5" class="empty">{% tr "No organisations yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

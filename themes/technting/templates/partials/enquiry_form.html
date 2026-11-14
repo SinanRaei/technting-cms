@@ -1,0 +1,44 @@
+{#- Inline enquiry form for service pages, the contact page and the end of articles.
+    Set before including: ef_source (service | article | page), ef_ref (service / article / page key),
+    ef_title, optional ef_services [(code, label)], ef_service (code implied by the page), ef_about (what the form is about).
+    Posts to /api/contact like the header dialog; the server works out the area and service names from the catalogue. -#}
+<section class="section enquiry" id="enquire" aria-labelledby="enquire-title" data-enquiry
+  data-msg-sending="{{ t('c_sending') }}" data-msg-error="{{ t('c_error') }}" data-msg-check="{{ t('ef_check') }}">
+<div class="wrap enquiry-grid">
+  <div class="enquiry-intro">
+    <p class="eyebrow">{{ t('ef_eyebrow') }}</p>
+    <h2 id="enquire-title">{{ ef_title }}</h2>
+    <p class="enquiry-lead">{{ t('ef_intro') }}</p>
+    {% if ef_about %}<p class="enquiry-about"><span class="micro">{{ t('ef_about') }}</span> <span>{{ ef_about }}</span></p>{% endif %}
+    <ol class="enquiry-steps"><li>{{ t('ef_step_1') }}</li><li>{{ t('ef_step_2') }}</li></ol>
+    {% if ef_direct %}{% set ci = contact_info() %}{% if ci.phone or ci.wa_url %}
+    <div class="enquiry-direct"><p class="micro">{{ t('direct_title') }}</p><ul>
+      {% if ci.phone %}<li><span>{{ t('phone') }}</span> <a href="tel:{{ ci.tel }}"><bdi dir="ltr">{{ ci.phone }}</bdi></a></li>{% endif %}
+      {% if ci.wa_url %}<li><span>{{ t('whatsapp') }}</span> <a href="{{ ci.wa_url }}" target="_blank" rel="noopener"><bdi dir="ltr">{{ ci.whatsapp }}</bdi></a></li>{% endif %}
+    </ul></div>
+    {% endif %}{% endif %}
+    {% if url('services') != '#' and page.key != 'services' %}<p class="enquiry-more">{{ t('ef_more') }} <a href="{{ url('services') }}">{{ t('all_services') }}</a></p>{% endif %}
+  </div>
+  <div class="enquiry-card">
+    <form class="enquiry-form" action="/api/contact" method="post" data-enquiry-form>
+      <div class="contact-fields">
+        <label>{{ t('c_name') }} <span aria-hidden="true">*</span><input name="name" type="text" autocomplete="name" maxlength="100" minlength="2" required></label>
+        <label>{{ t('ef_email') }} <span aria-hidden="true">*</span><input name="email" type="email" autocomplete="email" maxlength="254" required dir="ltr"></label>
+        <label>{{ t('c_org') }} <span aria-hidden="true">*</span><input name="organisation" type="text" autocomplete="organization" maxlength="120" minlength="2" required></label>
+        <label>{{ t('c_phone') }} <span aria-hidden="true">*</span><input name="phone" type="tel" autocomplete="tel" maxlength="40" dir="ltr" pattern="[+\(\)0-9 .\-]{6,40}" required></label>
+        {% if ef_services %}<label class="contact-field-wide">{{ t('ef_service') }} <span aria-hidden="true">*</span><select name="service" required><option value="">{{ t('ef_choose_service') }}</option><option value="none">{{ t('ef_service_any') }}</option>{% for code, label in ef_services %}<option value="{{ code }}"{% if code == ef_service %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        {% else %}<input type="hidden" name="service" value="{{ ef_service or '' }}">{% endif %}
+        <label class="contact-field-wide">{{ t('c_message') }} <span aria-hidden="true">*</span><textarea name="message" rows="5" minlength="15" maxlength="4000" placeholder="{{ t('c_placeholder') }}" required></textarea></label>
+      </div>
+      <input type="hidden" name="source" value="{{ ef_source }}"><input type="hidden" name="ref" value="{{ ef_ref }}">
+      <div class="enquiry-trap" aria-hidden="true"><label>Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <div class="ts-box" data-ts></div>
+      <p class="contact-privacy">{{ t('c_privacy_1') }} (<a href="{{ url('privacy') }}">{{ t('privacy') }}</a>). {{ t('c_privacy_2') }}</p>
+      <p class="contact-status" role="alert" tabindex="-1" hidden></p>
+      <div class="contact-actions"><button class="button button-primary" type="submit">{{ t('c_send') }} <span aria-hidden="true">{{ t('arrow') }}</span></button></div>
+      <noscript><p class="contact-privacy">{{ t('ef_noscript') }} <a href="mailto:{{ setting('contact_email', 'leads@example.com') }}" dir="ltr">{{ setting('contact_email', 'leads@example.com') }}</a></p></noscript>
+    </form>
+    <div class="contact-success enquiry-success" hidden><span aria-hidden="true">✓</span><h3 tabindex="-1">{{ t('c_thanks') }}</h3><p>{{ t('c_thanks_text') }}</p><button class="button button-ghost" type="button" data-enquiry-again>{{ t('ef_again') }}</button></div>
+  </div>
+</div>
+</section>

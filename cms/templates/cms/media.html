@@ -1,0 +1,94 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block title %}{% tr "Media" %}{% endblock %}{% block heading %}{% tr "Media library" %}{% endblock %}
+{% block content %}
+<div class="drop" id="drop">{% tr "Drop images or PDFs here, or" %} <a href="#" id="pick">{% tr "choose files" %}</a>. {% tr "JPEG, PNG, WebP, GIF and PDF up to 20 MB. Images get WebP copies automatically." %}</div>
+<input type="file" id="file" multiple accept="image/*,application/pdf" style="display:none">
+<form class="toolbar" method="get" style="margin-top:14px"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search media' %}"><button class="btn">{% tr "Search" %}</button>
+<a class="btn sm{% if unused_only %} primary{% endif %}" href="{% if unused_only %}?{% else %}?unused=1{% endif %}">{% tr "Unused files" %} · {{ unused_total }}</a></form>
+{% if unused_only %}<p class="help" style="margin:-4px 0 12px">{% tr "These files are not used on any page, record, menu or setting. Check before deleting: a file may be linked from outside the site, for example in an email." %}</p>{% endif %}
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 320px;align-items:start">
+  <div class="media-grid" id="grid"></div>
+  <div class="card" id="details" style="position:sticky;top:74px"><div class="hd">{% tr "Details" %}</div><div class="bd"><p class="muted">{% tr "Select a file to edit its title and alternative text." %}</p></div></div>
+</div>
+{{ items|json_script:"items" }}
+{% endblock %}
+{% block scripts %}
+<script>window.TECHNTING_CMS = {mediaApi: "{% url 'cms:api_media' %}", uploadUrl: "{% url 'cms:media_upload' %}", csrf: "{{ csrf_token }}"};</script>
+<script src="{% static 'cms/editor.js' %}?v=11"></script>
+<script>
+(function () {
+  var el = TechntingCMS.el, T = TechntingCMS.T, items = JSON.parse(document.getElementById("items").textContent);
+  var langs = [{% for l in langs %}{code: "{{ l.code }}", name: "{{ l.name }}", dir: "{{ l.direction }}"}{% if not forloop.last %},{% endif %}{% endfor %}];
+  var grid = document.getElementById("grid"), details = document.getElementById("details");
+  function show() {
+    grid.innerHTML = "";
+    items.forEach(function (m) {
+      var b = el("button", {type: "button", class: "mi", on: {click: function () { select(m, b); }}}, [
+        el("div", {class: "th", style: m.thumb ? "background-image:url('" + m.thumb + "')" : ""}, [m.thumb ? "" : (m.mime === "application/pdf" ? "PDF" : "FILE")]),
+        el("div", {class: "cap"}, [m.title || m.url])]);
+      grid.appendChild(b);
+    });
+  }
+  function select(m, btn) {
+    Array.prototype.forEach.call(grid.children, function (c) { c.classList.remove("sel"); }); btn.classList.add("sel");
+    var title = el("input", {type: "text", value: m.title || ""});
+    var alts = langs.map(function (l) { return [l, el("input", {type: "text", value: (m.alt || {})[l.code] || "", dir: l.dir})]; });
+    var status = el("div", {class: "help"});
+    var bd = el("div", {class: "bd"}, [
+      m.thumb ? el("img", {src: m.thumb, alt: "", style: "width:100%;border-radius:6px;margin-bottom:10px"}) : null,
+      el("div", {class: "kv", style: "margin-bottom:12px"}, [T("Address"), el("code", {dir: "ltr", style: "word-break:break-all"}, ["https://{{ site_host }}" + m.url]),
+        T("Size"), el("span", {dir: "ltr"}, [(m.width ? m.width + "×" + m.height + " · " : "") + Math.round(m.size / 1024) + " KB"]), T("Uploaded"), el("span", {dir: "ltr"}, [m.uploaded_at])]),
+      el("div", {class: "used-in"}, m.used_count ? [el("p", {class: "micro", style: "margin:0 0 6px"}, [T("Used in")])].concat(
+        m.used_in.map(function (u) { return el("a", {href: u.url, class: "small", style: "display:block"}, [u.label]); }))
+        : [el("p", {class: "help", style: "margin:0"}, [T("Not used anywhere on the site.")])]),
+      el("label", {class: "f"}, [el("span", {}, [T("Title")]), title])
+    ].concat(alts.map(function (a) { return el("label", {class: "f"}, [el("span", {}, [T("Alternative text") + " (" + T(a[0].name) + ")"]), a[1]]); })).concat([
+      el("div", {style: "display:flex;gap:8px"}, [
+        el("button", {type: "button", class: "btn primary", on: {click: function () {
+          var fd = new FormData(); fd.append("title", title.value); alts.forEach(function (a) { fd.append("alt_" + a[0].code, a[1].value); });
+          fetch("{% url 'cms:media_update' 0 %}".replace("/0/", "/" + m.id + "/"), {method: "POST", body: fd, credentials: "same-origin", headers: {"X-CSRFToken": TECHNTING_CMS.csrf}})
+            .then(function (r) { return r.json(); }).then(function (d) { Object.assign(m, d.item); status.textContent = T("Saved. Publish the site to update pages that use it."); show(); });
+        }}}, [T("Save")]),
+        el("button", {type: "button", class: "btn", on: {click: function () {
+          var inp = el("input", {type: "file", accept: m.mime === "application/pdf" ? "application/pdf" : (m.mime.split("/")[0] + "/*")});
+          inp.addEventListener("change", function () {
+            if (!inp.files.length || !confirm(T("Replace this file everywhere it is used and publish the site?"))) return;
+            var fd = new FormData(); fd.append("file", inp.files[0]); status.textContent = T("Uploading…");
+            fetch("{% url 'cms:media_replace' 0 %}".replace("/0/", "/" + m.id + "/"), {method: "POST", body: fd, credentials: "same-origin", headers: {"X-CSRFToken": TECHNTING_CMS.csrf}})
+              .then(function (r) { return r.json(); }).then(function (d) {
+                if (d.error) { status.textContent = d.error; return; }
+                var keep = {used_in: m.used_in, used_count: m.used_count}; Object.assign(m, d.item, keep); show(); select(m, grid.children[items.indexOf(m)]);
+                var done = details.querySelector(".bd > .help:last-child"); if (done) done.textContent = T("Replaced and published.");
+              });
+          });
+          inp.click();
+        }}}, [T("Replace file")]),
+        el("button", {type: "button", class: "btn danger", on: {click: function () {
+          if (!confirm(T("Delete this file permanently?"))) return;
+          fetch("{% url 'cms:media_delete' 0 %}".replace("/0/", "/" + m.id + "/"), {method: "POST", credentials: "same-origin", headers: {"X-CSRFToken": TECHNTING_CMS.csrf}})
+            .then(function (r) { return r.json(); }).then(function (d) {
+              if (d.error) { status.textContent = d.error; return; }
+              items = items.filter(function (x) { return x.id !== m.id; }); show(); details.querySelector(".bd").innerHTML = "<p class='muted'>{% tr "Deleted." %}</p>";
+            });
+        }}}, [T("Delete")])]), status]));
+    details.replaceChild(bd, details.querySelector(".bd"));
+  }
+  function upload(files) {
+    var fd = new FormData(); Array.prototype.forEach.call(files, function (f) { fd.append("files", f); });
+    var drop = document.getElementById("drop"); drop.textContent = T("Uploading…");
+    fetch(TECHNTING_CMS.uploadUrl, {method: "POST", body: fd, credentials: "same-origin", headers: {"X-CSRFToken": TECHNTING_CMS.csrf}})
+      .then(function (r) { return r.json(); }).then(function (d) {
+        items = (d.items || []).concat(items); show();
+        drop.textContent = (d.errors && d.errors.length ? d.errors.join(" ") + " " : "") + (d.items && d.items.length ? T("Files uploaded:") + " " + d.items.length : "");
+      });
+  }
+  var drop = document.getElementById("drop"), file = document.getElementById("file");
+  document.getElementById("pick").addEventListener("click", function (e) { e.preventDefault(); file.click(); });
+  file.addEventListener("change", function () { upload(file.files); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) { e.preventDefault(); drop.classList.remove("over"); upload(e.dataTransfer.files); });
+  show();
+})();
+</script>
+{% endblock %}

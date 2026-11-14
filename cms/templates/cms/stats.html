@@ -1,0 +1,50 @@
+{% extends "cms/base.html" %}{% load cms_i18n humanize %}
+{% block title %}{% tr "Stats" %}{% endblock %}{% block heading %}{% tr "Stats" %}{% endblock %}
+{% block actions %}<div class="seg">{% for d in periods %}<a class="btn sm{% if d == r.days %} primary{% endif %}" href="?days={{ d }}">{% if d == 7 %}{% tr "7 days" %}{% elif d == 30 %}{% tr "30 days" %}{% elif d == 90 %}{% tr "90 days" %}{% else %}{% tr "12 months" %}{% endif %}</a>{% endfor %}</div>{% endblock %}
+{% block content %}
+{% if not enabled %}<div class="card" style="margin-bottom:16px;border-color:#d4a72c"><div class="bd">{% tr "Stats are off. Turn on the Site stats plugin to start counting visits." %} {% if user.is_superuser %}<a href="{% url 'cms:plugins' %}">{% tr "Plugins" %} →</a>{% endif %}</div></div>{% endif %}
+<p class="muted small" style="margin:0 0 14px"><span class="pill ok">{{ r.live }} {% tr "on the site now" %}</span> {% tr "No cookies and no IP addresses are stored. Your own visits while signed in are not counted." %}</p>
+<div class="grid g4" style="margin-bottom:16px">
+  <div class="card stat"><b>{{ r.visitors|intcomma }}</b><span>{% tr "Visitors" %}</span>{% include "cms/_change.html" with c=r.visitors_change %}</div>
+  <div class="card stat"><b>{{ r.views|intcomma }}</b><span>{% tr "Page views" %}</span>{% include "cms/_change.html" with c=r.views_change %}</div>
+  <div class="card stat"><b>{{ r.per_visit }}</b><span>{% tr "Pages per visit" %}</span></div>
+  <a class="card stat" href="{% url 'cms:inbox' %}" style="text-decoration:none;color:inherit"><b>{{ r.enquiries }}</b><span>{% tr "Enquiries" %} · {{ r.enquiry_rate }}%</span>{% include "cms/_change.html" with c=r.enquiries_change %}</a>
+</div>
+<div class="card" style="margin-bottom:16px"><div class="hd">{% if r.step == 7 %}{% tr "Visitors per week" %}{% else %}{% tr "Visitors per day" %}{% endif %}<span class="sp" style="flex:1"></span>
+  <span class="small muted"><i class="key v"></i>{% tr "Visitors" %} <i class="key pv"></i>{% tr "Page views" %}</span></div>
+  <div class="bd"><div class="chart" dir="ltr" role="img" aria-label="{% tr 'Visitors per day' %}">
+  {% for s in r.series %}<div class="col" title="{{ s.day|date:'M j' }}: {{ s.visitors }} / {{ s.views }}"><i class="pv" style="height:{{ s.h_views }}%"></i><i class="v" style="height:{{ s.h_visitors }}%"></i></div>{% endfor %}
+  </div><div class="chart-axis" dir="ltr"><span>{{ r.series.0.day|date:"M j" }}</span><span>{% tr "peak" %} {{ r.peak }}</span><span>{% with last=r.series|last %}{{ last.day|date:"M j" }}{% endwith %}</span></div></div></div>
+<div class="grid g2">
+  <div class="card"><div class="hd">{% tr "Top pages" %}</div><table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Visitors" %}</th><th class="num">{% tr "Views" %}</th></tr></thead><tbody>
+  {% for p in r.pages %}<tr><td class="small" dir="ltr" style="text-align:start;overflow-wrap:anywhere"><a href="{{ site_url }}{{ p.path }}" target="_blank" rel="noopener">{{ p.path|truncatechars:60 }}</a></td><td class="num">{{ p.visitors }}</td><td class="num">{{ p.views }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="3">{% tr "No visits in this period yet." %}</td></tr>{% endfor %}</tbody></table></div>
+  <div class="card"><div class="hd">{% tr "Where visitors come from" %}</div><div class="bd">
+  {% for c in r.channels %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count tr_label=1 %}{% empty %}<p class="muted">{% tr "No visits in this period yet." %}</p>{% endfor %}
+  {% if r.sources %}<p class="micro" style="margin:16px 0 6px">{% tr "Sources" %}</p>{% for c in r.sources %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count ltr=1 %}{% endfor %}{% endif %}
+  </div></div>
+  <div class="card"><div class="hd">{% tr "Countries" %}</div><div class="bd">
+  {% for c in r.countries %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count tr_label=1 %}{% empty %}<p class="muted">{% tr "No visits in this period yet." %}</p>{% endfor %}</div></div>
+  <div class="card"><div class="hd">{% tr "Devices and languages" %}</div><div class="bd">
+  {% for c in r.devices %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count tr_label=1 %}{% endfor %}
+  {% if r.langs %}<p class="micro" style="margin:16px 0 6px">{% tr "Site language" %}</p>{% for c in r.langs %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count tr_label=1 %}{% endfor %}{% endif %}
+  {% if r.campaigns %}<p class="micro" style="margin:16px 0 6px">{% tr "Campaigns" %} (utm_campaign)</p>{% for c in r.campaigns %}{% include "cms/_bar.html" with label=c.label pct=c.pct n=c.count ltr=1 %}{% endfor %}{% endif %}
+  </div></div>
+</div>
+{% with ct=r.campaign_table %}<div class="card" id="campaigns" style="margin-top:16px"><div class="hd">{% tr "Campaigns" %}<span class="sp" style="flex:1"></span><span class="muted small">{% tr "Visits from links tagged with utm_campaign, utm_content, utm_source and utm_medium." %}</span></div>
+  <div class="bd"><form method="get" action="#campaigns" class="toolbar" style="flex-wrap:wrap"><input type="hidden" name="days" value="{{ r.days }}">
+  <label class="small">{% tr "Campaign" %} <select name="campaign" style="width:auto" onchange="this.form.submit()"><option value="">{% tr "All" %}</option>{% for c in ct.campaigns %}<option value="{{ c }}"{% if c == ct.campaign %} selected{% endif %}>{{ c|default:"(none)" }}</option>{% endfor %}</select></label>
+  <label class="small">{% tr "Content" %} <select name="content" style="width:auto" onchange="this.form.submit()"><option value="">{% tr "All" %}</option>{% for c in ct.contents %}<option value="{{ c }}"{% if c == ct.content %} selected{% endif %}>{{ c|default:"(none)" }}</option>{% endfor %}</select></label>
+  <noscript><button class="btn sm">{% tr "Show" %}</button></noscript>{% if ct.campaign or ct.content %}<a class="btn sm" href="?days={{ r.days }}#campaigns">{% tr "Clear" %}</a>{% endif %}</form></div>
+  <table class="list"><thead><tr><th>{% tr "Campaign" %}</th><th>{% tr "Content" %}</th><th>{% tr "Source" %}</th><th>{% tr "Medium" %}</th><th class="num">{% tr "Visits" %}</th><th class="num">{% tr "Views" %}</th></tr></thead><tbody>
+  {% for c in ct.rows %}<tr><td dir="ltr" style="text-align:start"><a href="?days={{ r.days }}&amp;campaign={{ c.campaign|urlencode }}#campaigns"><code>{{ c.campaign|default:"-" }}</code></a></td><td dir="ltr" style="text-align:start"><a href="?days={{ r.days }}&amp;campaign={{ c.campaign|urlencode }}&amp;content={{ c.content|urlencode }}#campaigns"><code>{{ c.content|default:"-" }}</code></a></td><td dir="ltr" style="text-align:start">{{ c.source|default:"-" }}</td><td dir="ltr" style="text-align:start">{{ c.medium|default:"-" }}</td><td class="num">{{ c.visits }}</td><td class="num">{{ c.views }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="6">{% tr "No visits from tagged links in this period yet." %}</td></tr>{% endfor %}
+  {% if ct.rows|length > 1 %}<tr><td colspan="4"><b>{% tr "Total" %}</b></td><td class="num"><b>{{ ct.visits }}</b></td><td class="num"><b>{{ ct.views }}</b></td></tr>{% endif %}</tbody></table></div>{% endwith %}
+{% if r.enquiry_pages %}<div class="card" style="margin-top:16px"><div class="hd">{% tr "Enquiries by page" %}<span class="sp" style="flex:1"></span><a class="small" href="{% url 'cms:inbox' %}?status=all">{% tr "Inbox" %} →</a></div><table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Enquiries" %}</th><th class="num">{% tr "Views" %}</th></tr></thead><tbody>
+  {% for p in r.enquiry_pages %}<tr><td class="small" dir="ltr" style="text-align:start;overflow-wrap:anywhere"><a href="{{ site_url }}{{ p.path }}" target="_blank" rel="noopener">{{ p.path|truncatechars:60 }}</a></td><td class="num">{{ p.count }}</td><td class="num">{{ p.views }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Pages not found (404)" %}<span class="sp" style="flex:1"></span><span class="muted small">{% tr "Send each one to the right page with a redirect." %}</span></div>
+  <table class="list"><tbody>{% for n in r.not_found %}<tr><td class="small" dir="ltr" style="text-align:start"><code>{{ n.path }}</code></td><td class="num">{{ n.n }}</td>
+  <td style="text-align:end">{% if user.is_superuser %}<a class="btn sm" href="{% url 'cms:settings' %}?from={{ n.path|urlencode }}#redirects">{% tr "Add redirect" %}</a>{% endif %}</td></tr>
+  {% empty %}<tr><td class="muted">{% tr "No visitor reached a missing page in this period." %}</td></tr>{% endfor %}</tbody></table></div>
+<p class="muted small" style="margin-top:14px">{% tr "Search terms and positions on Google are in Google Search Console." %} <a href="https://search.google.com/search-console?resource_id={{ site_url|urlencode:'' }}%2F" target="_blank" rel="noopener">Search Console →</a></p>
+{% endblock %}

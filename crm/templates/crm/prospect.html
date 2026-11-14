@@ -1,0 +1,86 @@
+{% extends "crm/_base.html" %}{% load cms_i18n static %}
+{% block title %}{{ p.name }}{% endblock %}{% block heading %}CRM · {% tr "Prospect" %}{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'crm:prospects' %}">{% tr "All prospects" %}</a><a class="btn" href="{% url 'crm:prospect_edit' p.pk %}">{% tr "Edit" %}</a>{% endblock %}
+{% block crm %}
+<form method="post" id="one">{% csrf_token %}<input type="hidden" name="next" value="{{ back }}"><input type="hidden" name="ids" value="{{ p.pk }}">
+<div class="deal-head"><div style="min-width:0"><h2><bdi>{{ p.name }}</bdi></h2>{% if p.name_ar %}<div dir="rtl" style="font-weight:700">{{ p.name_ar }}</div>{% endif %}
+  <div class="sub">{{ p.sector }}{% if p.sub_sector %} · {{ p.sub_sector }}{% endif %} · {{ p.country }}{% if p.city %}, {{ p.city }}{% endif %}{% if p.website %} · <a href="{{ p.website }}" target="_blank" rel="noopener" dir="ltr">{{ p.domain|default:p.website }}</a>{% endif %}</div></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="prio prio-{{ p.priority }} big" title="{% tr 'Priority' %}">{{ p.priority }}</span>
+    {% if p.status == 'moved' %}{% if p.deal %}<a class="btn primary" href="{% url 'crm:deal' p.deal_id %}">{% tr "Open deal" %}</a>{% endif %}
+    {% elif p.status == 'dnc' %}<span class="pst pst-dnc">{% tr "Do not contact" %}</span>
+    {% else %}<button class="btn primary" formaction="{% url 'crm:prospect_move' %}" data-move>{% tr "Move to leads" %}</button>{% endif %}
+  </div></div>
+{% if matches and matches.orgs or matches and matches.contacts or matches and matches.deals %}
+<div class="msg warning" style="margin-bottom:14px">{% tr "Already in the CRM:" %} <span class="sep-list">
+  {% for o, why in matches.orgs %}<span><a href="{% url 'crm:organization' o.pk %}"><bdi>{{ o.name }}</bdi></a></span>{% endfor %}
+  {% if matches.deals %}<span>{% count matches.deals|length "deals" %}</span>{% endif %}{% if matches.contacts %}<span>{% count matches.contacts|length "contacts" %}</span>{% endif %}</span>.
+  {% tr "Moving it will ask what to do." %}</div>{% endif %}
+<div class="deal-grid">
+  <div>
+    <div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Why they fit" %} <span class="muted small">· {{ p.fit_score }}/5</span></div><div class="bd">
+      <p style="margin:0 0 8px;white-space:pre-wrap" dir="auto">{{ p.fit_reason|default:"-" }}</p>
+      {% if p.fit_source %}<p class="small" style="margin:0"><span class="muted">{% tr "Source" %}:</span> <a href="{{ p.fit_source }}" target="_blank" rel="noopener" dir="ltr">{{ p.fit_source|truncatechars:90 }}</a></p>{% endif %}
+    </div></div>
+    <div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Services to offer first" %}</div><div class="bd">
+      {% for s in svc %}<div style="margin-bottom:6px"><b>{{ s.code }}</b> {{ s.name }} <a class="small" href="{{ s.url }}" target="_blank" rel="noopener">{% tr "Service page" %} ↗</a></div>{% empty %}<p class="muted" style="margin:0">-</p>{% endfor %}
+    </div></div>
+    <div class="card"><div class="hd">{% tr "Company contact" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Email" %}</dt><dd dir="ltr" style="text-align:start">{% if p.email %}<a href="mailto:{{ p.email }}">{{ p.email }}</a> {% if p.email_verified %}<span class="ok">✓ {% tr "seen on the company site" %}</span>{% else %}<span class="muted">({% tr "not verified" %})</span>{% endif %}{% if p.email_source %}<div class="small"><a href="{{ p.email_source }}" target="_blank" rel="noopener">{{ p.email_source|truncatechars:80 }}</a></div>{% endif %}{% else %}-{% endif %}</dd>
+      <dt>{% tr "Phone" %}</dt><dd dir="ltr" style="text-align:start">{% if p.phone %}{{ p.phone }} {% if p.phone_verified %}<span class="ok">✓ {% tr "seen on the company site" %}</span>{% else %}<span class="muted">({% tr "not verified" %})</span>{% endif %}{% if p.phone_source %}<div class="small"><a href="{{ p.phone_source }}" target="_blank" rel="noopener">{{ p.phone_source|truncatechars:80 }}</a></div>{% endif %}{% else %}-{% endif %}</dd>
+      <dt>{% tr "Contact page or form" %}</dt><dd dir="ltr" style="text-align:start">{% if p.contact_page %}<a href="{{ p.contact_page }}" target="_blank" rel="noopener">{{ p.contact_page|truncatechars:80 }}</a>{% else %}-{% endif %}</dd>
+      <dt>LinkedIn</dt><dd dir="ltr" style="text-align:start">{% if p.linkedin %}<a href="{{ p.linkedin }}" target="_blank" rel="noopener">{{ p.linkedin|truncatechars:60 }}</a>{% else %}-{% endif %}</dd>
+      {% if p.officer %}<dt>{% tr "Named on their site" %}</dt><dd>{{ p.officer }}</dd>{% endif %}
+    </dl>
+    <p class="help" style="margin:12px 0 0">{% tr "Company-level contacts only. Every email needs an opt-out; if they ask us to stop, mark the company “Do not contact”." %}</p></div></div>
+  </div>
+  <aside>
+    <div class="side-card"><div class="hd">{% tr "Status" %}</div><div class="bd">
+      <p style="margin:0 0 10px"><span class="pst pst-{{ p.status }}">{% tr p.get_status_display %}</span>{% if p.moved_at %} <span class="muted small">{{ p.moved_at|date:"j M Y" }}{% if p.moved_by %} · {{ p.moved_by.get_full_name|default:p.moved_by.username }}{% endif %}</span>{% endif %}</p>
+      {% if p.status != 'moved' %}<div style="display:flex;gap:6px;flex-wrap:wrap">
+        {% if p.status != 'open' %}<button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="open">{% tr "Not contacted yet" %}</button>{% endif %}
+        {% if p.status != 'hold' %}<button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="hold">{% tr "On hold" %}</button>{% endif %}
+        {% if p.status != 'dnc' %}<button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="dnc">{% tr "Do not contact" %}</button>{% endif %}
+        {% if user.is_superuser %}<button class="btn danger sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="delete" data-confirm="{% tr 'Delete this company from the prospect list?' %}">{% tr "Delete" %}</button>{% endif %}
+      </div>{% endif %}
+    </div></div>
+    <div class="side-card"><div class="hd">{% tr "Details" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Ownership" %}</dt><dd>{{ p.ownership|default:"-" }}</dd>
+      <dt>{% tr "Listed on" %}</dt><dd>{{ p.listed_on|default:"-" }}</dd>
+      <dt>{% tr "Size" %}</dt><dd>{{ p.size_band|default:"-" }}</dd>
+      <dt>{% tr "Owner" %}</dt><dd>{% if p.owner %}{{ p.owner.get_full_name|default:p.owner.username }}{% else %}-{% endif %}</dd>
+      <dt>{% tr "Date checked" %}</dt><dd>{{ p.checked_on|date:"j M Y"|default:"-" }}</dd>
+      <dt>{% tr "Added" %}</dt><dd>{{ p.created_at|date:"j M Y" }}</dd></dl>
+      {% if p.notes %}<p style="margin:12px 0 0;white-space:pre-wrap" dir="auto">{{ p.notes }}</p>{% endif %}</div></div>
+  </aside>
+</div>
+</form>
+<div class="deal-grid unv-wrap"><div>
+    <div class="card" id="unverified" style="margin-top:16px"><div class="hd">{% tr "Unverified info" %} <span class="muted small">· {{ p.unverified|length }}</span></div><div class="bd">
+      <p class="help" style="margin:0 0 10px">{% tr "Extra contacts found in public business sources (the company site, reports, exchange filings, press releases, directories). We have not checked them. Check before use; delete an entry at once if the person asks." %}</p>
+      {% if p.unverified %}<div style="overflow-x:auto"><table class="list unv"><thead><tr><th>{% tr "Who" %}</th><th>{% tr "Email" %}</th><th>{% tr "Phone" %}</th><th>{% tr "Source" %}</th><th></th></tr></thead><tbody>
+      {% for e in p.unverified %}<tr>
+        <td>{% if e.type == "person" %}<b>{{ e.name|default:"-" }}</b>{% if e.role %}<div class="muted small">{{ e.role }}</div>{% endif %}{% else %}<span class="muted">{% tr "Company channel" %}</span>{% if e.role %}<div class="small">{{ e.role }}</div>{% endif %}{% endif %}{% if e.note %}<div class="muted small" dir="auto">{{ e.note }}</div>{% endif %}</td>
+        <td dir="ltr" style="text-align:start" class="small">{% if e.email %}<a href="mailto:{{ e.email }}">{{ e.email }}</a>{% else %}-{% endif %}</td>
+        <td dir="ltr" style="text-align:start" class="small">{{ e.phone|default:"-" }}</td>
+        <td class="small">{% if e.source %}<a href="{{ e.source }}" target="_blank" rel="noopener">{% if e.source_kind %}{% tr e.source_kind %}{% else %}{% tr "Link" %}{% endif %} ↗</a>{% endif %}<div class="muted">{{ e.added }}</div></td>
+        <td><form method="post" action="{% url 'crm:prospect' p.pk %}" style="margin:0">{% csrf_token %}<input type="hidden" name="action" value="unv_delete"><input type="hidden" name="item" value="{{ e.id }}"><button class="btn sm" data-confirm="{% tr 'Delete this entry?' %}">{% tr "Delete" %}</button></form></td>
+      </tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted" style="margin:0 0 10px">{% tr "Nothing yet." %}</p>{% endif %}
+      <details style="margin-top:10px"><summary class="small" style="cursor:pointer;font-weight:700">{% tr "+ Add an entry" %}</summary>
+        <form method="post" action="{% url 'crm:prospect' p.pk %}">{% csrf_token %}<input type="hidden" name="action" value="unv_add">
+        <div class="form-grid" style="margin-top:10px">
+          <label class="f"><span>{% tr "Role" %}</span><input name="role" maxlength="150"></label>
+          <label class="f"><span>{% tr "Name" %}</span><input name="name" maxlength="150"></label>
+          <label class="f"><span>{% tr "Email" %}</span><input name="email" type="email" maxlength="254"></label>
+          <label class="f"><span>{% tr "Phone" %}</span><input name="phone" maxlength="80"></label>
+          <label class="f"><span>{% tr "Source (link)" %}</span><input name="source" type="url" maxlength="500"></label>
+          <label class="f"><span>{% tr "Source type" %}</span><select name="source_kind"><option value=""></option>{% for k in unv_kinds %}<option value="{{ k }}">{% tr k %}</option>{% endfor %}</select></label>
+          <label class="f full"><span>{% tr "Note" %}</span><input name="note" maxlength="500"></label>
+        </div>
+        <button class="btn sm primary" style="margin-top:8px">{% tr "Add" %}</button></form>
+      </details>
+    </div></div>
+</div></div>
+{% include "crm/_prospect_modal.html" %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'crm/prospects.js' %}?v=1"></script>{% endblock %}

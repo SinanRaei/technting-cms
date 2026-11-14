@@ -1,0 +1,39 @@
+{% extends "crm/_base.html" %}{% load static cms_i18n humanize crm_tags %}
+{% block title %}{{ c.name }}{% endblock %}{% block heading %}CRM · {% tr "Contact" %}{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'crm:contact_edit' c.pk %}">{% tr "Edit" %}</a><a class="btn primary" href="{% url 'crm:deal_new' %}?contact={{ c.pk }}">{% tr "+ New deal" %}</a>{% endblock %}
+{% block crm %}
+<div class="deal-head"><span class="av lg teal">{{ c.initials }}</span><div style="min-width:0"><h2>{{ c.name }}</h2>
+<div class="sub">{% if c.job_title %}{{ c.job_title }}{% endif %}{% if c.organization %}{% if c.job_title %} · {% endif %}<a href="{% url 'crm:organization' c.organization_id %}">{{ c.organization.name }}</a>{% endif %}</div></div></div>
+<div class="deal-grid">
+  <div>
+    <form method="post" class="composer">{% csrf_token %}<input type="hidden" name="action" value="log"><input type="hidden" name="kind" value="note">
+      <div class="ctabs"><button type="button" class="on" data-kind="note" data-placeholder="{% tr 'Write a note…' %}">✎ {% tr "Note" %}</button><button type="button" data-kind="call" data-placeholder="{% tr 'What was discussed on the call?' %}">☏ {% tr "Call" %}</button><button type="button" data-kind="email" data-placeholder="{% tr 'Summary of the email you sent or received' %}">✉ {% tr "Email" %}</button><button type="button" data-kind="meeting" data-placeholder="{% tr 'Meeting notes and agreed next steps' %}">◎ {% tr "Meeting" %}</button></div>
+      <div class="cbody"><input type="text" name="subject" placeholder="{% tr 'Title (optional)' %}" maxlength="200"><textarea name="body" rows="3" placeholder="{% tr 'Write a note…' %}" required></textarea><div style="display:flex;justify-content:flex-end"><button class="btn primary">{% tr "Add to timeline" %}</button></div></div>
+    </form>
+    <div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Deals" %}</div><table class="list"><tbody>
+      {% for d in deals %}<tr><td class="title"><a href="{% url 'crm:deal' d.pk %}">{{ d.title }}</a></td><td><span class="st st-{{ d.stage }}">{% tr d.get_stage_display %}</span></td><td style="text-align:end" class="small">{% if d.value %}{{ d.currency }} {{ d.value|floatformat:0|intcomma }}{% endif %}</td></tr>
+      {% empty %}<tr><td class="empty">{% tr "No deals yet." %}</td></tr>{% endfor %}</tbody></table></div>
+    <ol class="timeline">{% for a in timeline %}<li><span class="ic {{ a.kind }}" aria-hidden="true">{% if a.kind == 'call' %}☏{% elif a.kind == 'email' or a.kind == 'enquiry' %}✉{% elif a.kind == 'meeting' %}◎{% elif a.kind == 'stage' %}➜{% elif a.kind == 'task' %}☐{% else %}✎{% endif %}</span>
+      <div class="box {% if a.kind == 'stage' or a.kind == 'system' %}plain{% endif %}"><div class="hd"><b>{% if a.subject %}{{ a.subject|subj:request }}{% else %}{% tr a.get_kind_display %}{% endif %}</b><span>{{ a.created_at|date:"j M Y, H:i" }}</span>{% if a.deal %}<span>· <a href="{% url 'crm:deal' a.deal_id %}">{{ a.deal.title|truncatechars:40 }}</a></span>{% endif %}</div>
+      {% if a.body %}<div class="txt" dir="auto">{{ a.body }}</div>{% endif %}</div></li>
+    {% empty %}<li><div class="box plain muted">{% tr "No activity yet." %}</div></li>{% endfor %}</ol>
+  </div>
+  <aside>
+    <div class="side-card"><div class="hd">{% tr "Details" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Email" %}</dt><dd dir="ltr" style="text-align:start">{% if c.email %}<a href="mailto:{{ c.email }}">{{ c.email }}</a>{% else %}-{% endif %}</dd>
+      <dt>{% tr "Phone" %}</dt><dd dir="ltr" style="text-align:start">{% if c.phone %}<a href="tel:{{ c.phone }}">{{ c.phone }}</a>{% else %}-{% endif %}</dd>
+      <dt>{% tr "Language" %}</dt><dd>{% if c.language == 'ar' %}العربية{% elif c.language == 'en' %}English{% else %}-{% endif %}</dd>
+      <dt>{% tr "Source" %}</dt><dd>{% tr c.get_source_display %}</dd>
+      <dt>{% tr "Owner" %}</dt><dd>{% if c.owner %}{{ c.owner.get_full_name|default:c.owner.username }}{% else %}-{% endif %}</dd>
+      {% if c.linkedin %}<dt>LinkedIn</dt><dd><a href="{{ c.linkedin }}" target="_blank" rel="noopener">{% tr "Profile" %} ↗</a></dd>{% endif %}
+      <dt>{% tr "Added" %}</dt><dd>{{ c.created_at|date:"j M Y" }}</dd>
+    </dl>{% if c.notes %}<p class="txt" style="margin:12px 0 0;white-space:pre-wrap" dir="auto">{{ c.notes }}</p>{% endif %}</div></div>
+    <div class="side-card"><div class="hd">{% tr "Privacy" %}</div><div class="bd"><dl class="kv">
+      <dt>{% tr "Lawful basis" %}</dt><dd>{% tr c.get_lawful_basis_display %}</dd>
+      <dt>{% tr "Marketing emails" %}</dt><dd>{% if c.marketing_opt_in %}<span class="pill ok">{% tr "Agreed" %}</span>{% else %}<span class="pill">{% tr "Not agreed" %}</span>{% endif %}</dd></dl>
+      {% if user.is_superuser %}<form method="post" style="margin-top:12px" onsubmit="return confirm('{% tr "Erase this person and their timeline permanently? Their deals stay, without the contact." %}')">{% csrf_token %}<input type="hidden" name="action" value="erase"><button class="btn sm danger">{% tr "Erase personal data" %}</button><div class="help">{% tr "Use when the person asks you to delete their data." %}</div></form>{% endif %}
+    </div></div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'crm/crm.js' %}?v=1"></script>{% endblock %}

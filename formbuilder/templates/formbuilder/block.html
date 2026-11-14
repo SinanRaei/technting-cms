@@ -1,0 +1,44 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<p><a href="{% url 'formbuilder:results' form.pk %}">← {% tr "Back to results" %}</a></p>
+<form method="post" class="card">{% csrf_token %}<div class="hd">{{ n|add:1 }}. {% tr type_label %}</div><div class="bd" style="overflow-x:auto">
+  <label class="f"><span>{% tr "Show only when" %}</span><input name="if" value="{{ b.if|default:'' }}" class="fb-code" placeholder="{% tr 'Empty = always' %}"></label>
+  {% if b.type == 'heading' %}
+    <label class="f" style="max-width:200px"><span>{% tr "Level" %}</span><select name="level">{% for l in "123" %}<option value="{{ l }}" {% if b.level|stringformat:'s' == l %}selected{% endif %}>h{{ l }}</option>{% endfor %}</select></label>
+    {% tr "Text" as l %}{% include "formbuilder/_pair.html" with name="text" val=b.text label=l rows=2 %}
+  {% elif b.type == 'text' %}
+    <label class="f" style="max-width:240px"><span>{% tr "Style" %}</span><select name="style">{% for k, l in styles %}<option value="{{ k }}" {% if b.style == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label>
+    {% tr "Text" as l %}{% include "formbuilder/_pair.html" with name="text" val=b.text label=l rows=4 %}
+  {% elif b.type == 'lookup' %}
+    <div class="fb-row"><label class="f" style="flex:3"><span>{% tr "Value" %}</span><input name="key" value="{{ b.key|default:'' }}" class="fb-code" placeholder='extent + "_" + position'></label>
+    <label class="f"><span>{% tr "Style" %}</span><select name="style">{% for k, l in styles %}<option value="{{ k }}" {% if b.style == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label></div>
+    {% tr "Title" as l %}{% include "formbuilder/_pair.html" with name="title" val=b.title label=l %}
+    <table class="fb-tbl"><thead><tr><th style="width:180px">{% tr "Value" %}</th><th>EN</th><th>AR</th></tr></thead><tbody>
+    {% for r in lookup_rows %}<tr><td><input name="lk_key" value="{{ r.key }}" class="fb-code"></td><td><textarea name="lk_text_en" rows="3" dir="ltr">{{ r.text.en|default:'' }}</textarea></td><td><textarea name="lk_text_ar" rows="3" dir="rtl" class="ar-text">{{ r.text.ar|default:'' }}</textarea></td></tr>{% endfor %}
+    </tbody></table>
+  {% elif b.type == 'match' %}
+    <table class="fb-tbl"><thead><tr><th style="width:24%">{% tr "Rule" %}</th><th>{% tr "Title" %} EN / AR</th><th>{% tr "Text" %} EN / AR</th></tr></thead><tbody>
+    {% for c in cases %}<tr><td><textarea name="m_if" rows="3" class="fb-code">{{ c.if }}</textarea></td>
+      <td><input name="m_title_en" value="{{ c.title.en|default:'' }}" dir="ltr"><input name="m_title_ar" value="{{ c.title.ar|default:'' }}" dir="rtl" class="ar-text" style="margin-top:4px"></td>
+      <td><textarea name="m_text_en" rows="2" dir="ltr">{{ c.text.en|default:'' }}</textarea><textarea name="m_text_ar" rows="2" dir="rtl" class="ar-text" style="margin-top:4px">{{ c.text.ar|default:'' }}</textarea></td></tr>{% endfor %}
+    </tbody></table><p class="help">{% tr "First rule that matches" %}: empty rule = always.</p>
+  {% elif b.type == 'scores' %}
+    <table class="fb-tbl"><thead><tr><th>{% tr "Label" %} EN</th><th>{% tr "Label" %} AR</th><th>score</th><th>band</th></tr></thead><tbody>
+    {% for i in items %}<tr><td><input name="s_label_en" value="{{ i.label.en|default:'' }}"></td><td><input name="s_label_ar" value="{{ i.label.ar|default:'' }}" dir="rtl" class="ar-text"></td>
+      <td><input name="s_score" value="{{ i.score }}" class="fb-code"></td><td><input name="s_band" value="{{ i.band }}" class="fb-code"></td></tr>{% endfor %}
+    </tbody></table>
+  {% elif b.type == 'verify' %}
+    {% tr "Introduction" as l %}{% include "formbuilder/_pair.html" with name="intro" val=b.intro label=l rows=2 %}
+    {% include "formbuilder/_pair.html" with name="empty" val=b.empty label="-" rows=2 %}
+    <label class="f"><span>{% tr "Rule" %} (this = {% tr "Question" %})</span><input name="include" value="{{ b.include|default:'' }}" class="fb-code" placeholder="unknown(this) or score(this) == 0"></label>
+    <label class="f"><span>{% tr "Questions" %}</span><input name="fields" value="{{ fields_text }}" class="fb-code" placeholder="G1, G2, …"></label>
+  {% elif b.type == 'button' %}
+    {% tr "Label" as l %}{% include "formbuilder/_pair.html" with name="label" val=b.label label=l %}
+    {% include "formbuilder/_pair.html" with name="url" val=b.url label="URL" %}
+    {% include "formbuilder/_pair.html" with name="note" val=b.note label="-" rows=2 %}
+  {% endif %}
+  {% if can_edit %}<p style="margin-top:12px"><button class="btn primary">{% tr "Save" %}</button></p>{% endif %}
+  <p class="small muted">{% for nm in names %}<code dir="ltr">{{ nm }}</code> {% endfor %}</p>
+</div></form>
+{% include "formbuilder/_rules_help.html" %}
+{% endblock %}

@@ -1,0 +1,9 @@
+{% from "layouts/_macros.html" import head with context %}
+<section class="section stats-section{% if block.style == 'dark' %} tone-dark{% endif %}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <dl class="stats">
+      {% for s in block['items'] or [] %}<div class="stat reveal"><dt>{{ s.label }}</dt><dd><span class="stat-value"><bdi>{{ s.value }}</bdi></span>{% if s.text %}<span class="stat-text">{{ s.text }}</span>{% endif %}</dd></div>{% endfor %}
+    </dl>
+  </div>
+</section>

@@ -1,0 +1,9 @@
+{% set items = (block['items'] or [])|list %}
+{% if items %}<section class="section logos-section"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {% if block.title %}<p class="logos-title micro" id="{{ block_id }}-title">{{ block.title }}</p>{% endif %}
+    <ul class="logos">
+      {% for l in items %}{% set img = (media(l.image, '480w') or media(l.image)) if l.image else none %}<li class="reveal">{% if l.url %}<a href="{{ l.url }}" target="_blank" rel="noopener">{% endif %}{% if img %}<img src="{{ img.url }}" alt="{{ l.name or img.alt }}" loading="lazy" decoding="async">{% else %}<span class="logo-name">{{ l.name }}</span>{% endif %}{% if l.url %}</a>{% endif %}</li>{% endfor %}
+    </ul>
+  </div>
+</section>{% endif %}

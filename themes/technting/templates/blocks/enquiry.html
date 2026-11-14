@@ -1,0 +1,5 @@
+{#- Full enquiry form as a page section (contact page). Same form and API as the service pages. -#}
+{% set ef_services = [] %}{% for s in entries('service') %}{% set _ = ef_services.append((s.key, s.name)) %}{% endfor %}
+{% set ef_source, ef_ref, ef_title, ef_service, ef_about = 'page', page.key or '', block.title or t('ef_title_contact'), '', '' %}
+{% set ef_direct = true %}
+{% include "partials/enquiry_form.html" %}

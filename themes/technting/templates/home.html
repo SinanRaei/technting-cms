@@ -1,0 +1,18 @@
+{% extends "layouts/classic.html" %}
+{% block schema %}
+{% set people = [] %}
+{% for f in entries('team') %}{% set _ = people.append({"@type": "Person", "name": f.name, "jobTitle": f.role}) %}{% endfor %}
+{% set org_extra = {} %}{% set ci = contact_info() %}{% set profiles = same_as() %}
+{% if ci.phone %}{% set _ = org_extra.update({"telephone": ci.phone, "contactPoint": {"@type": "ContactPoint", "contactType": "sales", "telephone": ci.phone,
+  "email": setting('contact_email', 'leads@example.com'), "availableLanguage": ["English", "Arabic"]}}) %}{% endif %}
+{% if profiles %}{% set _ = org_extra.update({"sameAs": profiles}) %}{% endif %}
+{% if people %}{% set _ = org_extra.update({"employee": people}) %}{% endif %}
+{{ json_ld(dict({"@context": "https://schema.org", "@type": "Organization", "@id": site_url ~ "/#organization", "name": site_name,
+  "url": site_url ~ "/", "logo": abs_url(asset('img/logo.svg')), "email": setting('contact_email', 'leads@example.com'),
+  "description": page.seo_description}, **org_extra)) }}
+{{ json_ld({"@context": "https://schema.org", "@type": "WebSite", "@id": site_url ~ "/#website", "url": site_url ~ "/", "name": site_name,
+  "inLanguage": languages|map(attribute="code")|list, "publisher": {"@id": site_url ~ "/#organization"}}) }}
+{% endblock %}
+{% block content %}
+{% for b in page.blocks %}{{ render_block(b) }}{% endfor %}
+{% endblock %}

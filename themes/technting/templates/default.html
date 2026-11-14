@@ -1,0 +1,7 @@
+{% extends "layouts/shell.html" %}
+{% block schema %}{{ json_ld({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": t('home'), "item": abs_url(lang.home)},
+  {"@type": "ListItem", "position": 2, "name": page.title, "item": page.abs_url}]}) }}{% endblock %}
+{% block content %}
+{% for b in page.blocks %}{{ render_block(b) }}{% endfor %}
+{% endblock %}

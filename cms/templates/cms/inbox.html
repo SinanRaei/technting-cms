@@ -1,0 +1,29 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Inbox" %}{% endblock %}{% block heading %}{% tr "Inbox" %}{% endblock %}
+{% block actions %}{% if user.is_superuser %}<a class="btn" href="{% url 'cms:inbox_export' %}">{% tr "Export CSV" %}</a>{% endif %}{% endblock %}
+{% block content %}
+{% if unsent %}<div class="msgs"><div class="msg error">{% tr "Enquiries whose email was not sent" %}: {{ unsent }}. {% tr "They are saved here; open one to send the email again." %} <a href="?status=all&amp;form=unsent">{% tr "Show them" %} →</a></div></div>{% endif %}
+{% if not smtp %}<div class="msgs"><div class="msg info">{% tr "Enquiries from the website contact form are saved here. Email copies are off until email is set up." %} {% if user.is_superuser %}<a href="{% url 'cms:email_settings' %}">{% tr "Email settings" %} ↗</a>{% endif %}</div></div>{% endif %}
+<form class="toolbar" method="get">
+  <div class="langs">
+    <a class="pill {% if status == 'open' %}ok{% endif %}" href="?status=open">{% tr "Open" %}</a>
+    <a class="pill {% if status == 'new' %}ok{% endif %}" href="?status=new">{% tr "New" %} ({{ counts.new }})</a>
+    <a class="pill {% if status == 'read' %}ok{% endif %}" href="?status=read">{% tr "Read" %} ({{ counts.read }})</a>
+    <a class="pill {% if status == 'archived' %}ok{% endif %}" href="?status=archived">{% tr "Archived" %} ({{ counts.archived }})</a>
+    <a class="pill {% if status == 'all' %}ok{% endif %}" href="?status=all">{% tr "All" %}</a>
+  </div>
+  <select name="form" style="width:auto" onchange="this.form.submit()"><option value="">{% tr "Any website form" %}</option>{% for k, l in forms %}<option value="{{ k }}" {% if form == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}<option value="unsent" {% if form == 'unsent' %}selected{% endif %}>{% tr "email not sent" %}</option></select>
+  <input type="hidden" name="status" value="{{ status }}"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search name, email, message' %}"><button class="btn">{% tr "Search" %}</button>
+</form>
+<div class="card"><table class="list">
+<thead><tr><th>{% tr "From" %}</th><th>{% tr "Interest" %}</th><th>{% tr "Came from" %}</th><th>{% tr "Message" %}</th><th>{% tr "Received" %}</th><th>{% tr "Status" %}</th></tr></thead><tbody>
+{% for s in items %}<tr>
+  <td class="title"><a href="{% url 'cms:inbox_item' s.pk %}">{% if s.status == 'new' %}<b>● </b>{% endif %}{{ s.name }}</a><div class="small muted" dir="ltr">{{ s.email }}{% if s.organisation %} · {{ s.organisation }}{% endif %}</div></td>
+  <td class="small">{% if s.service %}<b>{{ s.service }}</b> · {% endif %}{% if s.interest %}{% tr s.interest %}{% else %}-{% endif %}</td>
+  <td class="small">{% if s.source %}{% tr s.get_source_display %}{% if s.topic %}<div class="muted" dir="auto">{{ s.topic|truncatechars:48 }}</div>{% endif %}{% else %}-{% endif %}</td>
+  <td class="small muted" dir="auto">{{ s.message|truncatechars:90 }}</td>
+  <td class="small muted">{{ s.created_at|date:"Y-m-d H:i" }}</td>
+  <td><span class="pill {% if s.status == 'new' %}sched{% elif s.status == 'archived' %}{% else %}ok{% endif %}">{% tr s.get_status_display %}</span>{% if not s.email_sent %} <span class="pill off" title="{{ s.email_error }}">{% tr "email not sent" %}</span>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="6" class="muted">{% tr "No enquiries here." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Site health" %}{% endblock %}{% block heading %}{% tr "Site health" %}{% endblock %}
+{% block actions %}<form method="post" action="{% url 'cms:publish' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="next" value="{% url 'cms:health' %}"><button class="btn primary">{% tr "Publish site" %}</button></form>{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 14px">{% tr "Checked on every publish, before the site goes live." %}{% if data %} {% tr "Last check" %}: {{ data.checked_at|slice:":10" }} {{ data.checked_at|slice:"11:16" }} · {% count data.pages "pages checked" %}{% endif %}</p>
+{% if not data %}<div class="card"><div class="bd">{% tr "Publish the site once to run the first check." %}</div></div>
+{% elif not groups %}<div class="card"><div class="bd"><span class="pill ok">{% tr "No problems found" %}</span></div></div>
+{% else %}
+{% for g in groups %}
+<div class="card" style="margin-bottom:14px"><div class="hd">{% tr g.label %} <span class="pill {% if g.severity == 'high' %}off{% elif g.severity == 'low' %}{% else %}draft{% endif %}">{% tr g.severity %}</span><span class="sp" style="flex:1"></span><span class="muted small">{{ g.count }}</span></div>
+<table class="list"><thead><tr><th>{% tr "Page" %}</th><th>{% tr "Detail" %}</th></tr></thead><tbody>
+{% for i in g.items %}<tr><td class="title"><a href="{{ site_url }}{{ i.page }}" target="_blank" rel="noopener" dir="ltr">{{ i.page }}</a></td><td class="muted small" dir="auto">{{ i.detail }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endfor %}
+{% endif %}
+<div class="card" style="margin-top:18px"><div class="hd">{% tr "External links" %}
+  {% if links %}<span class="pill {% if links_broken %}off{% else %}ok{% endif %}">{% count links_broken "broken" %}</span><span class="muted small">{% count links.count "links" %} · {% tr "Last check" %}: {{ links.checked_at|slice:":10" }} {{ links.checked_at|slice:"11:16" }}</span>{% endif %}
+  <span class="sp" style="flex:1"></span>
+  {% if user.is_superuser %}<form method="post" action="{% url 'cms:health_links' %}">{% csrf_token %}<button class="btn sm">{% tr "Check now" %}</button></form>{% endif %}</div>
+  <div class="bd" style="padding-bottom:6px"><p class="help" style="margin:0 0 10px">{% tr "Links to outside sources in pages and articles, checked once a month. Some sites refuse or answer our server differently, so open any flagged link in your browser to confirm before changing it." %}</p></div>
+  {% if link_rows %}<table class="list"><thead><tr><th>{% tr "Link" %}</th><th>{% tr "Result" %}</th><th>{% tr "Used in" %}</th></tr></thead><tbody>
+  {% for i in link_rows %}<tr><td class="small" dir="ltr" style="text-align:start;max-width:420px;overflow-wrap:anywhere"><a href="{{ i.url }}" target="_blank" rel="noopener noreferrer">{{ i.url|truncatechars:90 }}</a></td>
+  <td><span class="pill {% if i.verdict == 'not_found' or i.verdict == 'error' %}off{% else %}draft{% endif %}">{% if i.verdict == 'not_found' %}{% tr "Not found" %}{% elif i.verdict == 'unreachable' %}{% tr "No answer" %}{% elif i.verdict == 'blocked' %}{% tr "Blocked" %}{% else %}{% tr "Error" %}{% endif %} {{ i.status|default:"" }}</span></td><td class="muted small">{{ i.where|join:", "|truncatechars:120 }}</td></tr>{% endfor %}
+  </tbody></table>{% elif links %}<div class="bd"><span class="pill ok">{% tr "All external links work" %}</span></div>{% endif %}
+</div>
+{% endblock %}

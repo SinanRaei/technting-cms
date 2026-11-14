@@ -1,0 +1,13 @@
+{% from "layouts/_macros.html" import head with context %}
+{% set items = (block['items'] or [])|selectattr('question')|list %}
+{% if items %}<section class="section" id="{{ block.anchor or 'faq' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap faq-layout">
+    {{ head(block, split=false) }}
+    <div class="faq">
+      {% for q in items %}<details class="reveal"{% if loop.first %} open{% endif %}><summary>{{ q.question }}</summary><p>{{ q.answer|nl2br }}</p></details>{% endfor %}
+    </div>
+  </div>
+</section>
+{% set qa = [] %}{% for q in items if q.answer %}{% set _ = qa.append({"@type": "Question", "name": q.question, "acceptedAnswer": {"@type": "Answer", "text": q.answer}}) %}{% endfor %}
+{% if qa %}{{ json_ld({"@context": "https://schema.org", "@type": "FAQPage", "inLanguage": lang.code, "mainEntity": qa}) }}{% endif %}
+{% endif %}

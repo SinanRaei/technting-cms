@@ -1,0 +1,41 @@
+{% extends "crm/_base.html" %}{% load static cms_i18n humanize crm_tags %}
+{% block title %}{% tr "Pipeline" %}{% endblock %}{% block heading %}CRM · {% tr "Pipeline" %}{% endblock %}
+{% block actions %}<form method="get" style="display:inline-flex;gap:6px"><select name="owner" onchange="this.form.submit()" aria-label="{% tr 'Owner' %}" style="width:auto">
+<option value="">{% tr "Everyone" %}</option><option value="me" {% if owner == 'me' %}selected{% endif %}>{% tr "My deals" %}</option>
+{% for u in users %}<option value="{{ u.pk }}" {% if owner == u.pk|stringformat:'s' %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}</select></form>
+<a class="btn primary" href="{% url 'crm:deal_new' %}">{% tr "+ New deal" %}</a>{% endblock %}
+{% block crm %}
+<div class="board" id="board">
+{% for col in columns %}
+<section class="col" data-stage="{{ col.key }}" aria-label="{% tr col.label %}">
+  <div class="col-hd"><span class="st st-{{ col.key }}">{% tr col.label %}</span><span class="c">{{ col.deals|length }}</span><span class="sum">{{ col.total|floatformat:0|intcomma }}</span></div>
+  {% for d in col.deals %}{% with t=d.open_tasks.0 %}
+  <a class="dcard" draggable="true" data-id="{{ d.pk }}" href="{% url 'crm:deal' d.pk %}">
+    {% if d.stage == 'new' and not d.first_response_at %}<span class="flag" title="{% tr 'New, not answered yet' %}"></span>{% endif %}
+    <span class="t"><bdi>{{ d.title }}</bdi></span>
+    <span class="o"><bdi>{% if d.organization %}{{ d.organization.name }}{% elif d.contact %}{{ d.contact.name }}{% endif %}</bdi></span>
+    <span class="meta">{% if d.value %}<span class="v">{{ d.currency }} {{ d.value|floatformat:0|intcomma }}</span>{% endif %}<span class="sp"></span>
+      <span title="{% tr 'Days in this stage' %}">{{ d.days_in_stage }}{% tr "d" %}</span>
+      {% if d.owner %}<span class="av" title="{{ d.owner.get_full_name|default:d.owner.username }}">{% if d.owner.first_name %}{{ d.owner.first_name|first|upper }}{{ d.owner.last_name|first|upper }}{% else %}{{ d.owner.username|first|upper }}{% endif %}</span>{% endif %}</span>
+    {% if t %}<span class="due {% if t.overdue %}late{% endif %}">◷ <bdi>{{ t.subject|subj:request|truncatechars:34 }}</bdi>{% if t.due_at %} · {{ t.due_at|date:"j M" }}{% endif %}</span>{% endif %}
+    <select aria-label="{% tr 'Move to stage' %}" data-move>{% for k, l in stages %}<option value="{{ k }}" {% if k == d.stage %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select>
+  </a>{% endwith %}
+  {% empty %}<p class="muted small drop-hint" style="text-align:center;margin:18px 0">{% tr "Drop deals here" %}</p>{% endfor %}
+</section>
+{% endfor %}
+</div>
+<div class="closed-zones">
+  <div class="zone won" data-stage="won">✓ {% tr "Won" %} <span class="muted small">· {{ won }} {% tr "in 30 days" %}</span></div>
+  <div class="zone lost" data-stage="lost">✕ {% tr "Lost" %} <span class="muted small">· {{ lost }} {% tr "in 30 days" %}</span></div>
+</div>
+<div class="modal" id="lost-modal" role="dialog" aria-modal="true" aria-labelledby="lost-title"><div class="box">
+  <h3 id="lost-title">{% tr "Why was this deal lost?" %}</h3>
+  <label class="f"><span>{% tr "Reason" %}</span><select id="lost-reason">{% for k, l in lost_reasons %}<option value="{{ k }}">{% tr l %}</option>{% endfor %}</select></label>
+  <label class="f"><span>{% tr "Note (optional)" %}</span><input type="text" id="lost-note" maxlength="300"></label>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="button" data-cancel>{% tr "Cancel" %}</button><button class="btn primary" type="button" data-ok>{% tr "Mark as lost" %}</button></div>
+</div></div>
+{% endblock %}
+{% block scripts %}
+<script>window.CRM = {moveUrl: "{% url 'crm:api_move' 0 %}", csrf: "{{ csrf_token }}"};</script>
+<script src="{% static 'crm/crm.js' %}?v=1"></script>
+{% endblock %}

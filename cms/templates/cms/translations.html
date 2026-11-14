@@ -1,0 +1,16 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Translations" %}{% endblock %}{% block heading %}{% tr "Translations" %}{% endblock %}
+{% block content %}
+<p class="help" style="margin:0 0 12px">{% tr "Pages and records with a missing language, or where the default language was changed after the translation. Open the language to update it." %}</p>
+<div class="toolbar">
+<a class="btn sm{% if show == 'attention' %} primary{% endif %}" href="?show=attention">{% tr "Needs attention" %} · {{ counts.attention }}</a>
+<a class="btn sm{% if show == 'missing' %} primary{% endif %}" href="?show=missing">{% tr "Missing translation" %} · {{ counts.missing }}</a>
+<a class="btn sm{% if show == 'outdated' %} primary{% endif %}" href="?show=outdated">{% tr "May be out of date" %} · {{ counts.outdated }}</a>
+<a class="btn sm{% if show == 'all' %} primary{% endif %}" href="?show=all">{% tr "All" %} · {{ counts.all }}</a></div>
+<div class="card"><table class="list"><thead><tr><th>{% tr "Title" %}</th><th>{% tr "Type" %}</th>{% for l in others %}<th>{{ l.native_name }}</th>{% endfor %}</tr></thead><tbody>
+{% for r in rows %}<tr><td class="title"><a href="{{ r.url }}" dir="auto">{{ r.title|truncatechars:70 }}</a>{% if not r.live %} <span class="pill draft">{% tr "Hidden" %}</span>{% endif %}</td>
+<td class="small muted">{{ r.kind|tl:request }}</td>
+{% for s in r.states %}<td>{% for k, u in r.edit.items %}{% if k == s.lang %}<a href="{{ u }}" class="pill {% if s.state == 'ok' %}ok{% elif s.state == 'missing' %}off{% else %}draft{% endif %}" style="text-decoration:none">{% if s.state == 'ok' %}✓ {% tr "Up to date" %}{% elif s.state == 'missing' %}+ {% tr "Translate" %}{% else %}{% tr "Check" %}{% if s.days %} · {% count s.days "days" %}{% endif %}{% endif %}</a>{% endif %}{% endfor %}</td>{% endfor %}</tr>
+{% empty %}<tr><td colspan="{{ others|length|add:2 }}" class="muted">{% tr "Everything is translated and up to date." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

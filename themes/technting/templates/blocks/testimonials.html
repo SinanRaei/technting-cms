@@ -1,0 +1,12 @@
+{% from "layouts/_macros.html" import head with context %}
+<section class="section"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="quotes">
+      {% for q in block['items'] or [] %}{% set ph = (media(q.photo, '480w') or media(q.photo)) if q.photo else none %}<figure class="quote reveal">
+        <blockquote><p>{{ q.quote }}</p></blockquote>
+        <figcaption>{% if ph %}<img src="{{ ph.url }}" alt="" width="48" height="48" loading="lazy">{% else %}<span class="quote-pixel" aria-hidden="true"></span>{% endif %}<span><b>{{ q.name }}</b>{% if q.role %}<small>{{ q.role }}</small>{% endif %}</span></figcaption>
+      </figure>{% endfor %}
+    </div>
+  </div>
+</section>

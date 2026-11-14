@@ -1,0 +1,33 @@
+{% extends "crm/_base.html" %}{% load cms_i18n humanize %}
+{% block title %}CRM{% endblock %}{% block heading %}CRM · {% tr "Overview" %}{% endblock %}
+{% block actions %}<a class="btn primary" href="{% url 'crm:deal_new' %}">{% tr "+ New deal" %}</a>{% endblock %}
+{% block crm %}
+<div class="kpis">
+  <a class="kpi {% if n.unanswered %}alert{% endif %}" href="{% url 'crm:deals' %}?stage=new"><span>{% tr "New leads waiting for a reply" %}</span><b>{{ n.unanswered }}</b><small>{% tr "Stage New, no call, email or meeting logged" %}</small></a>
+  <a class="kpi" href="{% url 'crm:deals' %}"><span>{% tr "New leads, last 30 days" %}</span><b>{{ n.new_leads }}</b><small>{{ n.new_web }} {% tr "from the website" %}</small></a>
+  <a class="kpi good" href="{% url 'crm:pipeline' %}"><span>{% tr "Open pipeline" %}</span><b>{{ currency }} {{ n.pipeline|floatformat:0|intcomma }}</b><small>{% count n.open_count "open deals" %} · {% tr "weighted" %} {{ n.weighted|floatformat:0|intcomma }}</small></a>
+  <div class="kpi"><span>{% tr "Win rate, last 90 days" %}</span><b>{% if n.win_rate is not None %}{{ n.win_rate }}%{% else %}-{% endif %}</b><small>{% tr "won" %} {{ currency }} {{ n.won_value_90|floatformat:0|intcomma }}</small></div>
+  <div class="kpi"><span>{% tr "Median first response" %}</span><b>{% if n.median_response_h is not None %}{% if n.median_response_h < 1 %}&lt; 1 {% tr "h" %}{% else %}{% count n.median_response_h|floatformat:0 "h" %}{% endif %}{% else %}-{% endif %}</b><small>{% tr "time to the first call, email or meeting" %}</small></div>
+  <a class="kpi {% if n.overdue %}alert{% endif %}" href="{% url 'crm:tasks' %}"><span>{% tr "Overdue tasks" %}</span><b>{{ n.overdue }}</b><small>{% count n.due_today "due today" %}</small></a>
+</div>
+<div class="grid g3" style="margin-bottom:16px">
+  <div class="card"><div class="hd">{% tr "Pipeline by stage" %}</div><div class="bd bars funnel">
+    {% for s in funnel %}<div class="bar"><span class="lbl"><span class="st st-{{ s.key }}">{% tr s.label %}</span></span><span class="trk"><span class="fill" style="width:{{ s.pct }}%"></span></span><span class="val">{{ s.count }}</span></div>{% endfor %}
+  </div></div>
+  <div class="card"><div class="hd">{% tr "New leads by source" %} <span class="muted small">· 30 {% tr "days" %}</span></div><div class="bd bars">
+    {% for s in sources %}<div class="bar"><span class="lbl">{% tr s.label %}</span><span class="trk"><span class="fill" style="width:{{ s.pct }}%"></span></span><span class="val">{{ s.n }}</span></div>{% empty %}<p class="muted" style="margin:0">{% tr "No new leads yet." %}</p>{% endfor %}
+  </div></div>
+  <div class="card"><div class="hd">{% tr "New leads by area" %} <span class="muted small">· 30 {% tr "days" %}</span></div><div class="bd bars">
+    {% for s in labs %}<div class="bar"><span class="lbl">{% tr s.label %}</span><span class="trk"><span class="fill" style="width:{{ s.pct }}%"></span></span><span class="val">{{ s.n }}</span></div>{% empty %}<p class="muted" style="margin:0">{% tr "No new leads yet." %}</p>{% endfor %}
+  </div></div>
+</div>
+<div class="grid g2">
+  <div class="card"><div class="hd">{% tr "My tasks" %} <span class="sp" style="flex:1"></span><a class="btn sm" href="{% url 'crm:tasks' %}">{% tr "All tasks" %}</a></div><div class="bd">
+    {% for t in my_tasks %}{% include "crm/_task.html" %}{% empty %}<p class="muted" style="margin:0">{% tr "Nothing to do. Well done." %}</p>{% endfor %}
+  </div></div>
+  <div class="card"><div class="hd">{% tr "Latest deals" %} <span class="sp" style="flex:1"></span><a class="btn sm" href="{% url 'crm:deals' %}">{% tr "All deals" %}</a></div>
+    <table class="list"><tbody>{% for d in recent %}<tr><td class="title"><a href="{% url 'crm:deal' d.pk %}"><bdi>{{ d.title }}</bdi></a><div class="muted small">{% if d.contact %}{{ d.contact.name }}{% endif %}{% if d.organization %} · {{ d.organization.name }}{% endif %}</div></td>
+    <td><span class="st st-{{ d.stage }}">{% tr d.get_stage_display %}</span></td><td class="muted small" style="white-space:nowrap">{{ d.created_at|date:"M j" }}</td></tr>
+    {% empty %}<tr><td class="empty">{% tr "No deals yet. Website enquiries appear here automatically." %}</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

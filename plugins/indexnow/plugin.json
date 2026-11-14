@@ -1,0 +1,8 @@
+{
+ "label": "IndexNow",
+ "version": "1.0",
+ "description": "Tells Bing, Yandex, Seznam and other IndexNow search engines about changed pages right after every publish (Google does not use IndexNow; it reads the sitemap).",
+ "settings": [],
+ "label_ar": "IndexNow (إبلاغ محركات البحث)",
+ "description_ar": "يُبلغ Bing وYandex وSeznam وغيرها من محركات IndexNow بالصفحات التي تغيّرت فور كل نشر. (لا يستخدم Google هذه الخدمة، بل يقرأ خريطة الموقع.)"
+}

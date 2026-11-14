@@ -1,0 +1,10 @@
+{% extends "layouts/shell.html" %}
+{% block content %}
+<section class="legal"><div class="wrap">
+<p class="eyebrow">Error 404</p>
+<h1 id="page-title">This page has moved or no longer exists.</h1>
+<p>An older link may point here. Start from the homepage or tell us what you were looking for.</p>
+<p lang="ar" dir="rtl">ربما نُقلت هذه الصفحة أو لم تعد موجودة. ابدأوا من <a href="/ar/">الصفحة الرئيسية</a>.</p>
+<p><a href="/">Go to the homepage</a> · <a href="mailto:{{ setting('contact_email', 'leads@example.com') }}">{{ setting('contact_email', 'leads@example.com') }}</a></p>
+</div></section>
+{% endblock %}

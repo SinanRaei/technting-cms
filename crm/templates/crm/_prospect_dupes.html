@@ -1,0 +1,22 @@
+{% load cms_i18n %}<form method="post" action="{% url 'crm:prospect_move' %}" class="dupes">{% csrf_token %}
+<input type="hidden" name="decided" value="1"><input type="hidden" name="next" value="{{ next }}">
+{% for i in ids %}<input type="hidden" name="ids" value="{{ i }}">{% endfor %}
+{% for i in clean_ids %}<input type="hidden" name="dec_{{ i }}" value="new">{% endfor %}
+<h3 id="dupes-title">{% if found|length == 1 %}{% tr "This company is already in the CRM" %}{% else %}{% tr "Some companies are already in the CRM" %}{% endif %}</h3>
+<p class="muted small" style="margin-top:-6px">{% tr "Check what is already there, then choose what to do with each company." %}{% if clean %} {% tr "Companies with nothing in the CRM yet will move as new leads:" %} {{ clean }}.{% endif %}</p>
+{% if blocked %}<div class="msg error small">{% tr "Not moved, marked “Do not contact”:" %} {{ blocked|join:", " }}</div>{% endif %}
+{% for p, m in found %}<fieldset class="dupe">
+  <legend><bdi>{{ p.name }}</bdi></legend>
+  <ul class="found">
+    {% for o, why in m.orgs %}<li>{% tr "Organisation" %}: <a href="{% url 'crm:organization' o.pk %}" target="_blank" rel="noopener"><bdi>{{ o.name }}</bdi></a> <span class="muted">({% for w in why %}{% tr w %}{% if not forloop.last %} · {% endif %}{% endfor %})</span></li>{% endfor %}
+    {% for c, why in m.contacts %}<li>{% tr "Contact" %}: <a href="{% url 'crm:contact' c.pk %}" target="_blank" rel="noopener"><bdi>{{ c.name }}</bdi></a> <span dir="ltr">{{ c.email|default:c.phone }}</span> <span class="muted">({% for w in why %}{% tr w %}{% if not forloop.last %} · {% endif %}{% endfor %})</span></li>{% endfor %}
+    {% for d in m.deals %}<li>{% tr "Deal" %}: <a href="{% url 'crm:deal' d.pk %}" target="_blank" rel="noopener"><bdi>{{ d.title }}</bdi></a> <span class="st st-{{ d.stage }}">{% tr d.get_stage_display %}</span>{% if d.owner %} <span class="muted small">· {{ d.owner.get_full_name|default:d.owner.username }}</span>{% endif %}</li>{% endfor %}
+  </ul>
+  <div class="choices">
+    {% for d in m.deals %}{% if d.is_open %}<label><input type="radio" name="dec_{{ p.pk }}" value="link:{{ d.pk }}"{% if d == m.first_open %} checked{% endif %}> {% tr "Add the research to this open deal:" %} <bdi>{{ d.title }}</bdi></label>{% endif %}{% endfor %}
+    <label><input type="radio" name="dec_{{ p.pk }}" value="new"{% if not m.first_open %} checked{% endif %}> {% tr "Open a new lead anyway (uses the organisation and contact already in the CRM)" %}</label>
+    <label><input type="radio" name="dec_{{ p.pk }}" value="skip"> {% tr "Do not move this company" %}</label>
+  </div>
+</fieldset>{% endfor %}
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><a class="btn" href="{{ next }}" data-close-modal>{% tr "Cancel" %}</a><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>

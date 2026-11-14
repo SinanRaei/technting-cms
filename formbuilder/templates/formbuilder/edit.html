@@ -1,0 +1,57 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<form method="post">{% csrf_token %}
+<div class="grid g2" style="align-items:start">
+<div class="card"><div class="hd">{% tr "Form" %} <span class="sp"></span><span class="small muted">{% tr "Version" %} {{ form.version }}</span></div><div class="bd">
+  {% tr "Title" as l %}{% include "formbuilder/_pair.html" with name="title" val=form.title label=l %}
+  {% tr "Introduction" as l %}{% include "formbuilder/_pair.html" with name="intro" val=form.intro label=l rows=8 %}
+  <div class="fb-row">
+    <label class="f"><span>{% tr "Address" %}</span><input name="slug" value="{{ form.slug }}" dir="ltr" maxlength="80"></label>
+    <label class="f"><span>{% tr "Status" %}</span><select name="status">{% for k, l in statuses %}<option value="{{ k }}" {% if form.status == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label>
+  </div>
+  <div class="f"><span>{% tr "Languages" %}</span> <label><input type="checkbox" name="lang_en" value="1" {% if 'en' in form.languages %}checked{% endif %}> English</label> <label><input type="checkbox" name="lang_ar" value="1" {% if 'ar' in form.languages %}checked{% endif %}> العربية</label></div>
+  <label class="f"><input type="checkbox" name="public" value="1" {% if form.settings.public %}checked{% endif %}> {% tr "Open to everyone on the website" %}<div class="help">{% tr "Off: only personal links open it." %}</div></label>
+  <label class="f"><input type="checkbox" name="turnstile" value="1" {% if form.settings.turnstile %}checked{% endif %}> {% tr "Human check (Cloudflare Turnstile)" %}</label>
+  <p class="help">{% tr "Page on the website" %}: <span dir="ltr">{{ site_url }}/…</span> · {% tr "Form" %} <code dir="ltr">{{ form.slug }}</code> (block “Form (Technting Forms)”)</p>
+</div></div>
+
+<div class="card"><div class="hd">{% tr "After sending" %}</div><div class="bd">
+  <label class="f"><span>{% tr "After sending" %}</span><select name="results"><option value="show" {% if form.settings.results == 'show' %}selected{% endif %}>{% tr "Show the results" %}</option><option value="thank_you" {% if form.settings.results != 'show' %}selected{% endif %}>{% tr "Show a thank-you message" %}</option></select></label>
+  {% tr "Thank-you message" as l %}{% include "formbuilder/_pair.html" with name="thank_you" val=form.settings.thank_you label=l rows=2 %}
+  <label class="f"><span>{% tr "Booking link" %}</span><input name="booking_url" value="{{ form.settings.booking_url|default:'' }}" dir="ltr" placeholder="https://"></label>
+  <label class="f"><span>{% tr "Team email for each answer" %}</span><input name="notify_email" value="{{ form.settings.notify_email|default:'' }}" dir="ltr"><div class="help">{% tr "Empty = the leads email in Settings." %}</div></label>
+  <label class="f"><span>{% tr "Privacy email" %}</span><input name="privacy_email" value="{{ form.settings.privacy_email|default:'' }}" dir="ltr"></label>
+  <label class="f"><input type="checkbox" name="respondent_email" value="1" {% if form.settings.respondent_email %}checked{% endif %}> {% tr "Email the results to the person" %}</label>
+  {% tr "Email subject" as l %}{% include "formbuilder/_pair.html" with name="email_subject" val=form.settings.email.subject label=l %}
+  {% tr "Email opening" as l %}{% include "formbuilder/_pair.html" with name="email_intro" val=form.settings.email.intro label=l rows=3 %}
+  {% tr "Email closing" as l %}{% include "formbuilder/_pair.html" with name="email_outro" val=form.settings.email.outro label=l rows=3 %}
+</div></div>
+
+<div class="card"><div class="hd">{% tr "In the CRM" %}</div><div class="bd">
+  <label class="f"><span>{% tr "In the CRM" %}</span><select name="crm_mode">{% for k, l in crm_modes %}<option value="{{ k }}" {% if form.settings.crm.mode == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label>
+  <div class="fb-row"><label class="f"><span>{% tr "Service code" %}</span><input name="crm_service" value="{{ form.settings.crm.service|default:'' }}" dir="ltr" placeholder="W1"></label>
+  <label class="f"><span>{% tr "Area" %}</span><input name="crm_lab" value="{{ form.settings.crm.lab|default:'' }}" dir="ltr" placeholder="websites"></label></div>
+  <div class="fb-row"><label class="f" style="flex:3"><span>{% tr "Task for the owner" %}</span><input name="task_subject" value="{{ form.settings.crm.task.subject|default:'' }}"></label>
+  <label class="f"><span>{% tr "Due after (hours)" %}</span><input type="number" name="task_hours" min="1" max="720" value="{{ form.settings.crm.task.hours|default:24 }}"></label></div>
+  <label class="f"><span>{% tr "Owner of new leads" %}</span><select name="owner_mode">{% for k, l in owner_modes %}<option value="{{ k }}" {% if form.settings.owner.mode == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select></label>
+  <div class="f"><span>{% tr "Take turns between" %}</span><div>{% for u in users %}<label style="display:inline-flex;gap:4px;margin-inline-end:12px"><input type="checkbox" name="owner_users" value="{{ u.pk }}" {% if u.pk in form.settings.owner.users %}checked{% endif %}> {{ u.get_full_name|default:u.username }}</label>{% endfor %}</div><div class="help">{% tr "None ticked = every active sales user." %}</div></div>
+  <table class="fb-tbl"><thead><tr><th>{% tr "Which question gives" %}</th><th></th></tr></thead><tbody>
+  {% for k, l in map_keys %}<tr><td>{% tr l %}</td><td><select name="map_{{ k }}"><option value="">-</option>{% for key in keys %}<option value="{{ key }}" {% for mk, mv in form.settings.map.items %}{% if mk == k and mv == key %}selected{% endif %}{% endfor %}>{{ key }}</option>{% endfor %}</select></td></tr>{% endfor %}
+  </tbody></table>
+</div></div>
+
+<div class="card"><div class="hd">{% tr "Tags" %}</div><div class="bd">
+  <p class="help">{% tr "Tags added to each answer when their rule is true." %}</p>
+  <table class="fb-tbl"><thead><tr><th style="width:30%">{% tr "Tag name" %}</th><th>{% tr "Rule" %}</th></tr></thead><tbody>
+  {% for t in tags %}<tr><td><input name="tag_name" value="{{ t.name }}" dir="ltr"></td><td><input name="tag_if" value="{{ t.if }}" class="fb-code"></td></tr>{% endfor %}
+  </tbody></table>
+  <div class="fb-row" style="margin-top:12px"><label class="f"><span>{% tr "Keep answers for (months)" %}</span><input type="number" name="retention_months" min="1" max="120" value="{{ form.settings.retention_months|default:24 }}"></label>
+  <label class="f"><span>{% tr "Delete unfinished drafts after (days)" %}</span><input type="number" name="draft_days" min="1" max="365" value="{{ form.settings.draft_days|default:30 }}"></label></div>
+</div></div>
+</div>
+{% if can_edit %}<p style="margin-top:14px"><button class="btn primary">{% tr "Save" %}</button></p>{% endif %}
+</form>
+{% include "formbuilder/_rules_help.html" %}
+{% if user.is_superuser %}<form method="post" action="{% url 'formbuilder:delete' form.pk %}" class="card" style="margin-top:16px;max-width:520px">{% csrf_token %}<div class="hd">{% tr "Delete form" %}</div><div class="bd fb-row">
+<label class="f"><span>{% tr "Type the form's address to confirm." %}</span><input name="confirm" dir="ltr" autocomplete="off"></label><button class="btn danger">{% tr "Delete form" %}</button></div></form>{% endif %}
+{% endblock %}

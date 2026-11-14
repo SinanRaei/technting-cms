@@ -1,0 +1,53 @@
+# Technting CMS with MariaDB in its own container (see docs/INSTALL.md, "Database"):
+#   docker compose -f docker-compose.yml -f deploy/docker/docker-compose.mysql.yml up -d --build
+# Set these in .env next to docker-compose.yml first (long random values; never commit .env):
+#   TECHNTING_CMS_DB_PASSWORD=...   the CMS user's password
+#   MARIADB_ROOT_PASSWORD=...       the database server's root password
+# The database name and user default to technting_cms (TECHNTING_CMS_DB_NAME, TECHNTING_CMS_DB_USER). MariaDB keeps
+# its files in the named volume "mariadb" and publishes no port: only the app and scheduler containers reach it.
+# Backups (manage.py backup) use mariadb-dump from the app image and land in the data volume as before.
+
+x-db-env: &db-env
+  TECHNTING_CMS_DB_ENGINE: mysql
+  TECHNTING_CMS_DB_HOST: db
+  TECHNTING_CMS_DB_PORT: "3306"
+  TECHNTING_CMS_DB_NAME: ${TECHNTING_CMS_DB_NAME:-technting_cms}
+  TECHNTING_CMS_DB_USER: ${TECHNTING_CMS_DB_USER:-technting_cms}
+
+services:
+  db:
+    image: mariadb:11
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MARIADB_DATABASE: ${TECHNTING_CMS_DB_NAME:-technting_cms}
+      MARIADB_USER: ${TECHNTING_CMS_DB_USER:-technting_cms}
+      MARIADB_PASSWORD: ${TECHNTING_CMS_DB_PASSWORD:?set TECHNTING_CMS_DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD in .env}
+    volumes:
+      - mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    environment:
+      <<: *db-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    environment:
+      <<: *db-env
+    depends_on:
+      app:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+volumes:
+  mariadb:

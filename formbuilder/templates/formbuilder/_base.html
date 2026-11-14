@@ -1,0 +1,34 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{{ form.title.en|default:form.slug }} · {% tr "Forms" %}{% endblock %}
+{% block heading %}<a href="{% url 'formbuilder:list' %}" style="color:inherit;text-decoration:none">{% tr "Forms" %}</a> · <bdi>{{ form.title.en|default:form.slug }}</bdi>{% endblock %}
+{% block head %}<style>
+.fb-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fb-pair>label{margin:0}.fb-pair textarea,.fb-pair input{width:100%}
+.fb-pair .ar textarea,.fb-pair .ar input,.ar-text{direction:rtl;font-family:"IBM Plex Sans Arabic",Manrope,sans-serif}
+.fb-tbl{width:100%;border-collapse:collapse}.fb-tbl td,.fb-tbl th{padding:6px;border-bottom:1px solid #edf1f5;vertical-align:top;text-align:start}
+.fb-tbl input,.fb-tbl select,.fb-tbl textarea{width:100%}.fb-tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.fb-code{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12.5px;direction:ltr;text-align:left}.fb-err{color:var(--danger);font-size:12px;font-weight:700}
+.fb-step{margin-bottom:16px}.fb-q{display:flex;gap:10px;align-items:center;padding:9px 16px;border-top:1px solid #edf1f5;flex-wrap:wrap}
+.fb-q .k{font-family:"IBM Plex Mono",Consolas,monospace;font-weight:700;min-width:46px}.fb-q .l{flex:1;min-width:200px}.fb-q form{display:inline}
+.fb-row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.fb-row>label{flex:1;min-width:180px}
+.fb-bar{height:8px;background:#eef1f5;border-radius:99px;overflow:hidden;min-width:80px}.fb-bar span{display:block;height:100%;background:var(--teal)}
+.fb-results{max-width:760px}.fb-results h1,.fb-results h2,.fb-results h3{margin:16px 0 6px}.fb-results p{margin:4px 0 10px}
+.fb-results .fr-verify li,.fb-results .fr-rung{background:#f6f8fa;border-radius:8px;padding:8px 12px;margin:6px 0;list-style:none}
+.fb-results .fr-q{display:block;font-weight:700}.fb-results .fr-why{display:block;color:var(--muted)}
+.fb-results .fr-scores{list-style:none;padding:0}.fb-results .fr-score{display:flex;gap:10px;align-items:center}.fb-results .fr-score-bar{display:none}
+.fb-results .fr-note p,.fb-results .fr-small p{color:var(--muted);font-size:13px}.fb-results .fr-callout p{background:#0b1320;color:#fff;padding:10px 14px;border-radius:8px}
+.fb-help{font-size:12.5px;color:var(--muted)}.fb-help code{font-size:12px}
+@media(max-width:820px){.fb-pair{grid-template-columns:1fr}}
+</style>{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'formbuilder:preview' form.pk %}" target="_blank" rel="noopener">{% tr "Preview" %} EN ↗</a><a class="btn" href="{% url 'formbuilder:preview' form.pk %}?lang=ar" target="_blank" rel="noopener">{% tr "Preview" %} ع ↗</a>{% endblock %}
+{% block content %}
+<nav class="tabs" aria-label="{% tr 'Form' %}">
+  <a class="{% if tab == 'settings' %}on{% endif %}" href="{% url 'formbuilder:edit' form.pk %}">{% tr "Settings" %}</a>
+  <a class="{% if tab == 'questions' %}on{% endif %}" href="{% url 'formbuilder:questions' form.pk %}">{% tr "Questions" %}</a>
+  <a class="{% if tab == 'calcs' %}on{% endif %}" href="{% url 'formbuilder:calcs' form.pk %}">{% tr "Calculations" %}</a>
+  <a class="{% if tab == 'results' %}on{% endif %}" href="{% url 'formbuilder:results' form.pk %}">{% tr "Results" %}</a>
+  <a class="{% if tab == 'submissions' %}on{% endif %}" href="{% url 'formbuilder:submissions' form.pk %}">{% tr "Submissions" %}</a>
+  <a class="{% if tab == 'links' %}on{% endif %}" href="{% url 'formbuilder:links' form.pk %}">{% tr "Personal links" %}</a>
+</nav>
+{% if not can_edit and tab != 'submissions' and tab != 'links' %}<div class="msgs"><div class="msg info">{% tr "Only editors and administrators can change this form." %}</div></div>{% endif %}
+{% block form %}{% endblock %}
+{% endblock %}

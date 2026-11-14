@@ -1,0 +1,10 @@
+[Unit]
+Description=Technting CMS public demo reset (fresh database, media and published site)
+
+[Service]
+Type=oneshot
+User=technting
+WorkingDirectory=/home/technting/technting-cms
+# refuses to run unless TECHNTING_CMS_DEMO_MODE=1 and the demo account are set in .env
+ExecStart=/home/technting/technting-cms/.venv/bin/python manage.py demo_reset
+TimeoutStartSec=600

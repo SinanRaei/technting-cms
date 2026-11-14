@@ -1,0 +1,26 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<div class="card" style="overflow-x:auto"><table class="list">
+<thead><tr><th>{% tr "Who" %}</th><th>{% tr "Parts" %}</th><th>{% tr "Progress" %}</th><th>{% tr "Status" %}</th><th>{% tr "Expires" %}</th></tr></thead><tbody>
+{% for l in links %}<tr>
+  <td class="title"><a href="{% url 'formbuilder:link' l.pk %}">{{ l.label|default:"-" }}</a><div class="small muted">{% if l.contact %}{{ l.contact.name }}{% endif %}{% if l.deal %} · {{ l.deal.title }}{% endif %}</div></td>
+  <td class="small fb-code">{{ l.steps|join:", "|default:"-" }}</td>
+  <td style="min-width:140px"><div class="fb-bar" title="{{ l.done }}/{{ l.total }}"><span style="width:{{ l.pct }}%"></span></div><div class="small muted">{{ l.done }}/{{ l.total }}</div></td>
+  <td><span class="pill {% if l.st == 'complete' %}ok{% elif l.st == 'revoked' or l.st == 'expired' %}off{% else %}sched{% endif %}">{% tr l.st %}</span></td>
+  <td class="small muted">{{ l.expires_at|date:"Y-m-d" }}</td>
+</tr>{% empty %}<tr><td colspan="5" class="muted">-</td></tr>{% endfor %}
+</tbody></table></div>
+<form method="post" class="card" style="margin-top:16px;max-width:820px">{% csrf_token %}<div class="hd">{% tr "New personal link" %}</div><div class="bd">
+  <div class="fb-row">
+    <label class="f"><span>{% tr "Label" %}</span><input name="label" maxlength="150" placeholder="Part A · CEO"></label>
+    <label class="f"><span>{% tr "Language" %}</span><select name="language"><option value="en">English</option><option value="ar">العربية</option></select></label>
+    <label class="f"><span>{% tr "Expires in (days)" %}</span><input type="number" name="days" min="1" max="365" value="30"></label>
+  </div>
+  <div class="fb-row">
+    <label class="f"><span>{% tr "Who" %}</span><select name="contact"><option value="">-</option>{% for c in contacts %}<option value="{{ c.pk }}">{{ c.name }}{% if c.email %} · {{ c.email }}{% endif %}</option>{% endfor %}</select></label>
+    <label class="f"><span>{% tr "For deal" %}</span><select name="deal"><option value="">-</option>{% for d in deals %}<option value="{{ d.pk }}" {% if d.pk == deal_id %}selected{% endif %}>{{ d.title }}</option>{% endfor %}</select></label>
+  </div>
+  <div class="f"><span>{% tr "Parts" %}</span><div>{% for s in steps %}<label style="display:inline-flex;gap:4px;margin-inline-end:14px"><input type="checkbox" name="steps" value="{{ s.key }}"> {{ s.title.en|default:s.key }}</label>{% endfor %}</div><div class="help">{% tr "All parts" %}: -</div></div>
+  <button class="btn primary">{% tr "Create link" %}</button>
+</div></form>
+{% endblock %}

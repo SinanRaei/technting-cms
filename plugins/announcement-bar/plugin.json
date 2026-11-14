@@ -1,0 +1,18 @@
+{
+ "label": "Announcement bar",
+ "version": "1.0",
+ "description": "A short message across the top of every page, in English and Arabic, with an optional link. Set start and end dates and it shows and hides by itself. Visitors can close it; a new message shows again.",
+ "label_ar": "شريط الإعلان",
+ "description_ar": "رسالة قصيرة أعلى كل صفحة بالعربية والإنجليزية مع رابط اختياري. حدّدوا تاريخ البداية والنهاية فيظهر ويختفي وحده. يستطيع الزائر إغلاقه، وتظهر أي رسالة جديدة من جديد.",
+ "settings": [
+  {"name": "text_en", "label": "Message (English)", "label_ar": "الرسالة (بالإنجليزية)", "type": "text", "dir": "ltr"},
+  {"name": "text_ar", "label": "Message (Arabic)", "label_ar": "الرسالة (بالعربية)", "type": "text", "dir": "rtl"},
+  {"name": "link_label_en", "label": "Link text (English), optional", "label_ar": "نص الرابط (بالإنجليزية)، اختياري", "type": "text", "dir": "ltr"},
+  {"name": "link_label_ar", "label": "Link text (Arabic), optional", "label_ar": "نص الرابط (بالعربية)، اختياري", "type": "text", "dir": "rtl"},
+  {"name": "link_url", "label": "Link address (English pages)", "label_ar": "رابط الصفحات الإنجليزية", "type": "url", "help": "For example /claude/ or https://…", "help_ar": "مثلاً /claude/ أو https://…"},
+  {"name": "link_url_ar", "label": "Link address (Arabic pages), optional", "label_ar": "رابط الصفحات العربية، اختياري", "type": "url", "help": "Leave empty to use the English address.", "help_ar": "اتركوه فارغاً لاستخدام رابط الصفحات الإنجليزية."},
+  {"name": "starts", "label": "Show from", "label_ar": "يظهر من تاريخ", "type": "date"},
+  {"name": "ends", "label": "Show until (last day)", "label_ar": "يظهر حتى تاريخ (آخر يوم)", "type": "date"},
+  {"name": "style", "label": "Colour", "label_ar": "اللون", "type": "select", "options": ["teal", "dark", "sand"]}
+ ]
+}

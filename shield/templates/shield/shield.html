@@ -1,0 +1,228 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}Technting Shield{% endblock %}{% block heading %}Technting Shield{% endblock %}
+{% block actions %}{% if protect %}<span class="pill ok">{% tr "Protecting: attacks are blocked" %}</span>{% else %}<a class="pill draft" href="{% url 'cms:plugins' %}">{% tr "Learning mode: attacks are only logged" %}</a>{% endif %}{% endblock %}
+{% block content %}
+<nav class="tabs">{% for t in tabs %}<a href="?tab={{ t }}" class="{% if t == tab %}on{% endif %}">{% if t == "overview" %}{% tr "Overview" %}{% elif t == "log" %}{% tr "Live log" %}{% elif t == "blocks" %}{% tr "Blocked addresses" %}{% elif t == "lists" %}{% tr "Threat lists" %}{% elif t == "scans" %}{% tr "Scans" %}{% elif t == "domain" %}{% tr "Domain" %}{% else %}{% tr "Sessions" %}{% endif %}</a>{% endfor %}</nav>
+
+{% if tab == "overview" %}
+<div class="grid g4" style="margin-bottom:16px">
+  <div class="card stat"><b>{{ c1.blocked }}</b><span>{% tr "Blocked today" %}</span></div>
+  <div class="card stat"><b>{{ c7.blocked }}</b><span>{% tr "Blocked in 7 days" %}</span></div>
+  <div class="card stat"><b>{{ c7.logged }}</b><span>{% tr "Logged only, 7 days" %}</span></div>
+  <div class="card stat"><b>{{ c7.login_failed }}</b><span>{% tr "Wrong passwords, 7 days" %}</span></div>
+</div>
+<div class="grid g2" style="align-items:start;margin-bottom:16px">
+  <div class="card"><div class="hd">{% tr "Needs attention" %}</div>
+  <ul class="checks" style="padding:12px 16px;margin:0;display:flex;flex-direction:column;gap:8px">{% for i in findings %}<li class="{% if i.level == 'high' %}bad{% else %}warn{% endif %}"><span aria-hidden="true">{% if i.level == 'high' %}✕{% else %}!{% endif %}</span> {% tr i.text %}{% if i.detail %} <span class="muted small" dir="auto">({{ i.detail }})</span>{% endif %}</li>{% empty %}<li class="ok"><span aria-hidden="true">✓</span> {% tr "No problems found" %}</li>{% endfor %}</ul></div>
+  <div class="card"><div class="hd">{% tr "What was stopped, 7 days" %}</div>
+  {% if c7.top_rules %}<table class="list"><tbody>{% for r in c7.top_rules %}<tr><td>{% tr r.label %}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}</tbody></table>
+  {% else %}<div class="bd muted">{% tr "Nothing yet." %}</div>{% endif %}</div>
+</div>
+<div class="grid g2" style="align-items:start">
+  <div class="card"><div class="hd">{% tr "Most active addresses, 7 days" %}</div>
+  {% if c7.top_ips %}<table class="list"><tbody>{% for r in c7.top_ips %}<tr><td dir="ltr" style="text-align:start"><a href="?tab=log&ip={{ r.ip|urlencode }}"><code>{{ r.ip }}</code></a></td><td>{{ r.country|default:"-" }}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}</tbody></table>
+  {% else %}<div class="bd muted">{% tr "Nothing yet." %}</div>{% endif %}</div>
+  <div class="card"><div class="hd">{% tr "Protection status" %}</div><div class="bd">
+  <ul class="checks" style="margin:0;display:flex;flex-direction:column;gap:6px">
+    {% for f in feeds %}<li class="{% if f.stale %}warn{% else %}ok{% endif %}"><span aria-hidden="true">{% if f.stale %}!{% else %}✓{% endif %}</span> {% tr f.label %}: {% if f.count %}{% count f.count "entries" %}{% else %}{% tr "not downloaded yet" %}{% endif %}</li>{% endfor %}
+    <li class="{% if osv %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if osv %}✓{% else %}!{% endif %}</span> {% tr "Package check" %}: {% if osv %}{% count osv.findings|length "problems" %}{% else %}{% tr "not run yet" %}{% endif %}</li>
+    <li class="{% if integrity %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if integrity %}✓{% else %}!{% endif %}</span> {% tr "File check" %}: {% if integrity %}{% count integrity.files "files" %}{% else %}{% tr "not run yet" %}{% endif %}</li>
+    <li class="{% if ct and not ct.error %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if ct and not ct.error %}✓{% else %}!{% endif %}</span> {% tr "Certificate watch" %}: {% if ct %}{% count ct.certs|length "certificates" %}{% else %}{% tr "not run yet" %}{% endif %}</li>
+    <li class="{% if cloudflare %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if cloudflare %}✓{% else %}-{% endif %}</span> {% tr "Blocks at Cloudflare's edge" %}: {% if cloudflare %}{% tr "On" %}{% else %}{% tr "Off" %}{% endif %}</li>
+    <li class="{% if reputation_on %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if reputation_on %}✓{% else %}-{% endif %}</span> AbuseIPDB: {% if reputation_on %}{% tr "On" %}{% else %}{% tr "Off" %}{% endif %}</li>
+    <li class="ok"><span aria-hidden="true">✓</span> {% tr "Blocked addresses now" %}: {{ blocks_active }}</li>
+  </ul>
+  <p class="help" style="margin:10px 0 0">{% tr "Lists refresh by themselves every day, and the checks run in the background. Settings are in Plugins → Technting Shield." %}</p></div></div>
+</div>
+
+{% elif tab == "log" %}
+<form method="get" class="card" style="margin-bottom:12px"><div class="bd" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+  <input type="hidden" name="tab" value="log">
+  <label class="f" style="margin:0"><span>{% tr "Type" %}</span><select name="kind"><option value="">{% tr "All" %}</option>
+    <option value="firewall"{% if f.kind == "firewall" %} selected{% endif %}>{% tr "Firewall" %}</option><option value="login"{% if f.kind == "login" %} selected{% endif %}>{% tr "Sign-ins" %}</option><option value="scan"{% if f.kind == "scan" %} selected{% endif %}>{% tr "Scans" %}</option></select></label>
+  <label class="f" style="margin:0"><span>{% tr "Result" %}</span><select name="action"><option value="">{% tr "All" %}</option>
+    <option value="blocked"{% if f.action == "blocked" %} selected{% endif %}>{% tr "Blocked" %}</option><option value="logged"{% if f.action == "logged" %} selected{% endif %}>{% tr "Logged" %}</option><option value="alert"{% if f.action == "alert" %} selected{% endif %}>{% tr "Alert" %}</option></select></label>
+  <label class="f" style="margin:0"><span>{% tr "Importance" %}</span><select name="severity"><option value="">{% tr "All" %}</option>{% for s in severities %}<option value="{{ s }}"{% if f.severity == s %} selected{% endif %}>{% if s == "high" %}{% tr "High" %}{% elif s == "medium" %}{% tr "Medium" %}{% elif s == "low" %}{% tr "Low" %}{% else %}{% tr "Info" %}{% endif %}</option>{% endfor %}</select></label>
+  <label class="f" style="margin:0"><span>{% tr "Address" %}</span><input name="ip" value="{{ f.ip }}" dir="ltr" style="width:150px"></label>
+  <label class="f" style="margin:0"><span>{% tr "Search" %}</span><input name="q" value="{{ f.q }}" dir="auto" style="width:170px"></label>
+  <button class="btn">{% tr "Filter" %}</button>
+  <label style="display:flex;gap:6px;align-items:center;font-weight:700;margin-inline-start:auto"><input type="checkbox" id="live" checked> {% tr "Update live" %}</label>
+</div></form>
+<div class="card" style="overflow:auto"><table class="list" id="log"><thead><tr><th>{% tr "Time" %}</th><th>{% tr "Event" %}</th><th>{% tr "Result" %}</th><th>{% tr "Address" %}</th><th>{% tr "Request" %}</th><th>{% tr "Details" %}</th></tr></thead><tbody>
+{% for e in rows %}<tr data-id="{{ e.id }}"><td class="small muted" dir="ltr" style="text-align:start;white-space:nowrap">{{ e.at }}{% if e.count > 1 %} <b>×{{ e.count }}</b>{% endif %}</td>
+<td><span class="pill {% if e.severity == 'high' %}off{% elif e.severity == 'medium' %}draft{% endif %}">{{ e.label }}</span></td>
+<td class="small">{{ e.action_label }}</td>
+<td dir="ltr" style="text-align:start;white-space:nowrap">{% if e.ip %}<a href="?tab=log&ip={{ e.ip|urlencode }}"><code>{{ e.ip }}</code></a>{% endif %} {{ e.country }}</td>
+<td class="small" dir="ltr" style="text-align:start;max-width:320px;overflow-wrap:anywhere">{% if e.method %}<b>{{ e.method }}</b> {% endif %}{{ e.path }}{% if e.user %} · {{ e.user }}{% endif %}</td>
+<td class="small muted" dir="auto" style="max-width:320px;overflow-wrap:anywhere">{{ e.detail }}{% if e.ua %}<div dir="ltr" style="text-align:start">{{ e.ua }}</div>{% endif %}</td></tr>
+{% empty %}<tr class="empty"><td colspan="6" class="muted">{% tr "Nothing logged yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="help">{% tr "Repeats of the same event from the same address within 5 minutes are counted on one line (×). The log keeps 90 days." %}</p>
+
+{% elif tab == "blocks" %}
+<div class="grid g2" style="align-items:start;margin-bottom:16px">
+<form method="post" action="{% url 'shield:block_add' %}" class="card">{% csrf_token %}<div class="hd">{% tr "Block an address" %}</div><div class="bd">
+  <label class="f"><span>{% tr "Address or network" %}</span><input name="network" required dir="ltr" placeholder="203.0.113.7 / 203.0.113.0/24"></label>
+  <label class="f"><span>{% tr "Reason" %}</span><input name="reason" dir="auto"></label>
+  <label class="f"><span>{% tr "For how long" %}</span><select name="hours"><option value="1">{% tr "1 hour" %}</option><option value="24">{% tr "1 day" %}</option><option value="168">{% tr "1 week" %}</option><option value="720">{% tr "30 days" %}</option><option value="0" selected>{% tr "Until removed" %}</option></select></label>
+  <button class="btn primary">{% tr "Block" %}</button></div></form>
+<div class="card"><div class="hd">{% tr "Never blocked" %}</div><div class="bd">
+  {% if allow %}<pre dir="ltr" style="margin:0 0 8px;white-space:pre-wrap">{{ allow }}</pre>{% else %}<p class="muted" style="margin-top:0">{% tr "No addresses on the allow list." %}</p>{% endif %}
+  <p class="help" style="margin:0">{% tr "Add your office address in Plugins → Technting Shield → Never block these addresses, so a mistake can never lock the team out." %}</p>
+  <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+  <p class="help" style="margin:0 0 8px">{% tr "Cloudflare copies our blocks of single addresses to its edge, so they also protect the public website." %} {% if cloudflare %}<span class="pill ok">{% tr "On" %}</span>{% else %}<span class="pill">{% tr "Off" %}</span>{% endif %}</p>
+  {% if cloudflare %}<form method="post" action="{% url 'shield:run' 'cloudflare' %}">{% csrf_token %}<button class="btn">{% tr "Test the connection and sync now" %}</button></form>{% endif %}
+</div></div></div>
+<div class="card" style="overflow:auto"><div class="hd">{% tr "Blocked now" %} <span class="muted small">{{ blocks|length }}</span></div>
+<table class="list"><thead><tr><th>{% tr "Address" %}</th><th>{% tr "Reason" %}</th><th>{% tr "By" %}</th><th>{% tr "Until" %}</th><th>{% tr "Stopped" %}</th><th></th></tr></thead><tbody>
+{% for b in blocks %}<tr><td dir="ltr" style="text-align:start"><a href="?tab=log&ip={{ b.network|urlencode }}"><code>{{ b.network }}</code></a>{% if b.cf_rule_id %} <span class="pill ok" title="Cloudflare">CF</span>{% endif %}</td>
+<td class="small" dir="auto">{{ b.reason }}</td><td class="small">{% if b.source == "auto" %}{% tr "Technting Shield" %}{% else %}{{ b.created_by.username|default:"-" }}{% endif %}</td>
+<td class="small muted" dir="ltr" style="text-align:start">{% if b.expires_at %}{{ b.expires_at|date:"Y-m-d H:i" }}{% else %}{% tr "Until removed" %}{% endif %}</td><td class="num">{{ b.hits }}</td>
+<td><form method="post" action="{% url 'shield:block_remove' b.pk %}">{% csrf_token %}<button class="btn small">{% tr "Unblock" %}</button></form></td></tr>
+{% empty %}<tr><td colspan="6" class="muted">{% tr "No addresses are blocked." %}</td></tr>{% endfor %}</tbody></table></div>
+
+{% elif tab == "lists" %}
+<div class="card" style="margin-bottom:16px;overflow:auto"><div class="hd">{% tr "Threat lists" %}<span class="sp" style="flex:1"></span>
+<form method="post" action="{% url 'shield:run' 'feeds' %}">{% csrf_token %}<button class="btn">{% tr "Update all now" %}</button></form></div>
+<table class="list"><thead><tr><th>{% tr "List" %}</th><th>{% tr "Entries" %}</th><th>{% tr "Updated" %}</th><th>{% tr "Every" %}</th><th>{% tr "Use" %}</th></tr></thead><tbody>
+{% for f in feeds %}<tr><td><b>{% tr f.label %}</b><div class="muted small">{% tr f.about %}</div><div class="muted small" dir="ltr" style="text-align:start">{{ f.credit }}</div>{% if f.error %}<div class="small" style="color:#9b2c20" dir="ltr">{{ f.error }}</div>{% endif %}</td>
+<td class="num">{{ f.count|default:"-" }}</td><td class="small muted" dir="ltr" style="text-align:start;white-space:nowrap">{% if f.updated %}{{ f.updated|date:"Y-m-d H:i" }}{% else %}-{% endif %}{% if f.stale %} <span class="pill draft">{% tr "out of date" %}</span>{% endif %}</td>
+<td class="small">{% count f.every_hours "h" %}</td>
+<td class="small">{% if f.kind == "block" %}{% tr "Block" %}{% elif f.kind == "tag" %}{% tr "Log (block if chosen)" %}{% else %}{% tr "Trust" %}{% endif %}</td></tr>{% endfor %}</tbody></table>
+<div class="bd"><p class="help" style="margin:0">{% tr "If a download fails, the last good copy stays in use. Private and Cloudflare addresses are never blocked, whatever a list says." %}</p></div></div>
+<form method="post" action="{% url 'shield:ip_check' %}" class="card" style="max-width:720px">{% csrf_token %}<div class="hd">{% tr "Check an address" %}</div><div class="bd">
+<div style="display:flex;gap:8px"><input name="ip" dir="ltr" required placeholder="203.0.113.7" value="{{ check.ip|default:'' }}"><button class="btn">{% tr "Check" %}</button></div>
+{% if check %}<ul class="checks" style="margin:12px 0 0;display:flex;flex-direction:column;gap:6px">
+  <li class="{% if check.lists %}bad{% else %}ok{% endif %}">{% tr "On threat lists" %}: <span dir="ltr">{{ check.lists|join:", "|default:"-" }}</span></li>
+  <li class="{% if check.blocked %}bad{% else %}ok{% endif %}">{% tr "Blocked now" %}: {% if check.blocked %}{% tr "Yes" %}{% else %}{% tr "No" %}{% endif %}</li>
+  <li class="ok">{% tr "On the allow list" %}: {% if check.allowed %}{% tr "Yes" %}{% else %}{% tr "No" %}{% endif %} · {% tr "Cloudflare server" %}: {% if check.cloudflare %}{% tr "Yes" %}{% else %}{% tr "No" %}{% endif %} · {% if not check.public %}{% tr "Private address" %}{% endif %}</li>
+  {% if check.reputation %}<li class="{% if check.reputation.score >= 50 %}bad{% else %}ok{% endif %}">AbuseIPDB: {{ check.reputation.score }}% · {% count check.reputation.reports "reports" %} · <span dir="ltr">{{ check.reputation.isp }}</span></li>{% endif %}
+  <li class="ok">{% tr "Lines in our log" %}: <a href="?tab=log&ip={{ check.ip|urlencode }}">{{ check.events }}</a></li>
+</ul>{% endif %}</div></form>
+
+{% elif tab == "scans" %}
+<div class="card" style="margin-bottom:16px;overflow:auto"><div class="hd">{% tr "Package check (OSV.dev)" %}<span class="sp" style="flex:1"></span><form method="post" action="{% url 'shield:run' 'osv' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form></div>
+{% if osv %}<div class="bd" style="padding-bottom:0"><p style="margin-top:0">{% if osv.findings %}<span class="pill off">{% count osv.findings|length "problems" %}</span>{% else %}<span class="pill ok">{% tr "No known problems" %}</span>{% endif %} <span class="muted small">{% count osv.packages "packages checked" %} · {% tr "every day" %}</span>{% if osv.error %} <span class="small" style="color:#9b2c20" dir="ltr">{{ osv.error }}</span>{% endif %}</p></div>
+{% if osv.findings %}<table class="list"><thead><tr><th>{% tr "Package" %}</th><th>{% tr "Importance" %}</th><th>{% tr "Problem" %}</th><th>{% tr "Fixed in" %}</th></tr></thead><tbody>
+{% for v in osv.findings %}<tr><td dir="ltr" style="text-align:start"><b>{{ v.package }}</b> {{ v.version }}{% if v.direct %} <span class="pill">requirements.txt</span>{% endif %}</td>
+<td><span class="pill {% if v.severity == 'CRITICAL' or v.severity == 'HIGH' %}off{% elif v.severity %}draft{% endif %}">{{ v.severity|default:"?" }}</span></td>
+<td class="small" dir="ltr" style="text-align:start"><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.id }}</a> {{ v.aliases|join:" " }}<div class="muted">{{ v.summary }}</div></td>
+<td dir="ltr" style="text-align:start">{{ v.fixed|join:", "|default:"-" }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+{% else %}<div class="bd muted">{% tr "Not run yet." %}</div>{% endif %}
+<div class="bd"><p class="help" style="margin:0">{% tr "A developer updates the package to the fixed version, tests and deploys. Data: OSV.dev (Google's open vulnerability database)." %}</p></div></div>
+
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "File check" %}<span class="sp" style="flex:1"></span>
+<form method="post" action="{% url 'shield:run' 'integrity' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form>
+<form method="post" action="{% url 'shield:integrity_accept' %}" onsubmit="return confirm(this.dataset.q)" data-q="{% tr 'Accept the files as they are now as the reference? Do this only right after a deployment you know about.' %}">{% csrf_token %}<button class="btn">{% tr "Accept the current files" %}</button></form></div>
+<div class="bd">{% if integrity %}
+<p style="margin-top:0">{% tr "Compared with" %}: <b>{% if integrity.source == "manifest" %}{% tr "the deployed commit" %}{% elif integrity.source == "update" %}{% tr "the version installed by Updates" %}{% elif integrity.source == "git" %}{% tr "the Git commit" %}{% else %}{% tr "the saved reference" %}{% endif %}</b> <span dir="ltr" class="muted">{{ integrity.label }}</span> · {% count integrity.files "files" %}</p>
+{% if integrity.changed or integrity.added or integrity.missing or integrity.web_root %}
+{% if integrity.changed %}<p class="micro" style="margin:8px 0 4px">{% tr "Changed" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in integrity.changed %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% if integrity.added %}<p class="micro" style="margin:8px 0 4px">{% tr "New files" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in integrity.added %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% if integrity.missing %}<p class="micro" style="margin:8px 0 4px">{% tr "Missing" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in integrity.missing %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% if integrity.web_root %}<p class="micro" style="margin:8px 0 4px;color:#9b2c20">{% tr "Unexpected files in the public website folder" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in integrity.web_root %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% else %}<span class="pill ok">{% tr "All files match" %}</span>{% endif %}
+{% else %}<p class="muted" style="margin:0">{% tr "Not run yet." %}</p>{% endif %}
+<p class="help" style="margin:10px 0 0">{% tr "Runs every hour. A change that was not a deployment can mean someone got into the server." %}</p></div></div>
+
+<div class="card" style="overflow:auto"><div class="hd">{% tr "Certificate watch" %} <span class="muted small" dir="ltr">{{ domain }}</span><span class="sp" style="flex:1"></span><form method="post" action="{% url 'shield:run' 'ct' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form></div>
+{% if ct %}{% if ct.error %}<div class="bd small" style="color:#9b2c20" dir="ltr">{{ ct.error }}</div>{% endif %}
+<table class="list"><thead><tr><th>{% tr "Names" %}</th><th>{% tr "Issued by" %}</th><th>{% tr "Valid" %}</th></tr></thead><tbody>
+{% for c in certs %}<tr><td dir="ltr" class="small" style="text-align:start"><a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.names|join:", "|truncatechars:120 }}</a></td><td class="small">{{ c.issuer }}</td><td class="small muted" dir="ltr" style="text-align:start;white-space:nowrap">{{ c.not_before }} → {{ c.not_after }}</td></tr>
+{% empty %}<tr><td colspan="3" class="muted">-</td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="bd muted">{% tr "Not run yet." %}</div>{% endif %}
+<div class="bd"><p class="help" style="margin:0">{% tr "Every certificate for our domain is published in public logs. Technting Shield checks them twice a day and alerts you when a certificate appears for a new name or from a new authority. Data: crt.sh (Sectigo), Cert Spotter." %}</p></div></div>
+
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Public website files" %}<span class="sp" style="flex:1"></span>
+<form method="post" action="{% url 'shield:run' 'integrity' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form>
+{% if public.new_extra %}<form method="post" action="{% url 'shield:public_accept' %}" onsubmit="return confirm(this.dataset.q)" data-q="{% tr 'Accept the unknown files as known? Do this only after a developer checked them.' %}">{% csrf_token %}<button class="btn">{% tr "Accept the unknown files" %}</button></form>{% endif %}</div>
+<div class="bd">{% if public %}
+<p style="margin-top:0">{% count public.files "files published by the CMS" %} · {% count public.extra_count "other files" %}</p>
+{% if public.changed or public.missing or public.new_extra %}
+{% if public.changed %}<p class="micro" style="margin:8px 0 4px;color:#9b2c20">{% tr "Changed outside the CMS" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in public.changed %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% if public.missing %}<p class="micro" style="margin:8px 0 4px">{% tr "Deleted" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in public.missing %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% if public.new_extra %}<p class="micro" style="margin:8px 0 4px">{% tr "New files the CMS did not make" %}</p><pre dir="ltr" class="small" style="margin:0;white-space:pre-wrap">{% for x in public.new_extra %}{{ x }}
+{% endfor %}</pre>{% endif %}
+{% else %}<span class="pill ok">{% tr "All files match what the CMS published" %}</span>{% endif %}
+{% else %}<p class="muted" style="margin:0">{% tr "Not run yet." %}</p>{% endif %}
+<p class="help" style="margin:10px 0 0">{% tr "Every hour Technting Shield compares each public file with the fingerprint the CMS saved when it published it. A difference means the website was changed on the server; publishing again puts it back." %}</p></div></div>
+
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Media library check" %}<span class="sp" style="flex:1"></span><form method="post" action="{% url 'shield:run' 'media' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form></div>
+<div class="bd">{% if media %}
+<p style="margin-top:0">{% count media.count "files" %}</p>
+{% if media_problems %}<table class="list"><tbody>{% for rel, found in media_problems %}<tr><td dir="ltr" class="small" style="text-align:start">{{ rel }}</td><td class="small">{% for level, text in found %}<span class="pill {% if level == 'high' %}off{% else %}draft{% endif %}">{% tr text %}</span> {% endfor %}</td></tr>{% endfor %}</tbody></table>
+{% else %}<span class="pill ok">{% tr "No suspicious files" %}</span>{% endif %}
+{% else %}<p class="muted" style="margin:0">{% tr "Not run yet." %}</p>{% endif %}
+<p class="help" style="margin:10px 0 0">{% tr "Checks that every uploaded file really is an image, video or PDF and hides no code. Runs every 6 hours; only new files are read." %}</p></div></div>
+
+{% elif tab == "domain" %}
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Domain and email security" %} <span class="muted small" dir="ltr">{{ domain }}</span><span class="sp" style="flex:1"></span><form method="post" action="{% url 'shield:run' 'domain' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form></div>
+{% if dom %}<ul class="checks" style="padding:12px 16px;margin:0;display:flex;flex-direction:column;gap:8px">{% for i in dom.items %}<li class="{% if i.level == 'ok' %}ok{% elif i.level == 'high' %}bad{% else %}warn{% endif %}"><span aria-hidden="true">{% if i.level == 'ok' %}✓{% elif i.level == 'high' %}✕{% else %}!{% endif %}</span> {% tr i.text %}{% if i.detail %}<div class="muted small" dir="ltr" style="text-align:start;overflow-wrap:anywhere">{{ i.detail }}</div>{% endif %}</li>{% endfor %}</ul>
+<div class="bd" style="padding-top:0">{% if dom.failed %}<p class="small" style="color:#9b2c20;margin:0 0 8px">{% tr "Not checked (DNS did not answer)" %}: <span dir="ltr">{{ dom.failed|join:", " }}</span></p>{% endif %}
+<table class="list"><tbody>{% for k, v in dom.records.items %}<tr><td class="small" dir="ltr" style="text-align:start;white-space:nowrap"><b>{{ k }}</b></td><td class="small" dir="ltr" style="text-align:start;overflow-wrap:anywhere">{{ v|join:", "|default:"-" }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="bd muted">{% tr "Not run yet." %}</div>{% endif %}
+<div class="bd"><p class="help" style="margin:0">{% tr "Checked every 6 hours. A change of name servers or mail servers is emailed at once: it is the usual sign of a stolen domain. SPF and DMARC stop others from sending email in our name." %}</p></div></div>
+
+<div class="card" style="overflow:auto"><div class="hd">{% tr "Lookalike domains" %}<span class="sp" style="flex:1"></span><form method="post" action="{% url 'shield:run' 'lookalike' %}">{% csrf_token %}<button class="btn">{% tr "Check now" %}</button></form></div>
+{% if lk %}<div class="bd" style="padding-bottom:0"><p style="margin-top:0" class="muted small">{% count lk.checked "names checked" %} · {% tr "every day" %}{% if not lk.ct_ok %} · {% tr "certificate search did not answer" %}{% endif %}</p></div>
+<table class="list"><thead><tr><th>{% tr "Domain" %}</th><th>{% tr "Website" %}</th><th>{% tr "Email" %}</th><th>{% tr "Found by" %}</th><th>{% tr "First seen" %}</th></tr></thead><tbody>
+{% for r in lookalikes %}<tr><td dir="ltr" style="text-align:start"><b>{{ r.name }}</b></td><td>{% if r.web %}<span class="pill draft">{% tr "Yes" %}</span>{% else %}-{% endif %}</td><td>{% if r.mail %}<span class="pill off">{% tr "Yes" %}</span>{% else %}-{% endif %}</td>
+<td class="small">{% if r.source == "certificate" %}{% tr "Certificate" %}{% else %}DNS{% endif %}</td><td class="small muted" dir="ltr" style="text-align:start">{{ r.first_date }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">{% tr "No lookalike domains are registered." %}</td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="bd muted">{% tr "Not run yet." %}</div>{% endif %}
+<div class="bd"><p class="help" style="margin:0">{% tr "Names one typo away from ours, other endings (.net, .co, .sa ...) and names with words like login or secure. One that can receive email can be used for fake messages to clients. Our own domains are set in Plugins → Technting Shield." %}</p></div></div>
+
+{% else %}
+<div class="card" style="margin-bottom:16px;overflow:auto"><div class="hd">{% tr "Signed-in sessions" %}<span class="sp" style="flex:1"></span>
+<form method="post" action="{% url 'shield:sessions_others' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn">{% tr "Sign out all my other sessions" %}</button></form></div>
+<table class="list"><thead><tr><th>{% tr "User" %}</th><th>{% tr "Browser" %}</th><th>{% tr "Address" %}</th><th>{% tr "Signed in" %}</th><th></th></tr></thead><tbody>
+{% for s in sessions %}<tr><td dir="ltr" style="text-align:start"><b>{{ s.user.username }}</b>{% if s.current %} <span class="pill ok">{% tr "This session" %}</span>{% endif %}</td><td class="small">{{ s.browser }}</td>
+<td dir="ltr" class="small" style="text-align:start">{{ s.ip|default:"-" }} {{ s.country }}</td><td class="small muted" dir="ltr" style="text-align:start">{{ s.at|slice:":16"|default:"-" }}</td>
+<td>{% if not s.current %}<form method="post" action="{% url 'shield:session_end' s.ref %}">{% csrf_token %}<button class="btn small">{% tr "Sign out" %}</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">-</td></tr>{% endfor %}</tbody></table></div>
+<div class="card" style="overflow:auto"><div class="hd">{% tr "Known devices" %}</div>
+<table class="list"><thead><tr><th>{% tr "User" %}</th><th>{% tr "Country" %}</th><th>{% tr "Address" %}</th><th>{% tr "First seen" %}</th><th>{% tr "Last seen" %}</th></tr></thead><tbody>
+{% for d in devices %}<tr><td dir="ltr" style="text-align:start">{{ d.user.username }}</td><td>{{ d.country|default:"-" }}</td><td dir="ltr" class="small" style="text-align:start">{{ d.ip }}</td>
+<td class="small muted" dir="ltr" style="text-align:start">{{ d.first_seen|date:"Y-m-d" }}</td><td class="small muted" dir="ltr" style="text-align:start">{{ d.last_seen|date:"Y-m-d H:i" }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">-</td></tr>{% endfor %}</tbody></table>
+<div class="bd"><p class="help" style="margin:0">{% tr "A sign-in from a device or country not seen before is logged, and emailed to administrators who turned on security alerts in My account." %}</p></div></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if tab == "log" %}
+<script>
+(function () {
+  var body = document.querySelector("#log tbody"), live = document.getElementById("live"), since = new Date().toISOString();
+  function cell(text, attrs) { var td = document.createElement("td"); td.textContent = text; Object.keys(attrs || {}).forEach(function (k) { td.setAttribute(k, attrs[k]); }); return td; }
+  function row(e) {
+    var tr = document.createElement("tr");
+    tr.setAttribute("data-id", e.id);
+    tr.appendChild(cell(e.at + (e.count > 1 ? " ×" + e.count : ""), {dir: "ltr", class: "small muted", style: "text-align:start;white-space:nowrap"}));
+    var td = document.createElement("td"), pill = document.createElement("span");
+    pill.className = "pill" + (e.severity === "high" ? " off" : e.severity === "medium" ? " draft" : ""); pill.textContent = e.label; td.appendChild(pill); tr.appendChild(td);
+    tr.appendChild(cell(e.action_label, {class: "small"}));
+    tr.appendChild(cell((e.ip || "") + " " + (e.country || ""), {dir: "ltr", style: "text-align:start;white-space:nowrap"}));
+    tr.appendChild(cell((e.method ? e.method + " " : "") + e.path + (e.user ? " · " + e.user : ""), {dir: "ltr", class: "small", style: "text-align:start;overflow-wrap:anywhere"}));
+    tr.appendChild(cell(e.detail + (e.ua ? " · " + e.ua : ""), {dir: "auto", class: "small muted", style: "overflow-wrap:anywhere"}));
+    return tr;
+  }
+  setInterval(function () {
+    if (!live.checked || document.hidden) return;
+    var q = new URLSearchParams(location.search); q.delete("tab"); q.set("after", since);
+    fetch("{% url 'shield:log_json' %}?" + q.toString(), {credentials: "same-origin"}).then(function (r) { return r.json(); }).then(function (d) {
+      since = d.now;
+      var empty = body.querySelector("tr.empty"); if (empty && d.rows.length) empty.remove();
+      d.rows.slice().reverse().forEach(function (e) {
+        var old = body.querySelector('tr[data-id="' + e.id + '"]'); if (old) old.remove();  // a repeat updates its line
+        body.insertBefore(row(e), body.firstChild);
+      });
+      while (body.children.length > 300) body.removeChild(body.lastChild);
+    }).catch(function () {});
+  }, 8000);
+})();
+</script>{% endif %}{% endblock %}

@@ -1,0 +1,17 @@
+{% from "layouts/_macros.html" import head with context %}
+<section class="section band" id="{{ block.anchor or 'pricing' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="plans">
+      {% for p in block['plans'] or [] %}<article class="plan{% if p.featured %} is-featured{% endif %} reveal">
+        <div class="plan-head"><h3>{{ p.name }}</h3>{% if p.featured %}<span class="pill">{{ t('popular') }}</span>{% endif %}</div>
+        <p class="plan-price"><b><bdi>{{ p.price or t('per_quote') }}</bdi></b>{% if p.period %} <span>{{ p.period }}</span>{% endif %}</p>
+        {% if p.summary %}<p class="plan-summary">{{ p.summary }}</p>{% endif %}
+        {% set feats = (p.features or [])|selectattr('text')|list %}
+        {% if feats %}<ul class="ticks">{% for f in feats %}<li>{{ f.text }}</li>{% endfor %}</ul>{% endif %}
+        {% if p.button and p.button.url %}<a class="button {{ 'button-primary' if p.featured else 'button-ghost' }}" href="{{ p.button.url }}"{% if p.button.url == '#contact' %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ p.button.label }}</a>{% endif %}
+      </article>{% endfor %}
+    </div>
+    {% if block.note %}<p class="fine">{{ block.note }}</p>{% endif %}
+  </div>
+</section>

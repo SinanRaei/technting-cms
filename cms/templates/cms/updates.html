@@ -1,0 +1,63 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Updates" %}{% endblock %}{% block heading %}{% tr "Updates" %}{% endblock %}
+{% block actions %}<form method="post">{% csrf_token %}<button class="btn" name="action" value="check">{% tr "Check for updates" %}</button></form>{% endblock %}
+{% block content %}
+<div class="grid g2" style="margin-bottom:16px;align-items:start">
+  <div class="card"><div class="hd">{% tr "Installed version" %}</div><div class="bd">
+    {% if installed %}<p style="margin:0"><code dir="ltr">{{ installed.short }}</code>{% if installed.date %} · <span dir="ltr">{{ installed.date|slice:":10" }}</span>{% endif %}</p>
+    <p class="muted small" style="margin:6px 0 0" dir="ltr">{{ installed.subject }}</p>
+    {% if installed.installed_at %}<p class="help" style="margin:8px 0 0">{% tr "Installed" %} <span dir="ltr">{{ installed.installed_at|slice:":10" }} {{ installed.installed_at|slice:"11:16" }}</span>{% if installed.by %} · {{ installed.by }}{% endif %}</p>{% endif %}
+    {% else %}<p class="muted" style="margin:0">{% tr "Not recorded yet. It is recorded after the first update." %}</p>{% endif %}
+    <p class="muted small" style="margin:8px 0 0">{% tr "Database" %}: <bdi dir="ltr">{{ database }}</bdi></p>
+  </div></div>
+  <div class="card"><div class="hd">{% if release %}{% tr "Latest release" %}{% else %}{% tr "Latest in the repository" %}{% endif %}<span class="sp" style="flex:1"></span>{% if latest and installed and latest.commit == installed.commit %}<span class="pill ok">{% tr "Up to date" %}</span>{% elif pending %}<span class="pill draft">{% count pending|length "updates" %}</span>{% endif %}</div><div class="bd">
+    {% if latest %}<p style="margin:0"><code dir="ltr">{{ latest.short }}</code>{% if latest.date %} · <span dir="ltr">{{ latest.date|slice:":10" }}</span>{% endif %}</p>
+    {% if pending and not state.running %}<form method="post" style="margin-top:12px" onsubmit="return confirm('{% tr "Update Technting CMS now? A full backup is taken first, and the site goes back to the current version by itself if anything fails." %}')">{% csrf_token %}<button class="btn primary" name="action" value="update">{% tr "Update now" %}</button></form>{% endif %}
+    {% else %}<p class="muted" style="margin:0">{% tr "Press Check for updates." %}</p>{% endif %}
+  </div></div>
+</div>
+<div class="card" id="progress" style="margin-bottom:16px{% if not state.steps %};display:none{% endif %}"><div class="hd">{% tr "Last update" %}<span class="sp" style="flex:1"></span><span id="up-pill" class="pill"></span></div>
+  <ul class="checks" id="up-steps" style="padding:12px 16px;margin:0;display:flex;flex-direction:column;gap:6px"></ul>
+  <div class="bd" id="up-note" style="padding-top:0"></div></div>
+{% if pending %}<div class="card"><div class="hd">{% tr "What is new" %}</div><table class="list"><tbody>
+{% for c in pending %}<tr><td style="width:90px"><code dir="ltr">{{ c.short }}</code></td><td dir="ltr" style="text-align:start">{{ c.subject }}</td><td class="muted small" dir="ltr">{{ c.date|slice:":10" }}</td></tr>{% endfor %}
+</tbody></table><div class="bd"><p class="help" style="margin:0">{% tr "Change notes are written by the developers in English." %}</p></div></div>{% endif %}
+<p class="muted small" style="margin-top:14px">{% if release %}{% tr "Updates are the published Technting CMS releases, downloaded over HTTPS from technting.com. Before every update the server backs up the database, the uploaded files and the code; if a step fails, the previous version comes back by itself." %}{% else %}{% tr "The server reads the private repository with a read-only key. Before every update it backs up the database, the uploaded files and the code; if a step fails, the previous version comes back by itself." %}{% endif %}</p>
+{{ state|json_script:"up-state" }}
+{% endblock %}
+{% block scripts %}<script>
+(function () {
+  var NAMES = {download: "{% tr 'Download the update' %}", backup: "{% tr 'Full backup' %}", files: "{% tr 'Install the new files' %}",
+    packages: "{% tr 'Update packages' %}", database: "{% tr 'Update the database' %}", "static": "{% tr 'Prepare styles and scripts' %}",
+    restart: "{% tr 'Restart without downtime' %}", check: "{% tr 'Check the dashboard answers' %}", publish: "{% tr 'Publish the site' %}"};
+  var pill = document.getElementById("up-pill"), list = document.getElementById("up-steps"), note = document.getElementById("up-note"), box = document.getElementById("progress");
+  function draw(st) {
+    if (!st || !st.steps || !st.steps.length) return;
+    box.style.display = "";
+    list.innerHTML = "";
+    st.steps.forEach(function (s) {
+      var li = document.createElement("li");
+      li.className = s.status === "done" ? "ok" : s.status === "failed" ? "bad" : "warn";
+      li.textContent = (s.status === "done" ? "✓ " : s.status === "failed" ? "✕ " : "… ") + (NAMES[s.name] || s.name) + (s.status === "failed" && s.detail ? ": " + s.detail : "");
+      list.appendChild(li);
+    });
+    if (st.running) { pill.className = "pill draft"; pill.textContent = "{% tr 'Running…' %}"; }
+    else if (st.ok) { pill.className = "pill ok"; pill.textContent = st.note === "already up to date" ? "{% tr 'Up to date' %}" : "{% tr 'Updated' %}"; }
+    else { pill.className = "pill off"; pill.textContent = "{% tr 'Failed' %}"; }
+    note.textContent = st.ok === false ? (st.rolled_back ? "{% tr 'The previous version was put back. Nothing was lost.' %}" : "{% tr 'The update stopped before changing anything.' %}") : "";
+  }
+  var st = JSON.parse(document.getElementById("up-state").textContent || "{}");
+  draw(st);
+  var justStarted = /[?&]started=1/.test(location.search), before = st.started_at || "";
+  if (st.running || justStarted) {
+    var tries = 0, t = setInterval(function () {
+      if (++tries > 300) { clearInterval(t); return; }   // stop after ten minutes
+      fetch("{% url 'cms:updates_status' %}", {credentials: "same-origin"}).then(function (r) { return r.json(); }).then(function (s) {
+        draw(s);
+        var finishedNew = !s.running && s.finished_at && (!justStarted || s.started_at !== before);
+        if (finishedNew) { clearInterval(t); setTimeout(function () { location.href = location.pathname; }, 1500); }
+      }).catch(function () {});   // the dashboard restarts during the update: keep trying
+    }, 2000);
+  }
+})();
+</script>{% endblock %}

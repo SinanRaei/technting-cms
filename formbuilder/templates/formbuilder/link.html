@@ -1,0 +1,37 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<p><a href="{% url 'formbuilder:links' form.pk %}">← {% tr "Personal links" %}</a></p>
+<div class="grid g2" style="align-items:start">
+<div>
+<section class="card"><div class="hd">{{ link.label|default:"-" }}<span class="sp"></span><span class="pill {% if link.st == 'complete' %}ok{% elif link.st == 'revoked' or link.st == 'expired' %}off{% else %}sched{% endif %}">{% tr link.st %}</span></div><div class="bd">
+  <label class="f"><span>URL</span><input value="{{ link.url }}" readonly dir="ltr" onclick="this.select()" id="link-url"></label>
+  <p><button type="button" class="btn sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('link-url').value);this.textContent='✓'">{% tr "Copy" %}</button></p>
+  <dl class="kv" style="margin-top:12px">
+    <dt>{% tr "Who" %}</dt><dd>{% if link.contact %}<a href="{% url 'crm:contact' link.contact.pk %}">{{ link.contact.name }}</a>{% else %}-{% endif %}</dd>
+    <dt>{% tr "Deal" %}</dt><dd>{% if link.deal %}<a href="{% url 'crm:deal' link.deal.pk %}">{{ link.deal.title }}</a>{% else %}-{% endif %}</dd>
+    <dt>{% tr "Parts" %}</dt><dd class="fb-code">{{ link.steps|join:", "|default:"-" }}</dd>
+    <dt>{% tr "Language" %}</dt><dd>{% if link.language == 'ar' %}العربية{% else %}English{% endif %}</dd>
+    <dt>{% tr "Progress" %}</dt><dd><div class="fb-bar"><span style="width:{{ link.pct }}%"></span></div>{{ link.done }}/{{ link.total }}</dd>
+    <dt>{% tr "Expires" %}</dt><dd>{{ link.expires_at|date:"Y-m-d H:i" }}</dd>
+    <dt>{% tr "Opened" %}</dt><dd>{{ link.first_opened_at|date:"Y-m-d H:i"|default:"-" }}</dd>
+    <dt>{% tr "sent" %}</dt><dd>{{ link.sent_at|date:"Y-m-d H:i"|default:"-" }} {{ link.sent_to }}</dd>
+  </dl>
+  <form method="post" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">{% csrf_token %}
+    {% if not link.revoked_at %}<button class="btn sm danger" name="action" value="revoke" onclick="return confirm('{% tr "Withdraw" %}?')">{% tr "Withdraw" %}</button>{% endif %}
+    <button class="btn sm" name="action" value="extend">{% tr "Extend 30 days" %}</button></form>
+  {% if sub and sub.status == 'complete' %}<p style="margin-top:12px"><a class="btn sm primary" href="{% url 'formbuilder:submission' sub.pk %}">{% tr "Answers" %}</a></p>{% endif %}
+</div></section>
+{% if link.is_usable %}
+<form method="post" class="card" style="margin-top:16px">{% csrf_token %}<input type="hidden" name="action" value="send"><div class="hd">{% tr "Send by email" %}</div><div class="bd">
+  <label class="f"><span>{% tr "To" %}</span><input name="to" type="email" value="{{ default_to }}" dir="ltr" required></label>
+  <label class="f"><span>{% tr "Message (optional)" %}</span><textarea name="message" rows="3" dir="auto"></textarea></label>
+  <details><summary class="small">{% tr "The email that will be sent" %}</summary><pre class="small" style="white-space:pre-wrap" dir="{% if lang == 'ar' %}rtl{% else %}ltr{% endif %}">{{ email_preview }}</pre></details>
+  <p style="margin-top:10px"><button class="btn primary" onclick="return confirm('{% tr "Send by email" %}?')">{% tr "Send by email" %}</button></p>
+</div></form>{% endif %}
+</div>
+{% if answers %}<section class="card"><div class="hd">{% tr "Answers" %}</div>
+  {% for title, items in answers %}<div class="bd" style="border-top:1px solid var(--line)"><b>{{ title }}</b>
+    <table class="list"><tbody>{% for i in items %}<tr><td class="fb-code" style="width:50px">{{ i.key }}</td><td class="small" dir="auto">{{ i.label|truncatechars:120 }}<div style="font-weight:700" dir="auto">{{ i.answer }}</div></td></tr>{% endfor %}</tbody></table></div>{% endfor %}
+</section>{% endif %}
+</div>
+{% endblock %}

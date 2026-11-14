@@ -1,0 +1,39 @@
+{% load static cms_i18n %}<!doctype html>
+<html lang="{{ ui_lang }}" dir="{{ ui_dir }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">
+<title>{% tr "Set up Technting CMS" %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'cms/admin.css' %}">
+<style>
+.setup .box{width:min(560px,94vw)}
+.setup .head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.setup .mark{width:34px;height:34px;border-radius:8px;background:#0b1320;display:grid;place-items:center;flex:none}
+.setup .mark i{display:block;width:18px;height:3px;background:#fff;box-shadow:0 6px 0 #01a99a,0 12px 0 #fff;transform:translateY(-6px)}
+.setup .head .sp{flex:1}
+.setup .uilang a{font-weight:700;font-size:13px;text-decoration:none;padding:2px 6px;border-radius:6px}
+.setup .uilang a.on{background:#dff5f2;color:#007f76}
+.setup ol.steps{list-style:none;display:flex;flex-wrap:wrap;gap:4px;margin:0 0 18px;padding:0;font-size:12px}
+.setup ol.steps li{padding:3px 9px;border-radius:999px;background:#eef1f5;color:#435064;font-weight:700}
+.setup ol.steps li.done{background:#ddf3e8;color:#16704a}
+.setup ol.steps li.on{background:#0b1320;color:#fff}
+.setup h2{font-size:18px;margin:0 0 6px}
+.setup .lead{margin:0 0 16px}
+.setup .err{color:#8c2318;font-size:12.5px;font-weight:700;margin-top:4px}
+.setup .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #dde3ea;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.setup .opt input{width:auto;min-height:0;margin:3px 0 0}
+.setup .row{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.setup .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.setup .actions .sp{flex:1}
+.setup .foot{margin:16px 0 0;font-size:12px}
+.setup dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 14px;font-size:13.5px}
+.setup dt{font-weight:700;color:#2b384b}.setup dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:520px){.setup .row{grid-template-columns:1fr}.setup .box{padding:20px}}
+</style></head>
+<body><div class="login setup"><div class="box">
+<div class="head"><span class="mark"><i></i></span><div><h1>{% tr "Set up Technting CMS" %}</h1>{% if step != "key" %}<span class="muted">{% tr "Step" %} {{ num }} {% tr "of" %} {{ total }}</span>{% endif %}</div>
+<span class="sp"></span><nav class="uilang" aria-label="{% tr 'Interface language' %}"><a href="?ui=en" lang="en" class="{% if ui_lang == 'en' %}on{% endif %}">English</a> <a href="?ui=ar" lang="ar" class="{% if ui_lang == 'ar' %}on{% endif %}">العربية</a></nav></div>
+{% if step != "key" %}<ol class="steps">{% for s in steps %}<li class="{% if s == step %}on{% elif s in done_steps %}done{% endif %}">{% if s == "site" %}{% tr "Site" %}{% elif s == "languages" %}{% tr "Languages" %}{% elif s == "admin" %}{% tr "Administrator" %}{% elif s == "theme" %}{% tr "Theme" %}{% elif s == "email" %}{% tr "Email" %}{% elif s == "licence" %}{% tr "Licence key" %}{% else %}{% tr "Finish" %}{% endif %}</li>{% endfor %}</ol>{% endif %}
+{% if messages %}<div class="msgs">{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+{% block body %}{% endblock %}
+<p class="foot muted">Technting CMS · {% tr "Version" %} <bdi>{{ version }}</bdi></p>
+</div></div></body></html>

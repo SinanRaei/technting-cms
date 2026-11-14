@@ -1,0 +1,60 @@
+{% extends "crm/_base.html" %}{% load cms_i18n static %}
+{% block title %}{% tr "Prospects" %}{% endblock %}{% block heading %}CRM · {% tr "Prospects" %}{% endblock %}
+{% block actions %}{% if user.is_superuser %}<details class="menu-btn"><summary class="btn">{% tr "Export" %}</summary><div class="menu">
+  <a href="{% url 'crm:prospects_export' %}?{{ keep }}&format=xlsx">{% tr "Excel (.xlsx)" %}</a><a href="{% url 'crm:prospects_export' %}?{{ keep }}&format=csv">CSV</a>
+  <span class="muted small">{% tr "Exports the companies matching the filters on screen, all pages." %}</span></div></details>
+<a class="btn" href="{% url 'crm:prospects_import' %}">{% tr "Import" %}</a>{% endif %}<a class="btn primary" href="{% url 'crm:prospect_new' %}">{% tr "+ New company" %}</a>{% endblock %}
+{% block crm %}
+<p class="muted" style="margin:-6px 0 14px">{% tr "Researched companies we have not contacted yet. They stay out of the pipeline until someone moves them to the leads." %}</p>
+<div class="kpis">
+  <a class="kpi good" href="?priority=A"><span>{% tr "Priority A, not contacted" %}</span><b>{{ counts.A }}</b></a>
+  <a class="kpi" href="?priority=B"><span>{% tr "Priority B, not contacted" %}</span><b>{{ counts.B }}</b></a>
+  <a class="kpi" href="?priority=C"><span>{% tr "Priority C, not contacted" %}</span><b>{{ counts.C }}</b></a>
+  <a class="kpi" href="?status=moved"><span>{% tr "Moved to leads" %}</span><b>{{ counts.moved }}</b></a>
+</div>
+<form method="get" class="toolbar">
+  <input type="search" name="q" value="{{ f.q }}" placeholder="{% tr 'Search companies' %}" style="max-width:240px">
+  <select name="country" style="width:auto"><option value="">{% tr "Any country" %}</option>{% for c in countries %}<option value="{{ c }}" {% if f.country == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+  <select name="sector" style="width:auto"><option value="">{% tr "Any sector" %}</option>{% for s in sectors %}<option value="{{ s.sector }}" {% if f.sector == s.sector %}selected{% endif %}>{{ s.sector }} ({{ s.n }})</option>{% endfor %}</select>
+  <select name="priority" style="width:auto"><option value="">{% tr "Any priority" %}</option>{% for k in "ABC" %}<option value="{{ k }}" {% if f.priority == k %}selected{% endif %}>{% tr "Priority" %} {{ k }}</option>{% endfor %}</select>
+  <select name="status" style="width:auto"><option value="todo" {% if f.status == 'todo' %}selected{% endif %}>{% tr "To contact" %}</option><option value="all" {% if f.status == 'all' %}selected{% endif %}>{% tr "All" %}</option>{% for k, l in statuses %}<option value="{{ k }}" {% if f.status == k %}selected{% endif %}>{% tr l %}</option>{% endfor %}</select>
+  <select name="owner" style="width:auto"><option value="">{% tr "Any owner" %}</option><option value="me" {% if f.owner == 'me' %}selected{% endif %}>{% tr "Mine" %}</option></select>
+  <label class="small muted" style="display:inline-flex;gap:6px;align-items:center">{% tr "Per page" %}<select name="per" style="width:auto" data-autosubmit>{% for n in per_choices %}<option value="{{ n }}" {% if n == per %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
+  <button class="btn">{% tr "Filter" %}</button><span class="muted small">{% count total "companies" %}</span>
+</form>
+<form method="post" id="bulk">{% csrf_token %}<input type="hidden" name="next" value="{{ back }}">
+<div class="bulkbar" hidden><span class="small" data-selected></span>
+  <button class="btn primary sm" formaction="{% url 'crm:prospect_move' %}" data-move>{% tr "Move selected to leads" %}</button>
+  <button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="hold">{% tr "On hold" %}</button>
+  <button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="open">{% tr "Not contacted yet" %}</button>
+  <button class="btn sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="dnc">{% tr "Do not contact" %}</button>
+  {% if user.is_superuser %}<button class="btn danger sm" formaction="{% url 'crm:prospect_status' %}" name="status" value="delete" data-confirm="{% tr 'Delete the selected companies from the prospect list?' %}">{% tr "Delete" %}</button>{% endif %}
+</div>
+<div class="card" style="overflow-x:auto"><table class="list prospects"><thead><tr>
+  <th style="width:28px"><input type="checkbox" data-all aria-label="{% tr 'Select all' %}"></th><th>{% tr "Company" %}</th><th>{% tr "Country" %}</th><th>{% tr "Sector" %}</th>
+  <th>{% tr "Priority" %}</th><th>{% tr "Company contact" %}</th><th>{% tr "Services" %}</th><th>{% tr "Status" %}</th><th></th></tr></thead><tbody>
+{% for p in rows %}<tr>
+  <td>{% if p.status != 'moved' %}<input type="checkbox" name="ids" value="{{ p.pk }}" aria-label="{{ p.name }}">{% endif %}</td>
+  <td class="title"><a href="{% url 'crm:prospect' p.pk %}"><bdi>{{ p.name }}</bdi></a>{% if p.name_ar %}<div class="small" dir="rtl">{{ p.name_ar }}</div>{% endif %}
+    <div class="muted small" dir="auto">{{ p.fit_reason|truncatechars:110 }}</div></td>
+  <td class="small">{{ p.country }}{% if p.city %}<div class="muted">{{ p.city }}</div>{% endif %}</td>
+  <td class="small">{{ p.sector }}{% if p.sub_sector %}<div class="muted">{{ p.sub_sector|truncatechars:40 }}</div>{% endif %}</td>
+  <td style="white-space:nowrap"><span class="prio prio-{{ p.priority }}">{{ p.priority }}</span> <span class="muted small" title="{% tr 'Fit score' %}">{{ p.fit_score }}/5</span></td>
+  <td class="small" dir="ltr" style="text-align:start">{% if p.email %}<div>{{ p.email }}{% if p.email_verified %} <span class="ok" title="{% tr 'Seen on the company site' %}">✓</span>{% endif %}</div>{% endif %}{% if p.phone %}<div>{{ p.phone }}{% if p.phone_verified %} <span class="ok" title="{% tr 'Seen on the company site' %}">✓</span>{% endif %}</div>{% endif %}{% if p.unverified %}<div class="muted" dir="auto">+{{ p.unverified|length }} {% tr "unverified" %}</div>{% endif %}{% if not p.email and not p.phone and p.contact_page %}<a href="{{ p.contact_page }}" target="_blank" rel="noopener">{% tr "Contact form" %}</a>{% endif %}</td>
+  <td class="small">{{ p.services|join:", " }}</td>
+  <td class="small"><span class="pst pst-{{ p.status }}">{% tr p.get_status_display %}</span></td>
+  <td style="white-space:nowrap">{% if p.status == 'moved' %}{% if p.deal %}<a class="btn sm" href="{% url 'crm:deal' p.deal_id %}">{% tr "Open deal" %}</a>{% endif %}{% elif p.status != 'dnc' %}<button class="btn primary sm" formaction="{% url 'crm:prospect_move' %}" name="one" value="{{ p.pk }}" data-move>{% tr "Move to leads" %}</button>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="9" class="empty">{% tr "No companies match these filters." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% if page.paginator.num_pages > 1 %}<nav class="pager" aria-label="{% tr 'Pages' %}">
+  <span class="muted small">{% tr "Showing" %} {{ page.start_index }}-{{ page.end_index }} {% tr "of" %} {{ total }}</span>
+  <span class="nums">
+  {% if page.has_previous %}<a class="btn sm" href="?{{ keep }}&page={{ page.previous_page_number }}" rel="prev">{% tr "Previous" %}</a>{% endif %}
+  {% for n in pages %}{% if n is None %}<span class="gap">…</span>{% elif n == page.number %}<span class="btn sm on" aria-current="page">{{ n }}</span>{% else %}<a class="btn sm" href="?{{ keep }}&page={{ n }}">{{ n }}</a>{% endif %}{% endfor %}
+  {% if page.has_next %}<a class="btn sm" href="?{{ keep }}&page={{ page.next_page_number }}" rel="next">{% tr "Next" %}</a>{% endif %}
+  </span>
+</nav>{% endif %}
+</form>
+{% include "crm/_prospect_modal.html" %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'crm/prospects.js' %}?v=2"></script>{% endblock %}

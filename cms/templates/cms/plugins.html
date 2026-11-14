@@ -1,0 +1,43 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block title %}{% tr "Plugins" %}{% endblock %}{% block heading %}{% tr "Plugins" %}{% endblock %}
+{% block content %}
+<p class="muted" style="margin-top:0">{% tr "Plugins add features to the site. Turn them on or off and fill in their settings here. New plugins are installed by a developer." %}</p>
+<form method="post" id="plugins-form">{% csrf_token %}
+  <div id="plugins" class="grid" style="gap:14px"></div>
+  <input type="hidden" name="plugins_json" id="plugins_json">
+  <div style="margin-top:16px"><button class="btn primary">{% tr "Save plugins and publish" %}</button></div>
+</form>
+{{ rows_json|json_script:"plugins-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'cms/editor.js' %}?v=13"></script>
+<script>
+(function () {
+  var rows = JSON.parse(JSON.parse(document.getElementById("plugins-data").textContent));
+  var isAr = document.documentElement.lang === "ar";
+  var el = TechntingCMS.el, host = document.getElementById("plugins"), state = {};
+  rows.forEach(function (r) {
+    var toggle = el("input", {type: "checkbox"}); toggle.checked = r.enabled;
+    var body = el("div", {class: "bd"});
+    var card = el("div", {class: "card"}, [
+      el("div", {class: "hd"}, [el("label", {style: "display:flex;gap:8px;align-items:center;cursor:pointer"}, [toggle, el("span", {}, [(isAr && r.spec.label_ar) || r.spec.label || r.name])]),
+        el("span", {style: "flex:1"}), el("span", {class: "pill" + (r.enabled ? " ok" : "")}, [r.enabled ? TechntingCMS.T("On") : TechntingCMS.T("Off")]),
+        el("span", {class: "muted small"}, ["v" + (r.spec.version || "1.0")])]),
+      body]);
+    body.appendChild(el("p", {class: "muted", style: "margin-top:0"}, [(isAr && r.spec.description_ar) || r.spec.description || ""]));
+    var group = (r.spec.settings || []).length ? TechntingCMS.fieldGroup(body, r.spec.settings, r.settings || {}, {dir: "ltr"}) : null;
+    toggle.addEventListener("change", function () { TechntingCMS.dirty = true; });
+    host.appendChild(card);
+    state[r.name] = {toggle: toggle, group: group};
+  });
+  var form = document.getElementById("plugins-form");
+  form.addEventListener("submit", function () {
+    var out = {};
+    Object.keys(state).forEach(function (n) { out[n] = {enabled: state[n].toggle.checked, settings: state[n].group ? state[n].group.value() : {}}; });
+    document.getElementById("plugins_json").value = JSON.stringify(out);
+    TechntingCMS.dirty = false;
+  });
+  TechntingCMS.guardUnsaved(form);
+})();
+</script>
+{% endblock %}

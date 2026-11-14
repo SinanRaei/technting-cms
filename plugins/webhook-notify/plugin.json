@@ -1,0 +1,25 @@
+{
+ "label": "Enquiry notifications (Slack / Teams)",
+ "version": "1.0",
+ "description": "Posts a short notice to a Slack or Microsoft Teams channel when a website enquiry arrives. The notice contains the name, organisation and area of interest, not the message or contact details.",
+ "settings": [
+  {
+   "name": "url",
+   "label": "Incoming webhook address (https://hooks.slack.com/... or the Teams workflow URL)",
+   "type": "url",
+   "label_ar": "عنوان الـ Webhook (‎https://hooks.slack.com/...‎ أو رابط Teams)"
+  },
+  {
+   "name": "format",
+   "label": "Format",
+   "type": "select",
+   "options": [
+    "slack",
+    "teams"
+   ],
+   "label_ar": "الصيغة"
+  }
+ ],
+ "label_ar": "إشعارات الاستفسارات (Slack / Teams)",
+ "description_ar": "يرسل إشعاراً قصيراً إلى قناة في Slack أو Microsoft Teams عند وصول استفسار من الموقع. يتضمن الاسم والمؤسسة ومجال الاهتمام فقط، دون الرسالة أو بيانات التواصل."
+}

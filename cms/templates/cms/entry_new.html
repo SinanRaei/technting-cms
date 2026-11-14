@@ -1,0 +1,8 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "+ New" %} {{ spec.singular|default:"record"|tl:request }}{% endblock %}{% block heading %}{% tr "+ New" %} {{ spec.singular|default:"record"|tl:request }}{% endblock %}
+{% block content %}
+<form class="card" method="post" style="max-width:560px">{% csrf_token %}<div class="bd">
+<label class="f"><span>{% tr "Key" %}</span><input type="text" name="key" required autofocus dir="ltr" pattern="[A-Za-z0-9_-]{1,80}" placeholder="{% if collection == 'service' %}e.g. W7{% else %}e.g. my-record{% endif %}">
+<div class="help">{% tr "A short, permanent identifier (letters, numbers, dashes)." %}{% if spec.route %} {% tr "It becomes part of the address:" %} <code dir="ltr">{{ spec.route }}</code>{% endif %}</div></label>
+<button class="btn primary">{% tr "Create and edit" %}</button></div></form>
+{% endblock %}

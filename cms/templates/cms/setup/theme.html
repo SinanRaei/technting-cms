@@ -1,0 +1,10 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post">{% csrf_token %}
+<h2>{% tr "Theme" %}</h2>
+<p class="lead muted">{% tr "The theme decides how the public site looks. Copy a theme folder in themes/ to make your own." %}</p>
+{% for t in themes %}<label class="opt"><input type="radio" name="theme" value="{{ t.name }}"{% if form.theme == t.name %} checked{% endif %}{% if lock_theme and form.theme != t.name %} disabled{% endif %}>
+<span><strong><bdi>{{ t.label }}</bdi></strong><br><span class="muted small" dir="ltr">themes/{{ t.name }}</span>{% if t.description %}<br><span class="muted small">{{ t.description }}</span>{% endif %}</span></label>{% endfor %}
+{% if lock_theme %}<div class="help">{% tr "Set by the server environment. Change it there." %}</div>{% endif %}
+{% if errors.theme %}<div class="err">{{ errors.theme }}</div>{% endif %}
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'admin' %}">{% tr "Back" %}</a><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>{% endblock %}

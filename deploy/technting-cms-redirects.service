@@ -1,0 +1,6 @@
+[Unit]
+Description=Test and reload nginx for Technting CMS redirects
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/usr/sbin/nginx -t -q && /bin/systemctl reload nginx'

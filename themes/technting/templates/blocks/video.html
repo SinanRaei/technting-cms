@@ -1,0 +1,9 @@
+{% set poster = media(block.poster, '1600w') if block.poster else none %}
+<figure class="media-block media-wide video-block">
+{% if block.source == 'upload' and block.video %}{% set v = media(block.video) %}
+{% if v %}<video controls preload="metadata" playsinline{% if poster %} poster="{{ poster.url }}"{% endif %}{% if block.title %} aria-label="{{ block.title }}"{% endif %}><source src="{{ v.url }}"></video>{% endif %}
+{% elif block.url %}{% set src = block.url|embed_url %}
+{% if src %}<div class="video-frame"><iframe src="{{ src }}" title="{{ block.title or t('play_video') }}" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>{% endif %}
+{% endif %}
+{% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+</figure>

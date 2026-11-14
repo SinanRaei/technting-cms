@@ -1,0 +1,43 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block title %}{% tr "Menus" %}{% endblock %}{% block heading %}{% tr "Menus" %}{% endblock %}
+{% block content %}
+<form method="post" id="menus-form">{% csrf_token %}
+<p class="muted" style="margin-top:0">{% tr "The header menu shows in the top bar of every page. The footer menu is made of columns, each with its own links. Use #contact as the address to open the contact form." %}</p>
+<div id="menus" class="grid g2"></div>
+<input type="hidden" name="menus_json" id="menus_json">
+<div style="margin-top:16px"><button class="btn primary">{% tr "Save menus and publish" %}</button></div>
+</form>
+{{ menus_json|json_script:"menus-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'cms/editor.js' %}?v=11"></script>
+<script>
+(function () {
+  var data = JSON.parse(JSON.parse(document.getElementById("menus-data").textContent));
+  var langs = [{% for l in langs %}{code: "{{ l.code }}", name: "{{ l.name }}", dir: "{{ l.direction }}"}{% if not forloop.last %},{% endif %}{% endfor %}];
+  var host = document.getElementById("menus"), groups = {};
+  var linkFields = [{name: "label", label: "Text", type: "text"}, {name: "url", label: "Address", type: "url"}, {name: "contact", label: "Opens the contact form", type: "bool"}];
+  var spec = {
+    header: {type: "repeater", name: "items", label: "Links", fields: linkFields, item_label: "link"},
+    footer: {type: "repeater", name: "items", label: "Columns", item_label: "column", fields: [
+      {name: "label", label: "Column title", type: "text"},
+      {name: "children", label: "Links", type: "repeater", fields: linkFields, item_label: "link"}]}
+  };
+  ["header", "footer"].forEach(function (key) {
+    langs.forEach(function (l) {
+      var body = TechntingCMS.el("div", {class: "bd", dir: l.dir});
+      host.appendChild(TechntingCMS.el("div", {class: "card"}, [TechntingCMS.el("div", {class: "hd"}, [(key === "header" ? "Header menu" : "Footer menu") + " · " + l.name]), body]));
+      groups[key + ":" + l.code] = TechntingCMS.fieldGroup(body, [spec[key]], {items: (data[key] || {})[l.code] || []}, {dir: l.dir});
+    });
+  });
+  var form = document.getElementById("menus-form");
+  form.addEventListener("submit", function () {
+    var out = {header: {}, footer: {}};
+    Object.keys(groups).forEach(function (k) { var p = k.split(":"); out[p[0]][p[1]] = groups[k].value().items; });
+    document.getElementById("menus_json").value = JSON.stringify(out);
+    TechntingCMS.dirty = false;
+  });
+  TechntingCMS.guardUnsaved(form);
+})();
+</script>
+{% endblock %}

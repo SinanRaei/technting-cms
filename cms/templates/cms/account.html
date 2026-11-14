@@ -1,0 +1,25 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "My account" %}{% endblock %}{% block heading %}{% tr "My account" %}{% endblock %}
+{% block content %}
+<form class="card" method="post" style="max-width:480px">{% csrf_token %}<div class="hd">{% tr "Change password" %}</div><div class="bd">
+<label class="f"><span>{% tr "Current password" %}</span><input type="password" name="current" required autocomplete="current-password"></label>
+<label class="f"><span>{% tr "New password" %}</span><input type="password" name="new" required autocomplete="new-password"><div class="help">{% tr "At least 12 characters, not a common password." %}</div></label>
+<button class="btn primary">{% tr "Change password" %}</button></div></form>
+{% if cms_role != "author" %}<form class="card" method="post" style="max-width:480px;margin-top:16px">{% csrf_token %}<input type="hidden" name="form" value="digest"><div class="hd">{% tr "Weekly summary by email" %}</div><div class="bd">
+<p class="help" style="margin-top:0">{% tr "Every Sunday morning: visitors, enquiries, new deals and subscribers, what is scheduled this week and anything that needs attention. Sent to" %} <b dir="ltr">{{ user.email|default:"-" }}</b>.</p>
+<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:10px"><input type="checkbox" name="digest"{% if digest.on %} checked{% endif %}{% if not user.email %} disabled{% endif %}> {% tr "Send me the weekly summary" %}</label>
+<label class="f"><span>{% tr "Language" %}</span><select name="digest_lang" style="width:auto"><option value="ar"{% if digest.lang == "ar" %} selected{% endif %}>العربية</option><option value="en"{% if digest.lang == "en" %} selected{% endif %}>English</option></select></label>
+{% if not mail_ready %}<p class="help">{% tr "Email is not set up yet, so nothing can be sent." %}</p>{% endif %}
+<button class="btn primary">{% tr "Save" %}</button></div></form>{% endif %}
+{% if shield_on and user.is_superuser %}<form class="card" method="post" action="{% url 'shield:alerts' %}" style="max-width:480px;margin-top:16px">{% csrf_token %}<div class="hd">{% tr "Security alerts by email" %}</div><div class="bd">
+<p class="help" style="margin-top:0">{% tr "Technting Shield emails you at once when someone signs in to your account from a new device or country, and when it finds a serious problem: a new certificate for our domain, changed code files, a package that needs a security update. Sent to" %} <b dir="ltr">{{ user.email|default:"-" }}</b>.</p>
+<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:10px"><input type="checkbox" name="alerts"{% if shield_alerts.on %} checked{% endif %}{% if not user.email %} disabled{% endif %}> {% tr "Send me security alerts" %}</label>
+<label class="f"><span>{% tr "Language" %}</span><select name="lang" style="width:auto"><option value="ar"{% if shield_alerts.lang == "ar" %} selected{% endif %}>العربية</option><option value="en"{% if shield_alerts.lang == "en" %} selected{% endif %}>English</option></select></label>
+<button class="btn primary">{% tr "Save" %}</button></div></form>{% endif %}
+{% if shield_on %}<form class="card" method="post" action="{% url 'shield:sessions_others' %}" style="max-width:480px;margin-top:16px">{% csrf_token %}<div class="hd">{% tr "Other sessions" %}</div><div class="bd">
+<p class="help" style="margin-top:0">{% tr "Signed in on a computer you no longer use, or lost a phone? Sign out everywhere except here." %}</p>
+<button class="btn">{% tr "Sign out all my other sessions" %}</button></div></form>{% endif %}
+<div class="card" style="max-width:480px;margin-top:16px"><div class="hd">{% tr "Two-step verification" %}</div><div class="bd">
+<p style="margin-top:0">{% tr "Protect your account with a code from your phone in addition to your password." %}</p>
+<a class="btn primary" href="{% url 'cms:security' %}">{% tr "Manage two-step verification" %}</a></div></div>
+{% endblock %}

@@ -1,0 +1,26 @@
+# Keep secrets, local data and development files out of the image
+.git
+.gitignore
+.dockerignore
+.claude/
+.venv/
+venv/
+**/__pycache__/
+**/*.pyc
+.env
+.env.*
+!.env.example
+var/
+var*/
+var-*/
+*.sqlite3
+*.sqlite3-*
+media/
+output/
+backups/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+docker-compose.yml
+Dockerfile

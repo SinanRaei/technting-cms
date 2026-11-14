@@ -1,0 +1,4 @@
+<div class="post-grid">{% for o in (others if others is defined and others else posts) %}{% set c = media(o.cover, '960w') if o.cover else none %}
+<a class="post-card reveal" href="{{ entry_url('post', o.key) }}">{% if c %}<img src="{{ c.url }}" alt="" loading="lazy" width="{{ c.width }}" height="{{ c.height }}">{% endif %}
+<span class="date"><time datetime="{{ o.date }}">{{ o.date|datefmt(lang.code) }}</time></span><h3>{{ o.title }}</h3>{% if o.get('excerpt') %}<p>{{ o.excerpt }}</p>{% endif %}<span class="go">{{ t('read_article') }} {{ t('arrow') }}</span></a>
+{% endfor %}</div>

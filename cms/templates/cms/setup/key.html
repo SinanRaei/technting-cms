@@ -1,0 +1,8 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post">{% csrf_token %}
+<h2>{% tr "Setup key" %}</h2>
+<p class="lead muted">{% tr "Enter the setup key printed by the installer." %}</p>
+{% if error %}<div class="msg error" style="margin-bottom:12px">{{ error }}</div>{% endif %}
+<label class="f"><span>{% tr "Setup key" %}</span><input type="password" name="setup_token" dir="ltr" autocomplete="off" required autofocus></label>
+<div class="actions"><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>{% endblock %}

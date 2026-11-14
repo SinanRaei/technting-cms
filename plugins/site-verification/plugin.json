@@ -1,0 +1,21 @@
+{
+ "label": "Search console verification",
+ "version": "1.0",
+ "description": "Adds the verification tags for Google Search Console and Bing Webmaster Tools to every page.",
+ "settings": [
+  {
+   "name": "google",
+   "label": "Google verification code (content of google-site-verification)",
+   "type": "text",
+   "label_ar": "رمز التحقق من Google (قيمة google-site-verification)"
+  },
+  {
+   "name": "bing",
+   "label": "Bing verification code (content of msvalidate.01)",
+   "type": "text",
+   "label_ar": "رمز التحقق من Bing (قيمة msvalidate.01)"
+  }
+ ],
+ "label_ar": "التحقق من ملكية الموقع",
+ "description_ar": "يضيف وسوم التحقق الخاصة بـ Google Search Console وBing Webmaster Tools إلى الصفحة الرئيسية."
+}

@@ -1,0 +1,25 @@
+{% extends "layouts/shell.html" %}
+{#- Short list of main links for social media bios (instead of Linktree). Indexable, but not in the menus.
+    The featured line appears only when Settings -> Social profiles and phone has a featured link. -#}
+{% block content %}
+{% set ci = contact_info() %}
+{% set scan_url = setting('links_scan_url', '') %}
+{% set items = [] %}
+{% if url('services') != '#' %}{% set _ = items.append((url('services'), t('links_services'), t('links_services_note'), '')) %}{% endif %}
+{% if scan_url %}{% set _ = items.append((scan_url, t('links_scan'), t('links_scan_note'), '')) %}{% endif %}
+{% if url('blog') != '#' %}{% set _ = items.append((url('blog'), t('links_blog'), t('links_blog_note'), '')) %}{% endif %}
+{% if url('contact') != '#' %}{% set _ = items.append((url('contact'), t('links_contact'), t('links_contact_note'), '')) %}{% endif %}
+{% if ci.wa_url %}{% set _ = items.append((ci.wa_url, t('links_whatsapp'), ci.whatsapp, 'ltr')) %}{% endif %}
+{% set _ = items.append((lang.home, t('links_site'), site_url.split('//')[-1], 'ltr')) %}
+<section class="links-page" aria-labelledby="page-title"><div class="wrap links-wrap">
+  <a class="links-logo" href="{{ lang.home }}" aria-label="{{ site_name }}">{% from "layouts/_macros.html" import logo with context %}{{ logo(width=190) }}</a>
+  <h1 id="page-title" class="sr-only">{{ page.title }}</h1>
+  <p class="links-lead">{{ t('links_lead') }}</p>
+  <ul class="links-list">
+  {% for href, label, note, note_dir in items %}<li><a href="{{ href }}"{% if href.startswith('http') %} target="_blank" rel="noopener"{% endif %}><span class="links-label">{{ label }}</span><span class="links-note">{% if note_dir %}<bdi dir="ltr">{{ note }}</bdi>{% else %}{{ note }}{% endif %}</span><span class="links-arrow" aria-hidden="true">{{ t('arrow') }}</span></a></li>
+  {% endfor %}
+  </ul>
+  {% set socials = social_links() %}
+  {% if socials %}<ul class="footer-social links-social" aria-label="{{ t('social_label') }}">{% for s in socials %}<li><a href="{{ s.url }}" target="_blank" rel="noopener me" aria-label="{{ s.label }}" title="{{ s.label }}">{{ s.icon }}</a></li>{% endfor %}</ul>{% endif %}
+</div></section>
+{% endblock %}

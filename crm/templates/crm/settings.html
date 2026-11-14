@@ -1,0 +1,13 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "CRM settings" %}{% endblock %}{% block heading %}CRM · {% tr "Settings" %}{% endblock %}
+{% block crm %}
+<form method="post" class="card" style="max-width:640px">{% csrf_token %}<div class="hd">{% tr "CRM settings" %}</div><div class="bd">
+  <label class="f"><span>{% tr "Owner of new website enquiries" %}</span><select name="default_owner"><option value="">{% tr "Nobody (assign by hand)" %}</option>
+    {% for u in users %}<option value="{{ u.pk }}" {% if cur.default_owner == u.pk %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}</select>
+    <div class="help">{% tr "This person gets each new enquiry as a deal and a reply task." %}</div></label>
+  <label class="f"><span>{% tr "Default currency" %}</span><select name="currency">{% for c in currencies %}<option {% if cur.currency == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+  <label class="f"><span>{% tr "Reply within (hours)" %}</span><input type="number" name="response_hours" min="1" max="168" value="{{ cur.response_hours }}">
+    <div class="help">{% tr "The reply task for a new enquiry is due this many hours after it arrives." %}</div></label>
+  <button class="btn primary">{% tr "Save" %}</button>
+</div></form>
+{% endblock %}

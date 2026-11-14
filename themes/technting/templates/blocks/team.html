@@ -1,0 +1,11 @@
+{% from "layouts/_macros.html" import head, arrow with context %}
+{% set people = entries('team') %}
+{% if people %}<section class="section" id="{{ block.anchor or 'team' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="team{% if block.compact %} team-compact{% endif %}">{% for f in people %}{% set img = (media(f.photo, '480w' if block.compact else '960w') or media(f.photo)) if f.photo else none %}<article class="member reveal">
+      <div class="member-photo">{% if img %}<img src="{{ img.url }}" alt="{{ img.alt or f.name }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">{% else %}<span class="member-initial" aria-hidden="true">{{ (f.name or '?')[:1] }}</span>{% endif %}</div>
+      <h3>{{ f.name }}</h3>{% if f.role %}<p class="member-role">{{ f.role }}</p>{% endif %}{% if not block.compact %}{% if f.focus %}<p class="member-focus">{{ f.focus }}</p>{% endif %}{% if f.bio %}<p class="member-bio">{{ f.bio }}</p>{% endif %}{% endif %}</article>{% endfor %}</div>
+    {% if block.more and block.more.url %}<p class="section-more reveal"><a class="text-link" href="{{ block.more.url }}">{{ block.more.label }} {{ arrow() }}</a></p>{% endif %}
+  </div>
+</section>{% endif %}

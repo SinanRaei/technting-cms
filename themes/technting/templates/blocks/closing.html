@@ -1,0 +1,1 @@
+<section class="closing"><div class="wrap closing-inner"><h2>{{ block.title }}</h2><div class="actions">{% for b in block.buttons or [] %}{% if b.link and b.link.url %}<a class="button{% if loop.first %} button-primary{% else %} button-ghost{% endif %}" href="{{ b.link.url }}">{{ b.link.label }}</a>{% endif %}{% endfor %}</div></div></section>

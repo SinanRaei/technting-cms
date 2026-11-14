@@ -1,0 +1,32 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Social profiles and phone" %}{% endblock %}{% block heading %}{% tr "Social profiles and phone" %}{% endblock %}
+{% block content %}
+<form method="post">{% csrf_token %}<input type="hidden" name="rows" value="{{ rows|length }}">
+<div class="card"><div class="hd">{% tr "Social profiles" %}</div><div class="bd">
+  <p style="margin-top:0">{% tr "One account per platform. The footer of English and Arabic pages shows an icon for each profile that is on and has an address, and search engines get every profile that is on." %}</p>
+  <p class="help">{% tr "Add a profile only after the account is live. To remove one, empty its address." %}</p>
+  <div style="overflow-x:auto"><table class="list"><thead><tr><th>{% tr "Platform" %}</th><th>{% tr "Profile address" %}</th><th>{% tr "Name (for Other)" %}</th><th>{% tr "On" %}</th><th>{% tr "In footer" %}</th></tr></thead><tbody>
+  {% for r in rows %}<tr>
+    <td><select name="platform_{{ forloop.counter0 }}" style="width:auto">{% for code, label in platforms %}<option value="{{ code }}"{% if code == r.platform %} selected{% endif %}>{% tr label %}</option>{% endfor %}</select></td>
+    <td style="min-width:280px"><input type="url" name="url_{{ forloop.counter0 }}" value="{{ r.url }}" dir="ltr" placeholder="https://"></td>
+    <td><input type="text" name="label_{{ forloop.counter0 }}" value="{{ r.label }}" maxlength="60" style="width:130px"></td>
+    <td><input type="checkbox" name="enabled_{{ forloop.counter0 }}" aria-label="{% tr 'On' %}"{% if r.enabled %} checked{% endif %}></td>
+    <td><input type="checkbox" name="footer_{{ forloop.counter0 }}" aria-label="{% tr 'In footer' %}"{% if r.footer %} checked{% endif %}></td>
+  </tr>{% endfor %}</tbody></table></div>
+  <p class="help">{% tr "Need more rows? Save, and empty rows are added again." %}</p>
+</div></div>
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><div class="hd">{% tr "Phone and WhatsApp" %}</div><div class="bd">
+  <label class="f"><span>{% tr "Phone" %}</span><input type="tel" name="contact_phone" value="{{ phone }}" dir="ltr" placeholder="+1 555 010 0199"><span class="help">{% tr "Shown in the footer, on the contact page and to search engines. Write it with the country code, as on the social profiles." %}</span></label>
+  <label class="f"><span>WhatsApp</span><input type="tel" name="whatsapp" value="{{ whatsapp }}" dir="ltr" placeholder="+1 555 010 0199"><span class="help">{% tr "The WhatsApp link opens a chat with this number. Leave empty to hide it." %}</span></label>
+  {% if contact.tel or contact.wa_url %}<p class="small muted" dir="ltr" style="text-align:start">{% if contact.tel %}tel:{{ contact.tel }}{% endif %}{% if contact.wa_url %} · {{ contact.wa_url }}{% endif %}</p>{% endif %}
+</div></div>
+<div class="card"><div class="hd">{% tr "Links page" %}</div><div class="bd">
+  <p style="margin-top:0">{% tr "A short page of main links for social media bios:" %} <a href="{{ site_url }}/links/" target="_blank" rel="noopener" dir="ltr">/links/</a> · <a href="{{ site_url }}/ar/links/" target="_blank" rel="noopener" dir="ltr">/ar/links/</a></p>
+  <label class="f"><span>{% tr "Featured link" %}</span><input type="text" name="links_scan_url" value="{{ scan_url }}" dir="ltr" placeholder="/featured/"><span class="help">{% tr "Leave empty to hide this line on the links page." %}</span></label>
+</div></div>
+</div>
+{% if same_as %}<div class="card" style="margin-top:16px"><div class="hd">{% tr "Sent to search engines (sameAs)" %}</div><div class="bd"><ul class="small" dir="ltr" style="margin:0;text-align:start">{% for u in same_as %}<li>{{ u }}</li>{% endfor %}</ul></div></div>{% endif %}
+<p style="margin-top:16px"><button class="btn primary">{% tr "Save and publish" %}</button></p>
+</form>
+{% endblock %}

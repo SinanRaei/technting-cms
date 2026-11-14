@@ -1,0 +1,14 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Tasks" %}{% endblock %}{% block heading %}CRM · {% tr "Tasks" %}{% endblock %}
+{% block actions %}<a class="btn {% if who == 'me' %}dark{% endif %}" href="?who=me{% if show_done %}&done=1{% endif %}">{% tr "My tasks" %}</a><a class="btn {% if who == 'all' %}dark{% endif %}" href="?who=all{% if show_done %}&done=1{% endif %}">{% tr "Everyone" %}</a>
+<a class="btn" href="?who={{ who }}{% if not show_done %}&done=1{% endif %}">{% if show_done %}{% tr "Hide done" %}{% else %}{% tr "Show done" %}{% endif %}</a>{% endblock %}
+{% block crm %}
+<div class="grid g2">
+{% for label, items in groups %}
+<div class="card"><div class="hd">{% tr label %} <span class="pill {% if label == 'Overdue' and items %}off{% endif %}">{{ items|length }}</span></div><div class="bd">
+  {% for t in items %}{% include "crm/_task.html" with show_assignee=True %}{% empty %}<p class="muted" style="margin:0">{% tr "Nothing here." %}</p>{% endfor %}
+</div></div>
+{% endfor %}
+</div>
+<p class="help" style="margin-top:12px">{% tr "Add tasks from a deal page. Every website enquiry creates a reply task automatically." %}</p>
+{% endblock %}

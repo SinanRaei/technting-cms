@@ -1,0 +1,15 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post" novalidate>{% csrf_token %}
+<h2>{% tr "Administrator" %}</h2>
+<p class="lead muted">{% tr "The first account has full access: users, settings, plugins and updates." %}</p>
+<label class="f"><span>{% tr "Username" %}</span><input type="text" name="username" value="{{ form.username }}" dir="ltr" autocomplete="username" maxlength="150" required autofocus>
+{% if errors.username %}<div class="err">{{ errors.username }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Work email" %}</span><input type="email" name="email" value="{{ form.email }}" dir="ltr" autocomplete="email" required>
+{% if errors.email %}<div class="err">{{ errors.email }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Password" %}</span><input type="password" name="password" dir="ltr" autocomplete="new-password" required>
+<div class="help">{% tr "At least 12 characters. Avoid common words and your username." %}</div>
+{% if errors.password %}<div class="err">{{ errors.password }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Password again" %}</span><input type="password" name="password2" dir="ltr" autocomplete="new-password" required>
+{% if errors.password2 %}<div class="err">{{ errors.password2 }}</div>{% endif %}</label>
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'languages' %}">{% tr "Back" %}</a><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>{% endblock %}

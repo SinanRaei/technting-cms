@@ -1,0 +1,37 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+{% for s in steps %}
+<section class="card fb-step">
+  <div class="hd"><span>{{ forloop.counter }}. {{ s.title.en|default:s.key }}</span>{% if s.title.ar %}<span class="small muted ar-text">{{ s.title.ar }}</span>{% endif %}<span class="sp"></span>
+    {% if can_edit %}<form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="id" value="{{ s.pk }}"><button class="btn sm" name="action" value="step_up" aria-label="{% tr 'Up' %}">↑</button><button class="btn sm" name="action" value="step_down" aria-label="{% tr 'Down' %}">↓</button></form>{% endif %}</div>
+  {% if can_edit %}<details class="bd" style="border-bottom:1px solid var(--line)"><summary style="cursor:pointer;font-weight:700">{% tr "Edit" %} · {% tr "Step" %} <code dir="ltr">{{ s.key }}</code>{% if s.visible_if %} · <span class="fb-code">{{ s.visible_if }}</span>{% endif %}</summary>
+    <form method="post" style="margin-top:10px">{% csrf_token %}<input type="hidden" name="action" value="save_step"><input type="hidden" name="id" value="{{ s.pk }}">
+      <div class="fb-row"><label class="f"><span>{% tr "Key" %}</span><input name="key" value="{{ s.key }}" dir="ltr"></label>
+      <label class="f" style="flex:3"><span>{% tr "Show only when" %}</span><input name="visible_if" value="{{ s.visible_if }}" class="fb-code" placeholder="{% tr 'Empty = always' %}">{% if s.rule_error %}<div class="fb-err">{{ s.rule_error }}</div>{% endif %}</label></div>
+      {% tr "Title" as l %}{% include "formbuilder/_pair.html" with name="title" val=s.title label=l %}
+      {% tr "Introduction" as l %}{% include "formbuilder/_pair.html" with name="intro" val=s.intro label=l rows=2 %}
+      <button class="btn primary sm">{% tr "Save" %}</button>
+    </form>
+    {% if steps|length > 1 %}<form method="post" style="margin-top:8px" onsubmit="return confirm('{% tr "Delete" %}?')">{% csrf_token %}<input type="hidden" name="id" value="{{ s.pk }}"><button class="btn sm danger" name="action" value="delete_step">{% tr "Delete" %} {% tr "Step" %}</button></form>{% endif %}
+  </details>{% endif %}
+  {% for f in s.fields.all %}
+  <div class="fb-q"><span class="k" dir="ltr">{{ f.key }}</span>
+    <div class="l"><a href="{% url 'formbuilder:field' form.pk f.pk %}" style="font-weight:700;color:var(--text);text-decoration:none">{{ f.label.en|default:"-"|striptags|truncatechars:110 }}</a>
+      {% if f.label.ar %}<div class="small muted ar-text">{{ f.label.ar|striptags|truncatechars:110 }}</div>{% endif %}
+      <div class="small muted">{% tr f.get_type_display %}{% if f.required %} · {% tr "Required" %}{% endif %}{% if f.options.all %} · {{ f.options.all|length }} {% tr "Options" %}{% endif %}{% if f.visible_if %} · <span class="fb-code">{{ f.visible_if }}</span>{% endif %}{% if f.texts %} · {{ f.texts|length }} {% tr "Text" %}{% endif %}</div>
+      {% if f.rule_error %}<div class="fb-err">{{ f.rule_error }}</div>{% endif %}</div>
+    {% if can_edit %}<form method="post">{% csrf_token %}<input type="hidden" name="id" value="{{ f.pk }}"><button class="btn sm" name="action" value="field_up" aria-label="{% tr 'Up' %}">↑</button><button class="btn sm" name="action" value="field_down" aria-label="{% tr 'Down' %}">↓</button>
+      <button class="btn sm danger" name="action" value="delete_field" onclick="return confirm('{% tr "Delete" %} {{ f.key }}?')">{% tr "Delete" %}</button></form>{% endif %}
+  </div>
+  {% endfor %}
+  {% if can_edit %}<form method="post" class="bd fb-row">{% csrf_token %}<input type="hidden" name="action" value="add_field"><input type="hidden" name="step" value="{{ s.pk }}">
+    <label class="f" style="max-width:280px"><span>{% tr "Type" %}</span><select name="type">{% for k, l in types %}<option value="{{ k }}">{% tr l %}</option>{% endfor %}</select></label>
+    <button class="btn sm">+ {% tr "Add question" %}</button></form>{% endif %}
+</section>
+{% endfor %}
+{% if can_edit %}<form method="post" class="card" style="max-width:640px">{% csrf_token %}<input type="hidden" name="action" value="add_step"><div class="bd fb-row">
+  <label class="f"><span>{% tr "Key" %}</span><input name="key" dir="ltr" placeholder="part-a"></label>
+  <label class="f"><span>{% tr "Title" %} (EN)</span><input name="title_en"></label>
+  <button class="btn">+ {% tr "Add step" %}</button></div></form>{% endif %}
+{% include "formbuilder/_rules_help.html" %}
+{% endblock %}

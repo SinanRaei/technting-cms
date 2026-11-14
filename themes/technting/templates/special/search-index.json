@@ -1,0 +1,6 @@
+{# Search index for one language: every public page, service and article, with a short text for matching. #}
+{% set items = [] %}
+{% for p in entries('post')|sort(attribute='date', reverse=true) %}{% set _ = items.append({"t": p.title, "u": entry_url('post', p.key), "k": t('blog'), "d": p.excerpt or "", "x": ((p.focus_keyword or "") ~ " " ~ (p.body or "")|striptags)|truncate(1200, true, ""), "date": p.date}) %}{% endfor %}
+{% for s in entries('service') %}{% set _ = items.append({"t": s.name, "u": entry_url('service', s.key), "k": t('services'), "d": s.summary or "", "x": ((s.body or "")|striptags|truncate(800, true, "")) ~ " " ~ ((s.includes or [])|map(attribute='name')|join(" "))}) %}{% endfor %}
+{% for t_ in translations if t_.language.code == lang.code and not t_.noindex and t_.page.key not in ('home',) %}{% set _ = items.append({"t": t_.title, "u": t_.url, "k": "", "d": t_.seo_description or "", "x": ""}) %}{% endfor %}
+{{ {"lang": lang.code, "items": items}|tojson }}

@@ -1,0 +1,19 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Forms" %}{% endblock %}{% block heading %}{% tr "Forms" %}{% endblock %}
+{% block content %}
+<div class="card"><table class="list">
+<thead><tr><th>{% tr "Form" %}</th><th>{% tr "Status" %}</th><th class="num">{% tr "Complete" %}</th><th class="num">{% tr "last 30 days" %}</th><th class="num">{% tr "In progress" %}</th><th></th></tr></thead><tbody>
+{% for f in forms %}<tr>
+  <td class="title"><a href="{% url 'formbuilder:submissions' f.pk %}">{{ f.title.en|default:f.slug }}</a>{% if f.title.ar %}<div class="small muted" dir="rtl" lang="ar">{{ f.title.ar }}</div>{% endif %}<div class="small muted" dir="ltr">{{ f.slug }}</div></td>
+  <td><span class="pill {% if f.status == 'live' %}ok{% elif f.status == 'draft' %}draft{% else %}off{% endif %}">{% tr f.get_status_display %}</span></td>
+  <td class="num">{{ f.done }}</td><td class="num">{{ f.recent }}</td><td class="num">{{ f.drafts }}</td>
+  <td style="white-space:nowrap"><a class="btn sm" href="{% url 'formbuilder:edit' f.pk %}">{% tr "Edit" %}</a> <a class="btn sm" href="{% url 'formbuilder:preview' f.pk %}" target="_blank" rel="noopener">{% tr "Preview" %} ↗</a>
+  {% if request.GET.deal %}<a class="btn sm primary" href="{% url 'formbuilder:links' f.pk %}?deal={{ request.GET.deal|urlencode }}">{% tr "+ Questionnaire link" %}</a>{% endif %}
+  {% if can_edit %}<form method="post" action="{% url 'formbuilder:duplicate' f.pk %}" style="display:inline">{% csrf_token %}<button class="btn sm">{% tr "Duplicate" %}</button></form>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="6" class="muted">{% tr "No answers yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% if can_edit %}<form method="post" class="card" style="max-width:640px;margin-top:16px">{% csrf_token %}<div class="hd">{% tr "New form" %}</div><div class="bd" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+<label class="f" style="flex:2"><span>{% tr "Name" %}</span><input name="title" required maxlength="150"></label>
+<label class="f" style="flex:1"><span>{% tr "Address" %}</span><input name="slug" maxlength="80" dir="ltr" placeholder="my-form"></label>
+<button class="btn primary">{% tr "Create" %}</button></div></form>{% endif %}
+{% endblock %}

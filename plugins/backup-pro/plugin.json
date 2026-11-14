@@ -1,0 +1,8 @@
+{
+ "label": "Technting Backup (offsite copies)",
+ "version": "1.0",
+ "description": "Copies every nightly backup to storage outside the server (Cloudflare R2, Backblaze B2, any S3-compatible bucket or Google Drive), encrypted on the server with a passphrase you keep. Keeps 14 daily, 8 weekly and 12 monthly copies, checks them every day, opens the newest in a test restore every month and emails opted-in admins about problems. Set it up under Settings → Backups → Offsite settings.",
+ "label_ar": "Technting Backup (نسخ خارج الخادم)",
+ "description_ar": "ينسخ كل نسخة احتياطية ليلية إلى تخزين خارج الخادم (Cloudflare R2 أو Backblaze B2 أو أي تخزين متوافق مع S3 أو Google Drive)، بعد تشفيرها على الخادم بعبارة مرور تحتفظون بها. يحتفظ بـ 14 نسخة يومية و8 أسبوعية و12 شهرية، ويفحصها كل يوم، ويجرّب استرجاع أحدثها كل شهر، ويرسل بريداً للمسؤولين المشتركين في التنبيهات عند وجود مشكلة. الإعداد من الإعدادات ← النسخ الاحتياطية ← إعدادات النسخ خارج الخادم.",
+ "settings": []
+}

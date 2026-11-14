@@ -1,0 +1,8 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}Technting Shield{% endblock %}{% block heading %}Technting Shield{% endblock %}
+{% block content %}
+<div class="card" style="max-width:640px"><div class="bd">
+<p style="margin-top:0">{% tr "Technting Shield is turned off. Turn it on in Plugins to protect the dashboard with a firewall, threat lists, sign-in protection and daily security checks." %}</p>
+{% if user.is_superuser %}<a class="btn primary" href="{% url 'cms:plugins' %}">{% tr "Plugins" %} →</a>{% endif %}
+</div></div>
+{% endblock %}

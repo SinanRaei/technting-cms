@@ -1,0 +1,33 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Security" %}{% endblock %}{% block heading %}{% tr "Security" %}{% endblock %}
+{% block actions %}<form method="post">{% csrf_token %}<button class="btn">{% tr "Check the site again" %}</button></form>{% endblock %}
+{% block content %}
+<div class="grid g2" style="margin-bottom:16px;align-items:start">
+  <div class="card"><div class="hd">{% tr "Summary" %}<span class="sp" style="flex:1"></span><span class="pill {% if score >= 85 %}ok{% elif score < 60 %}off{% else %}draft{% endif %}">{{ score }}/100</span></div>
+  <ul class="checks" style="padding:12px 16px;margin:0;display:flex;flex-direction:column;gap:8px">{% for i in items %}<li class="{% if i.level == 'ok' %}ok{% elif i.level == 'low' %}warn{% elif i.level == 'medium' %}warn{% else %}bad{% endif %}"><span aria-hidden="true">{% if i.level == 'ok' %}✓{% elif i.level == 'high' %}✕{% else %}!{% endif %}</span> {% tr i.text %}{% if i.detail %} <span class="muted small" dir="auto">({{ i.detail }})</span>{% endif %}</li>{% endfor %}</ul></div>
+  <div class="card"><div class="hd">{% tr "Sign-ins, last 30 days" %}</div><div class="bd">
+    <p style="margin-top:0"><b>{{ logins.ok }}</b> {% tr "successful" %} · <b>{{ logins.failed }}</b> {% tr "failed" %}</p>
+    {% if logins.by_ip %}<p class="micro" style="margin:8px 0 4px">{% tr "Failed attempts by address" %}</p>
+    <table class="list"><tbody>{% for r in logins.by_ip %}<tr><td dir="ltr" class="small" style="text-align:start"><code>{{ r.ip|default:"-" }}</code></td><td class="num">{{ r.n }}</td><td class="muted small" dir="ltr">{{ r.last|date:"Y-m-d H:i" }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+    {% if logins.by_user %}<p class="micro" style="margin:12px 0 4px">{% tr "Failed attempts by user name" %}</p>
+    <table class="list"><tbody>{% for r in logins.by_user %}<tr><td dir="ltr" class="small" style="text-align:start">{{ r.username|default:"-" }}</td><td class="num">{{ r.n }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+    <p class="help" style="margin:10px 0 0">{% tr "After 5 wrong attempts an address is blocked for 15 minutes. Full details are in" %} <a href="{% url 'cms:activity' %}?action=login_failed">{% tr "Activity" %}</a>.</p>
+    {% if shield_on %}<p class="help" style="margin:6px 0 0">{% tr "Technting Shield adds a firewall, lockouts and a live log:" %} <a href="{% url 'shield:home' %}">Technting Shield →</a></p>{% else %}<p class="help" style="margin:6px 0 0">{% tr "For a firewall, threat lists and sign-in alerts, turn on Technting Shield in" %} <a href="{% url 'cms:plugins' %}">{% tr "Plugins" %}</a>.</p>{% endif %}
+  </div></div>
+</div>
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Accounts" %}<span class="sp" style="flex:1"></span>{% if required %}<span class="pill ok">{% tr "Two-step verification required for everyone" %}</span>{% else %}<span class="pill draft">{% tr "Two-step verification optional" %}</span>{% endif %}</div>
+<table class="list"><thead><tr><th>{% tr "User" %}</th><th>{% tr "Role" %}</th><th>{% tr "Two-step verification" %}</th><th>{% tr "Last sign-in" %}</th></tr></thead><tbody>
+{% for r in rows %}<tr><td class="title"><span dir="ltr">{{ r.username }}</span>{% if r.name %} <span class="muted small">{{ r.name }}</span>{% endif %}</td><td class="small">{% tr r.role|capfirst %}</td>
+<td>{% if r.two_fa %}<span class="pill ok">{% tr "On" %}</span>{% else %}<span class="pill {% if r.admin %}off{% else %}draft{% endif %}">{% tr "Off" %}</span>{% endif %}</td>
+<td class="small muted" dir="ltr" style="text-align:start">{% if r.last_login %}{{ r.last_login|date:"Y-m-d" }}{% else %}{% tr "never" %}{% endif %}</td></tr>{% endfor %}</tbody></table>
+<div class="bd"><p class="help" style="margin:0">{% tr "Each person turns it on from My account → Two-step verification. Then require it for everyone in Settings." %} <a href="{% url 'cms:users' %}">{% tr "Users" %} →</a></p></div></div>
+<div class="grid g2" style="align-items:start">
+{% for s in public.sites %}<div class="card"><div class="hd">{{ s.label }}<span class="sp" style="flex:1"></span>{% if s.cert_days is not None %}<span class="pill {% if s.cert_days < 14 %}off{% else %}ok{% endif %}">{% tr "Certificate" %}: {% count s.cert_days "days" %}</span>{% endif %}</div>
+  {% if s.error %}<div class="bd"><span class="pill off">{% tr "Could not check the site" %}</span> <code>{{ s.error }}</code></div>{% else %}
+  <ul class="checks" style="padding:12px 16px;margin:0;display:flex;flex-direction:column;gap:8px">{% for h in s.headers %}<li class="{% if h.ok %}ok{% else %}warn{% endif %}"><span aria-hidden="true">{% if h.ok %}✓{% else %}!{% endif %}</span> <b dir="ltr">{{ h.name }}</b><div class="muted small">{% tr h.why %}</div></li>{% endfor %}</ul>{% endif %}
+</div>{% endfor %}
+</div>
+<p class="muted small" style="margin-top:14px">{% tr "Security headers are added in the web server (nginx) or Cloudflare by a developer. Last check" %}: <span dir="ltr">{{ public.checked_at|slice:":10" }} {{ public.checked_at|slice:"11:16" }}</span> · {% tr "Last backup" %}: {% if backup_hours is not None %}{% count backup_hours "hours ago" %}{% else %}-{% endif %}
+ · {% tr "Offsite copy" %}: {% if offsite and offsite.newest %}<span dir="ltr">{{ offsite.newest|date:"Y-m-d H:i" }}</span>{% if offsite.restore_at %} ({% tr "restore test" %} <span dir="ltr">{{ offsite.restore_at|date:"Y-m-d" }}</span> {% if offsite.restore_ok %}✓{% else %}✗{% endif %}){% endif %}{% else %}-{% endif %}
+ · <a href="{% url 'cms:backups' %}">{% tr "Backups" %}</a></p>
+{% endblock %}

@@ -1,0 +1,55 @@
+# Technting CMS with Docker:  docker compose up -d --build
+# Then open http://localhost:8000/ (dashboard, setup wizard on the first visit); the published site is on
+# http://localhost:8080/. Settings come from .env next to this file (optional; see .env.example).
+name: technting-cms
+
+x-app: &app
+  build:
+    context: .
+    target: app
+  image: technting-cms:${TECHNTING_CMS_IMAGE_TAG:-local}
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    # fixed paths inside the containers; everything else comes from .env
+    TECHNTING_CMS_VAR_DIR: /data/var
+    TECHNTING_CMS_OUTPUT_DIR: /srv/site
+    TECHNTING_CMS_STATIC_ROOT: /app/staticfiles
+    TECHNTING_CMS_ALLOWED_HOSTS: ${TECHNTING_CMS_ALLOWED_HOSTS:-localhost,127.0.0.1}
+  volumes:
+    - data:/data
+    - site:/srv/site
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+    command: ["web"]
+
+  scheduler:
+    <<: *app
+    command: ["scheduler"]
+    depends_on:
+      - app
+    healthcheck:
+      disable: true
+
+  web:
+    build:
+      context: .
+      target: web
+    image: technting-cms-web:${TECHNTING_CMS_IMAGE_TAG:-local}
+    depends_on:
+      - app
+    ports:
+      - "${TECHNTING_CMS_DASHBOARD_PORT:-8000}:8000"
+      - "${TECHNTING_CMS_SITE_PORT:-8080}:8080"
+    volumes:
+      - site:/srv/site:ro
+      - data:/data:ro
+    restart: unless-stopped
+
+volumes:
+  data:
+  site:

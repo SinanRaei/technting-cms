@@ -1,0 +1,15 @@
+{% from "layouts/_macros.html" import head, icon, arrow with context %}
+{% set items = entries('service', featured=true) if block.featured_only else entries('service') %}
+{% if items %}<section class="section" id="{{ block.anchor or 'services' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="cards services-grid">
+      {% for s in items %}<a class="card card-link service-card reveal" href="{{ entry_url('service', s.key) }}">
+        <span class="feature-icon">{{ icon(s.icon or 'spark') }}</span>
+        <h3>{{ s.name }}</h3>{% if s.summary %}<p>{{ s.summary }}</p>{% endif %}
+        <span class="service-foot"><span class="price">{{ s.price or t('per_quote') }}</span><span class="text-link">{{ block.link_label or t('read_service') }} {{ arrow() }}</span></span>
+      </a>{% endfor %}
+    </div>
+    {% if block.more and block.more.url %}<p class="section-more reveal"><a class="text-link" href="{{ block.more.url }}">{{ block.more.label }} {{ arrow() }}</a></p>{% endif %}
+  </div>
+</section>{% endif %}

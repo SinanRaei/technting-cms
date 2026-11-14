@@ -1,0 +1,141 @@
+{% load static cms_i18n %}<!doctype html>
+<html lang="{{ ui_lang|default:'en' }}" dir="{{ ui_dir|default:'ltr' }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}{% tr "Dashboard" %}{% endblock %} · Technting CMS</title>
+<link rel="icon" href="{% static 'cms/img/favicon.ico' %}" sizes="48x48">
+<link rel="icon" href="{% static 'cms/img/favicon.svg' %}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{% static 'cms/img/apple-touch-icon.png' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'cms/admin.css' %}?v=16">
+{% block head %}{% endblock %}
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="{% url 'cms:dashboard' %}"><span class="mark"><svg viewBox="0 0 276.72 276.72" aria-hidden="true" focusable="false"><path d="M203.91 243.96V198.36H170.01Q158.91 198.36 153.21 192.51Q147.51 186.66 147.51 175.56V32.76H96.81V75.96H72.81V115.56H96.81V174.06Q96.81 200.16 104.01 215.46Q111.21 230.76 127.26 237.36Q143.31 243.96 170.31 243.96Z" fill="#FFFFFF"/><path d="M164.31 115.56H203.91V75.96H164.31Z" fill="#7B6CFF"/></svg></span><span>Technting CMS<small>{{ site_host }}</small></span></a>
+    <button type="button" class="qs-open" id="qs-open" aria-haspopup="dialog">{% tr "Quick search" %} <kbd dir="ltr">Ctrl K</kbd></button>
+    {% with p=request.resolver_match.url_name %}
+    <nav aria-label="{% tr 'Dashboard' %}">
+      {% if cms_role == "sales" %}
+      <span class="grp">{% tr "Sales" %}</span>
+      <a href="{% url 'crm:home' %}" class="{% if request.resolver_match.app_name == 'crm' %}on{% endif %}">CRM{% if crm_new_leads %}<span class="count" style="background:#c0392b;color:#fff;border-radius:999px;padding:0 7px;font-weight:800">{{ crm_new_leads }}</span>{% endif %}</a>
+      <a href="{% url 'formbuilder:list' %}" class="{% if request.resolver_match.app_name == 'formbuilder' %}on{% endif %}">{% tr "Forms" %}</a>
+      <a href="{% url 'cms:inbox' %}" class="{% if p == 'inbox' or p == 'inbox_item' %}on{% endif %}">{% tr "Inbox" %}{% if cms_inbox_new %}<span class="count" style="background:#5b4bff;color:#fff;border-radius:999px;padding:0 7px;font-weight:800">{{ cms_inbox_new }}</span>{% endif %}</a>
+      <a href="{% url 'cms:stats' %}" class="{% if p == 'stats' %}on{% endif %}">{% tr "Stats" %}</a>
+      <a href="{% url 'cms:account' %}" class="{% if p == 'account' %}on{% endif %}">{% tr "My account" %}</a>
+    </nav>
+    {% elif cms_role == "author" %}
+      <span class="grp">{% tr "Content" %}</span>
+      {% for key, c in cms_collections.items %}{% if key in cms_author_collections %}
+      <a href="{% url 'cms:entries' key %}" class="{% if request.resolver_match.kwargs.collection == key %}on{% endif %}">{{ c.label|tl:request }}</a>
+      {% endif %}{% endfor %}
+      <a href="{% url 'cms:media' %}" class="{% if p == 'media' %}on{% endif %}">{% tr "Media" %}</a>
+      <a href="{% url 'cms:account' %}" class="{% if p == 'account' %}on{% endif %}">{% tr "My account" %}</a>
+    </nav>
+    {% else %}
+      <a href="{% url 'cms:dashboard' %}" class="{% if p == 'dashboard' %}on{% endif %}">{% tr "Dashboard" %}</a>
+      <span class="grp">{% tr "Content" %}</span>
+      <a href="{% url 'cms:pages' %}" class="{% if p == 'pages' or p == 'page_edit' or p == 'page_new' %}on{% endif %}">{% tr "Pages" %}</a>
+      {% for key, c in cms_collections.items %}
+      <a href="{% url 'cms:entries' key %}" class="{% if request.resolver_match.kwargs.collection == key %}on{% endif %}">{{ c.label|tl:request }}</a>
+      {% endfor %}
+      <a href="{% url 'cms:media' %}" class="{% if p == 'media' %}on{% endif %}">{% tr "Media" %}</a>
+      <a href="{% url 'cms:calendar' %}" class="{% if p == 'calendar' %}on{% endif %}">{% tr "Calendar" %}</a>
+      <a href="{% url 'cms:translations' %}" class="{% if p == 'translations' %}on{% endif %}">{% tr "Translations" %}</a>
+      <span class="grp">{% tr "Sales" %}</span>
+      <a href="{% url 'crm:home' %}" class="{% if request.resolver_match.app_name == 'crm' %}on{% endif %}">CRM{% if crm_new_leads %}<span class="count" style="background:#c0392b;color:#fff;border-radius:999px;padding:0 7px;font-weight:800">{{ crm_new_leads }}</span>{% endif %}</a>
+      <a href="{% url 'formbuilder:list' %}" class="{% if request.resolver_match.app_name == 'formbuilder' %}on{% endif %}">{% tr "Forms" %}</a>
+      <span class="grp">{% tr "Site" %}</span>
+      <a href="{% url 'cms:inbox' %}" class="{% if p == 'inbox' or p == 'inbox_item' %}on{% endif %}">{% tr "Inbox" %}{% if cms_inbox_new %}<span class="count" style="background:#5b4bff;color:#fff;border-radius:999px;padding:0 7px;font-weight:800">{{ cms_inbox_new }}</span>{% endif %}</a>
+      <a href="{% url 'cms:menus' %}" class="{% if p == 'menus' %}on{% endif %}">{% tr "Menus" %}</a>
+      <a href="{% url 'cms:stats' %}" class="{% if p == 'stats' %}on{% endif %}">{% tr "Stats" %}</a>
+      <a href="{% url 'cms:seo' %}" class="{% if p == 'seo' %}on{% endif %}">SEO</a>
+      <a href="{% url 'cms:health' %}" class="{% if p == 'health' %}on{% endif %}">{% tr "Site health" %}</a>
+      {% if user.is_superuser %}
+      <a href="{% url 'cms:settings' %}" class="{% if p == 'settings' or p == 'social_settings' or p == 'email_settings' %}on{% endif %}">{% tr "Settings" %}</a>
+      <a href="{% url 'cms:users' %}" class="{% if p == 'users' %}on{% endif %}">{% tr "Users" %}</a>
+      <a href="{% url 'cms:plugins' %}" class="{% if p == 'plugins' %}on{% endif %}">{% tr "Plugins" %}</a>
+      <a href="{% url 'cms:replace' %}" class="{% if p == 'replace' %}on{% endif %}">{% tr "Find and replace" %}</a>
+      <a href="{% url 'cms:backups' %}" class="{% if p == 'backups' or p == 'offsite_settings' %}on{% endif %}">{% tr "Backups" %}</a>
+      <a href="{% url 'cms:updates' %}" class="{% if p == 'updates' %}on{% endif %}">{% tr "Updates" %}</a>
+      <a href="{% url 'cms:licence' %}" class="{% if p == 'licence' %}on{% endif %}">{% tr "Licence" %}</a>
+      <a href="{% url 'cms:activity' %}" class="{% if p == 'activity' %}on{% endif %}">{% tr "Activity" %}</a>
+      <a href="{% url 'cms:site_security' %}" class="{% if p == 'site_security' %}on{% endif %}">{% tr "Security" %}</a>
+      {% if shield_on %}<a href="{% url 'shield:home' %}" class="{% if request.resolver_match.app_name == 'shield' %}on{% endif %}">Technting Shield</a>{% endif %}
+      {% endif %}
+      <a href="{% url 'cms:account' %}" class="{% if p == 'account' %}on{% endif %}">{% tr "My account" %}</a>
+    </nav>
+    {% endif %}
+    {% endwith %}
+    <div class="foot">
+      <form method="post" action="{% url 'cms:ui_language' %}" style="display:flex;gap:6px;align-items:center;margin-bottom:10px">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <span class="small">{% tr "Interface language" %}:</span>
+        <button class="btn sm {% if ui_lang == 'en' %}primary{% else %}ghost{% endif %}" name="lang" value="en" style="{% if ui_lang != 'en' %}color:#c9cbdb{% endif %}">EN</button>
+        <button class="btn sm {% if ui_lang == 'ar' %}primary{% else %}ghost{% endif %}" name="lang" value="ar" style="{% if ui_lang != 'ar' %}color:#c9cbdb{% endif %}">ع</button>
+      </form>
+      {% tr "Signed in as" %} <b>{{ user.get_username }}</b>
+      <form method="post" action="{% url 'cms:logout' %}" style="margin-top:8px">{% csrf_token %}<button class="btn sm ghost" style="color:#c9cbdb;padding:0">{% tr "Sign out" %}</button></form></div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <h1>{% block heading %}{% endblock %}</h1>
+      <span class="sp"></span>
+      {% block actions %}{% endblock %}
+      <a class="btn" href="https://{{ site_host }}/" target="_blank" rel="noopener">{% tr "View site ↗" %}</a>
+      {% if cms_role != "author" and cms_role != "sales" %}<form method="post" action="{% url 'cms:publish' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn dark" title="{% tr 'Rebuild and publish the whole site' %}">{% tr "Publish site" %}</button></form>{% endif %}
+    </header>
+    <div class="content">
+      {% if demo_mode %}<div class="msgs"><div class="msg warning" role="note"><b>{% tr "Public demo" %}</b> · {% tr "This is a public demo. Everything resets every 2 hours. Do not enter real personal data." %}</div></div>{% endif %}
+      {% if cms_licence %}<div class="msgs"><div class="msg error" role="alert"><b>{% tr "Licence" %}</b> · {% tr cms_licence.message %} <a href="{% url 'cms:licence' %}">{% tr "Open Settings, Licence" %}</a></div></div>{% endif %}
+      {% if messages %}<div class="msgs">{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{{ ui_data|json_script:"cms-ui" }}
+{% block scripts %}{% endblock %}
+<div class="qs" id="qs" role="dialog" aria-modal="true" aria-label="{% tr 'Quick search' %}" hidden><div class="qs-box">
+<input type="search" id="qs-q" placeholder="{% tr 'Search pages, records, contacts, deals…' %}" autocomplete="off" dir="auto">
+<div class="qs-list" id="qs-list" role="listbox"></div><p class="qs-help">{% tr "↑ ↓ to move, Enter to open, Esc to close" %}</p></div></div>
+<script>
+(function () {
+  var box = document.getElementById("qs"), q = document.getElementById("qs-q"), list = document.getElementById("qs-list"), sel = 0, items = [], timer;
+  function open() { box.hidden = false; q.value = ""; run(); setTimeout(function () { q.focus(); }, 10); }
+  function close() { box.hidden = true; }
+  function draw() {
+    list.innerHTML = ""; var last = "";
+    items.forEach(function (it, i) {
+      if (it.group !== last) { var g = document.createElement("div"); g.className = "qs-group"; g.textContent = it.group; list.appendChild(g); last = it.group; }
+      var a = document.createElement("a"); a.href = it.url; a.className = "qs-item" + (i === sel ? " on" : ""); a.setAttribute("role", "option");
+      var b = document.createElement("b"); b.textContent = it.label; b.dir = "auto"; a.appendChild(b);
+      if (it.hint) { var s = document.createElement("small"); s.textContent = it.hint; s.dir = "ltr"; a.appendChild(s); }
+      list.appendChild(a);
+    });
+    if (!items.length) { var e = document.createElement("p"); e.className = "qs-empty"; e.textContent = "{% tr 'Nothing found.' %}"; list.appendChild(e); }
+  }
+  function run() {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      fetch("{% url 'cms:find' %}?q=" + encodeURIComponent(q.value), {credentials: "same-origin"}).then(function (r) { return r.json(); })
+        .then(function (d) { items = d.items || []; sel = 0; draw(); }).catch(function () {});
+    }, 140);
+  }
+  document.getElementById("qs-open").addEventListener("click", open);
+  q.addEventListener("input", run);
+  box.addEventListener("click", function (e) { if (e.target === box) close(); });
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); box.hidden ? open() : close(); return; }
+    if (box.hidden) return;
+    if (e.key === "Escape") { close(); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, items.length - 1); draw(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); draw(); }
+    else if (e.key === "Enter" && items[sel]) { e.preventDefault(); location.href = items[sel].url; }
+  });
+})();
+</script>
+</body>
+</html>

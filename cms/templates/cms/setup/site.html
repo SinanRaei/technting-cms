@@ -1,0 +1,12 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post" novalidate>{% csrf_token %}
+<h2>{% tr "Site" %}</h2>
+<p class="lead muted">{% tr "Welcome. A few questions and your site is ready. You can change all of this later in the dashboard." %}</p>
+<label class="f"><span>{% tr "Site name" %}</span><input type="text" name="site_name" value="{{ form.site_name }}" maxlength="120" required autofocus{% if lock_name %} readonly{% endif %}>
+<div class="help">{% if lock_name %}{% tr "Set by the server environment. Change it there." %}{% else %}{% tr "Shown in page titles, emails and search results." %}{% endif %}</div>
+{% if errors.site_name %}<div class="err">{{ errors.site_name }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Site address" %}</span><input type="url" name="site_url" value="{{ form.site_url }}" dir="ltr" placeholder="https://example.com" maxlength="300" required{% if lock_url %} readonly{% endif %}>
+<div class="help">{% if lock_url %}{% tr "Set by the server environment. Change it there." %}{% else %}{% tr "The public address visitors will use, for example https://example.com" %}{% endif %}</div>
+{% if errors.site_url %}<div class="err">{{ errors.site_url }}</div>{% endif %}</label>
+<div class="actions"><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>{% endblock %}

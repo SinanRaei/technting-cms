@@ -1,0 +1,15 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Activity" %}{% endblock %}{% block heading %}{% tr "Activity" %}{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 14px">{% tr "Who did what in the dashboard. Kept for one year." %}</p>
+<form method="get" class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;padding:14px 16px;margin-bottom:14px">
+<label class="f" style="margin:0"><span>{% tr "User" %}</span><select name="user"><option value="">{% tr "All users" %}</option>{% for u in users %}<option value="{{ u }}" {% if u == who %}selected{% endif %}>{{ u }}</option>{% endfor %}</select></label>
+<label class="f" style="margin:0"><span>{% tr "Action" %}</span><select name="action"><option value="">{% tr "All actions" %}</option>{% for a in actions %}<option value="{{ a }}" {% if a == what %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></label>
+<button class="btn">{% tr "Filter" %}</button></form>
+<div class="card"><table class="list"><thead><tr><th>{% tr "When" %}</th><th>{% tr "User" %}</th><th>{% tr "Action" %}</th><th>{% tr "Target" %}</th><th>{% tr "IP address" %}</th></tr></thead><tbody>
+{% for e in events %}<tr><td class="muted small" style="white-space:nowrap">{{ e.created_at|date:"Y-m-d H:i" }}</td><td>{{ e.username|default:"-" }}</td>
+<td><span class="pill {% if e.action == 'login_failed' or 'delete' in e.action %}off{% elif e.action == 'login' or e.action == 'publish' %}ok{% endif %}">{{ e.action }}</span></td>
+<td class="small" dir="auto">{{ e.target }}</td><td class="muted small" dir="ltr">{{ e.ip }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">{% tr "No activity yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

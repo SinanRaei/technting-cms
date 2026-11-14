@@ -1,0 +1,26 @@
+أهلاً {{ full_name }}،
+
+جهّزنا لك حساباً في لوحة تحكم موقع Technting.
+اسم المستخدم: {{ user.username }}
+الصلاحية: {{ role_ar }}
+صلاحية الرابط: {{ days }} أيام (حتى {{ expires_iso }})
+
+1. افتح الرابط التالي.
+2. اختر كلمة مرور خاصة بك (12 حرفاً على الأقل).
+3. من «حسابي» فعّل التحقق بخطوتين.
+
+{{ url }}
+
+الرابط شخصي ويعمل مرة واحدة فقط. لا ترسله لأحد.
+
+----------------------------------------------------------------
+
+Hello {{ full_name }},
+
+Your Technting website dashboard account is ready.
+Username: {{ user.username }} · Role: {{ role_en }} · Link valid for {{ days }} days (until {{ expires_en }}).
+
+Open the link above, choose your own password (at least 12 characters), then turn on two-step
+verification under "My account". The link is personal and works once; please do not forward it.
+
+Technting CMS · {{ host }}

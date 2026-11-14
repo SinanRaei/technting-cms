@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light">
+<title>Technting CMS</title></head>
+<body style="margin:0;padding:0;background:#eef2f5;font-family:Tahoma,Arial,sans-serif;color:#101927">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">حسابك في لوحة تحكم موقع Technting جاهز. Your Technting website dashboard account is ready.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f5;padding:28px 12px">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #dde3ea">
+
+  <!-- header -->
+  <tr><td style="background:#0b1320;padding:26px 30px;border-top:5px solid #01a99a">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="vertical-align:middle;width:46px">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width:40px;height:40px;background:#131d2c;border-radius:9px"><tr><td align="center" style="padding:9px 9px">
+          <div style="height:4px;background:#ffffff;margin:0 0 4px"></div><div style="height:4px;background:#01a99a;margin:0 0 4px"></div><div style="height:4px;background:#ffffff"></div>
+        </td></tr></table>
+      </td>
+      <td style="vertical-align:middle;padding-right:12px;color:#ffffff;font-family:Arial,sans-serif" dir="ltr" align="left">
+        <div style="font-size:20px;font-weight:bold;letter-spacing:.3px">Technting <span style="color:#01a99a">CMS</span></div>
+        <div style="font-size:12px;color:#8fa0b5;letter-spacing:2px">Technting CMS · WEBSITE DASHBOARD</div>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Arabic -->
+  <tr><td dir="rtl" align="right" style="padding:30px 30px 10px;font-size:16px;line-height:1.9;text-align:right">
+    <h1 style="margin:0 0 6px;font-size:22px;color:#0b1320">أهلاً {{ full_name }}،</h1>
+    <p style="margin:0 0 14px">جهّزنا لك حساباً في <b>لوحة تحكم موقع Technting</b>، ومنها تعدّل محتوى الموقع بالعربية والإنجليزية: الصفحات والخدمات والأسعار والمقالات والصور، وتتابع استفسارات العملاء.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#f4f8f9;border-right:3px solid #01a99a;width:100%"><tr><td style="padding:12px 16px;font-size:15px">
+      اسم المستخدم: <b dir="ltr" style="font-family:Consolas,monospace">{{ user.username }}</b><br>
+      الصلاحية: <b>{{ role_ar }}</b><br>
+      صلاحية الرابط: <b>{{ days }} أيام</b>، حتى <span dir="ltr">{{ expires_iso }}</span>
+    </td></tr></table>
+    <p style="margin:0 0 8px"><b>ثلاث خطوات للبدء:</b></p>
+    <ol style="margin:0 0 18px;padding-right:20px;padding-left:0">
+      <li>اضغط الزر في الأسفل.</li>
+      <li>اختر كلمة مرور خاصة بك (12 حرفاً على الأقل) واكتبها مرتين.</li>
+      <li>من «حسابي» فعّل <b>التحقق بخطوتين</b> لحماية حسابك.</li>
+    </ol>
+  </td></tr>
+
+  <!-- button -->
+  <tr><td align="center" style="padding:4px 30px 8px">
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#01a99a;border-radius:8px">
+      <a href="{{ url }}" style="display:inline-block;padding:15px 34px;font-family:Tahoma,Arial,sans-serif;font-size:17px;font-weight:bold;color:#062a27;text-decoration:none">اختر كلمة المرور &nbsp;·&nbsp; Set your password</a>
+    </td></tr></table>
+  </td></tr>
+  <tr><td dir="rtl" align="right" style="padding:10px 30px 22px;font-size:13px;line-height:1.8;color:#5c697b;text-align:right">
+    الرابط شخصي ويعمل <b>مرة واحدة فقط</b>. لا ترسله لأحد. إذا انتهت صلاحيته فاطلب رابطاً جديداً من سنان.
+  </td></tr>
+
+  <!-- divider -->
+  <tr><td style="padding:0 30px"><div style="height:1px;background:#e5eaf0"></div></td></tr>
+
+  <!-- English -->
+  <tr><td dir="ltr" align="left" style="padding:22px 30px 10px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;text-align:left;color:#2b384b">
+    <h2 style="margin:0 0 6px;font-size:18px;color:#0b1320">Hello {{ full_name }},</h2>
+    <p style="margin:0 0 12px">Your account for the <b>Technting website dashboard</b> is ready. From it you can edit the site in Arabic and English (pages, services, prices, articles and images) and read client enquiries.</p>
+    <p style="margin:0 0 12px">Username: <b style="font-family:Consolas,monospace">{{ user.username }}</b> · Role: <b>{{ role_en }}</b> · Link valid for <b>{{ days }} days</b> (until {{ expires_en }})</p>
+    <p style="margin:0 0 12px"><b>To start:</b> open the button above, choose your own password (at least 12 characters), then turn on <b>two-step verification</b> under “My account”.</p>
+    <p style="margin:0 0 8px;font-size:13px;color:#5c697b">The link is personal and works once. Please do not forward it. If the button does not open, copy this address into your browser:</p>
+    <p style="margin:0 0 6px;font-size:12px;word-break:break-all;font-family:Consolas,monospace"><a href="{{ url }}" style="color:#007f76">{{ url }}</a></p>
+  </td></tr>
+
+  <!-- footer -->
+  <tr><td style="background:#f7f9fb;padding:16px 30px;border-top:1px solid #e5eaf0;font-family:Arial,sans-serif;font-size:12px;color:#7f8ea3" dir="ltr" align="left">
+    Technting CMS · <a href="{{ host }}" style="color:#007f76">{{ host }}</a><br>
+    You received this because {{ invited_by|default:"a Technting administrator" }} created a dashboard account for you.
+  </td></tr>
+</table>
+</td></tr></table>
+</body>
+</html>

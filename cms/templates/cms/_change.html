@@ -1,0 +1,1 @@
+{% load cms_i18n %}{% if c is not None %}<small class="chg {% if c > 0 %}up{% elif c < 0 %}down{% endif %}" title="{% tr 'Compared with the period before' %}" dir="ltr">{% if c > 0 %}+{% endif %}{{ c }}%</small>{% endif %}

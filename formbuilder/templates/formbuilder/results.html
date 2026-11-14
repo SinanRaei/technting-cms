@@ -1,0 +1,26 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<div class="card"><div class="hd">{% tr "Blocks" %}</div>
+{% for r in rows %}
+<div class="fb-q"><span class="k">{{ r.n|add:1 }}</span>
+  <div class="l"><a href="{% url 'formbuilder:block' form.pk r.n %}" style="font-weight:700;color:var(--text);text-decoration:none">{% tr r.label %}</a>
+    <div class="small muted" dir="auto">{{ r.summary|striptags|truncatechars:150 }}</div>{% if r.if %}<div class="small fb-code">{% tr "Show only when" %}: {{ r.if }}</div>{% endif %}</div>
+  {% if can_edit %}<form method="post">{% csrf_token %}<input type="hidden" name="n" value="{{ r.n }}"><button class="btn sm" name="action" value="up" aria-label="{% tr 'Up' %}">↑</button><button class="btn sm" name="action" value="down" aria-label="{% tr 'Down' %}">↓</button>
+  <button class="btn sm danger" name="action" value="delete" onclick="return confirm('{% tr "Delete" %}?')">{% tr "Delete" %}</button></form>{% endif %}
+</div>
+{% endfor %}
+{% if can_edit %}<form method="post" class="bd fb-row">{% csrf_token %}<input type="hidden" name="action" value="add">
+  <label class="f" style="max-width:300px"><span>{% tr "Type" %}</span><select name="type">{% for k, l in block_types %}<option value="{{ k }}">{% tr l %}</option>{% endfor %}</select></label>
+  <button class="btn sm">+ {% tr "Add block" %}</button></form>{% endif %}
+</div>
+
+<form method="post" class="card" style="margin-top:16px">{% csrf_token %}<input type="hidden" name="action" value="labels"><div class="hd">{% tr "Labels" %}</div><div class="bd" style="overflow-x:auto">
+<p class="help" dir="ltr">label(value) → text, e.g. <code>{% templatetag openvariable %} label(G_band) {% templatetag closevariable %}</code></p>
+<table class="fb-tbl"><thead><tr><th style="width:180px">{% tr "Value" %}</th><th>EN</th><th>AR</th></tr></thead><tbody>
+{% for l in labels %}<tr><td><input name="l_key" value="{{ l.key }}" class="fb-code"></td><td><input name="l_text_en" value="{{ l.text.en|default:'' }}"></td><td><input name="l_text_ar" value="{{ l.text.ar|default:'' }}" dir="rtl" class="ar-text"></td></tr>{% endfor %}
+</tbody></table>{% if can_edit %}<p style="margin-top:10px"><button class="btn primary sm">{% tr "Save" %}</button></p>{% endif %}</div></form>
+
+{% if user.is_superuser %}<details class="card" style="margin-top:16px"><summary class="hd" style="cursor:pointer">{% tr "Edit as JSON" %}</summary><form method="post" class="bd">{% csrf_token %}<input type="hidden" name="action" value="json">
+<textarea name="json" rows="22" class="fb-code" style="width:100%">{{ as_json }}</textarea><p style="margin-top:8px"><button class="btn sm">{% tr "Save" %}</button></p></form></details>{% endif %}
+{% include "formbuilder/_rules_help.html" %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Two-step verification" %}{% endblock %}{% block heading %}{% tr "Two-step verification" %}{% endblock %}
+{% block content %}
+{% if codes %}
+<div class="card" style="max-width:640px;margin-bottom:16px"><div class="hd">{% tr "Your recovery codes" %}</div><div class="bd">
+  <p style="margin-top:0">{% tr "Save these codes somewhere safe, such as a password manager. Each code works once if you lose your phone. They are shown only now." %}</p>
+  <pre dir="ltr" style="font-size:16px;line-height:1.9;background:#f4f6f9;padding:14px 18px;border-radius:6px;columns:2">{% for c in codes %}{{ c }}
+{% endfor %}</pre>
+  <button type="button" class="btn" onclick="navigator.clipboard.writeText(document.querySelector('pre').innerText).then(function(){this.textContent='✓'}.bind(this))">{% tr "Copy codes" %}</button>
+  <a class="btn primary" href="{% url 'cms:security' %}">{% tr "I saved them" %}</a>
+</div></div>
+{% elif sec.enabled %}
+<div class="card" style="max-width:640px"><div class="hd">{% tr "Status" %}: <span class="pill ok">{% tr "On" %}</span></div><div class="bd">
+  <p style="margin-top:0">{% tr "Since" %} {{ sec.enabled_at|date:"Y-m-d" }} · {% tr "Recovery codes left" %}: <b>{{ codes_left }}</b></p>
+  <form method="post" class="grid g2" style="align-items:end">{% csrf_token %}
+    <label class="f" style="margin:0"><span>{% tr "Current password" %}</span><input type="password" name="password" required autocomplete="current-password"></label>
+    <label class="f" style="margin:0"><span>{% tr "Code from your app" %}</span><input type="text" name="code" inputmode="numeric" maxlength="6" required dir="ltr"></label>
+    <div style="display:flex;gap:8px;grid-column:1/-1">
+      <button class="btn" name="action" value="regenerate">{% tr "New recovery codes" %}</button>
+      {% if not required %}<button class="btn danger" name="action" value="disable" onclick="return confirm('{% tr "Turn off two-step verification?" %}')">{% tr "Turn off" %}</button>{% endif %}
+    </div>
+  </form>
+</div></div>
+{% else %}
+{% if required %}<div class="msgs"><div class="msg warning">{% tr "This site requires two-step verification. Set it up to continue." %}</div></div>{% endif %}
+<div class="card" style="max-width:760px"><div class="hd">{% tr "Set up two-step verification" %}</div><div class="bd">
+  <ol style="margin-top:0;padding-inline-start:20px;line-height:1.9">
+    <li>{% tr "Install an authenticator app on your phone (Google Authenticator, Microsoft Authenticator, 1Password or similar)." %}</li>
+    <li>{% tr "In the app, add an account and scan this QR code." %}</li>
+    <li>{% tr "Type the 6-digit code the app shows, then confirm." %}</li>
+  </ol>
+  <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff">{{ qr|safe }}</div>
+    <div><p class="small muted" style="margin:0 0 6px">{% tr "Cannot scan? Enter this key in the app:" %}</p><code dir="ltr" style="font-size:15px;word-break:break-all">{{ secret }}</code></div>
+  </div>
+  <form method="post" style="display:flex;gap:8px;align-items:end;margin-top:18px;max-width:420px">{% csrf_token %}
+    <label class="f" style="margin:0;flex:1"><span>{% tr "Code from your app" %}</span><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required dir="ltr" style="font-size:18px;letter-spacing:.15em"></label>
+    <button class="btn primary" name="action" value="confirm">{% tr "Confirm" %}</button>
+  </form>
+</div></div>
+{% endif %}
+{% endblock %}

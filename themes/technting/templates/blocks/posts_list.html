@@ -1,0 +1,17 @@
+{% from "layouts/_macros.html" import words with context %}
+{% set posts = entries('post')|sort(attribute='date', reverse=true)|list %}
+{% if block.limit %}{% set posts = posts[:block.limit|int] %}{% endif %}
+{% if block.title %}
+{#- Teaser mode (home page): a heading, the latest posts and a link to the full list. -#}
+{% if posts %}<section class="section" id="{{ block.anchor or 'insights' }}" aria-labelledby="{{ block_id }}-title"><div class="wrap">
+<div class="section-head split reveal"><div>{% if block.eyebrow %}<p class="eyebrow">{{ block.eyebrow }}</p>{% endif %}<h2 id="{{ block_id }}-title">{{ words(block.title) }}</h2></div>{% if block.intro %}<p>{{ block.intro }}</p>{% endif %}</div>
+{% set others = none %}{% include "partials/post_cards.html" %}
+{% if block.more and block.more.url %}<p class="section-more reveal"><a class="text-link" href="{{ block.more.url }}">{{ block.more.label }} <span aria-hidden="true">{{ t('arrow') }}</span></a></p>{% endif %}
+</div></section>{% endif %}
+{% else %}
+<section class="section"><div class="wrap">
+<form class="search-form search-inline" role="search" action="{{ lang.home }}search/" method="get"><label class="sr-only" for="post-q">{{ t('search_articles') }}</label><input id="post-q" name="q" type="search" placeholder="{{ t('search_articles') }}" dir="auto"><button class="button button-ghost" type="submit">{{ t('search') }}</button></form>
+{% if posts %}<h2 class="sr-only">{{ t('all_articles') }}</h2>{% set others = none %}{% include "partials/post_cards.html" %}{% else %}<p class="muted">{{ block.empty_text }}</p>{% endif %}
+<p style="margin-top:24px"><a href="{{ lang.home }}blog/feed.xml">{{ t('rss') }}</a></p>
+</div></section>
+{% endif %}

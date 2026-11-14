@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="{{ lang.code }}" dir="{{ lang.dir }}"{% if turnstile_key() %} data-turnstile="{{ turnstile_key() }}"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F7FB">
+{% set seo_title = page.seo_title if page.key == 'home' else page.seo_title ~ ' | ' ~ site_name %}
+<title>{{ seo_title }}</title>
+{% if page.seo_description %}<meta name="description" content="{{ page.seo_description }}">{% endif %}
+{% if page.noindex or preview %}<meta name="robots" content="noindex">{% endif %}
+<link rel="canonical" href="{{ page.abs_url }}">
+{% set alts = alternates() %}
+{% if alts|length > 1 %}
+{% for a in alts %}<link rel="alternate" hreflang="{{ a.code }}" href="{{ a.abs }}">
+{% endfor %}{% for a in alts if a.code == 'en' %}<link rel="alternate" hreflang="x-default" href="{{ a.abs }}">{% endfor %}
+{% endif %}
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:site_name" content="{{ site_name }}">
+<meta property="og:locale" content="{{ lang.locale }}">
+<meta property="og:url" content="{{ page.abs_url }}">
+<meta property="og:title" content="{{ seo_title }}">
+{% if page.seo_description %}<meta property="og:description" content="{{ page.seo_description }}">{% endif %}
+{% set og = page.og_image %}
+{% if og %}<meta property="og:image" content="{{ og }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">{% endif %}
+{% block og_extra %}{% endblock %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ seo_title }}">
+{% if page.seo_description %}<meta name="twitter:description" content="{{ page.seo_description }}">{% endif %}
+{% if og %}<meta name="twitter:image" content="{{ og }}">{% endif %}
+{% block styles %}{% endblock %}
+{% block schema %}{% endblock %}
+{{ plugin_html('head_html') }}
+</head>
+<body>
+{% block body %}{% endblock %}
+{{ plugin_html('body_end_html') }}
+</body>
+</html>

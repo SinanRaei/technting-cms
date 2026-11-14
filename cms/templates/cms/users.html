@@ -1,0 +1,18 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Users" %}{% endblock %}{% block heading %}{% tr "Users" %}{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 340px;align-items:start">
+<div class="card"><table class="list"><thead><tr><th>{% tr "User" %}</th><th>{% tr "Email" %}</th><th>{% tr "Role" %}</th><th>{% tr "Last sign-in" %}</th><th></th></tr></thead><tbody>
+{% for u, role in users %}<tr><td class="title"><b>{{ u.username }}</b>{% if u == user %} <span class="pill">{% tr "you" %}</span>{% endif %}</td><td class="muted">{{ u.email }}</td>
+<td>{% if u != user and role %}<form method="post" action="{% url 'cms:user_role' u.pk %}" style="display:inline">{% csrf_token %}<select name="role" onchange="this.form.submit()" aria-label="{% tr "Role" %}" style="width:auto;padding:3px 6px">{% for r in roles %}<option value="{{ r }}" {% if r == role %}selected{% endif %}>{% if r == "admin" %}{% tr "Administrator" %}{% elif r == "editor" %}{% tr "Editor" %}{% elif r == "sales" %}{% tr "Sales" %}{% else %}{% tr "Author" %}{% endif %}</option>{% endfor %}</select></form>{% elif role == "admin" %}<span class="pill ok">{% tr "Administrator" %}</span>{% elif role == "editor" %}<span class="pill">{% tr "Editor" %}</span>{% elif role == "author" %}<span class="pill">{% tr "Author" %}</span>{% elif role == "sales" %}<span class="pill">{% tr "Sales" %}</span>{% else %}<span class="pill off">{% tr "No access" %}</span>{% endif %}{% if not u.is_active %} <span class="pill off">{% tr "Deactivated" %}</span>{% endif %}</td>
+<td class="muted small">{% if u.last_login %}{{ u.last_login|date:"Y-m-d H:i" }}{% elif not u.has_usable_password %}{% tr "Invited, not signed in yet" %}{% else %}{% tr "never" %}{% endif %}</td>
+<td style="text-align:end;white-space:nowrap">{% if not u.last_login and not u.has_usable_password and u.is_active %}<form method="post" action="{% url 'cms:user_invite' u.pk %}" style="display:inline">{% csrf_token %}<button class="btn sm primary">{% tr "Send invitation" %}</button></form> {% endif %}{% if u != user %}<form method="post" action="{% url 'cms:user_toggle' u.pk %}" style="display:inline">{% csrf_token %}<button class="btn sm {% if u.is_active %}danger{% endif %}">{% if u.is_active %}{% tr "Deactivate" %}{% else %}{% tr "Activate" %}{% endif %}</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+<form class="card" method="post">{% csrf_token %}<div class="hd">{% tr "Add a user" %}</div><div class="bd">
+<label class="f"><span>{% tr "Username" %}</span><input type="text" name="username" required autocomplete="off"></label>
+<label class="f"><span>{% tr "Email" %}</span><input type="email" name="email" dir="ltr"></label>
+<label class="f"><span>{% tr "Password" %}</span><input type="password" name="password" required autocomplete="new-password"><div class="help">{% tr "At least 12 characters." %}</div></label>
+<label class="f"><span>{% tr "Role" %}</span><select name="role"><option value="editor">{% tr "Editor: pages, collections, media, menus" %}</option><option value="author">{% tr "Author: writes blog posts and sends them for review" %}</option><option value="sales">{% tr "Sales: CRM, website enquiries and stats; no content editing" %}</option><option value="admin">{% tr "Administrator: everything, including users and settings" %}</option></select></label>
+<button class="btn primary">{% tr "Create user" %}</button></div></form>
+</div>
+{% endblock %}

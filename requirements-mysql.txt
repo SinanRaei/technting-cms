@@ -1,0 +1,4 @@
+# Optional: MySQL / MariaDB driver (TECHNTING_CMS_DB_ENGINE=mysql). Builds against the MySQL client library:
+# Debian / Ubuntu need pkg-config, default-libmysqlclient-dev and build-essential first (install.sh --db mysql does it).
+-r requirements.txt
+mysqlclient>=2.2

@@ -1,0 +1,43 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<p><a href="{% url 'formbuilder:submissions' form.pk %}">← {% tr "Submissions" %}</a></p>
+<div class="grid g2" style="align-items:start">
+<div>
+  <section class="card"><div class="hd"><bdi>{{ sub.name|default:sub.email|default:"-" }}</bdi><span class="sp"></span><span class="pill {% if sub.status == 'complete' %}ok{% else %}draft{% endif %}">{% tr sub.get_status_display %}</span></div><div class="bd"><dl class="kv">
+    <dt>{% tr "Company" %}</dt><dd dir="auto">{{ sub.company|default:"-" }}</dd>
+    <dt>{% tr "Email" %}</dt><dd dir="ltr">{{ sub.email|default:"-" }}</dd>
+    <dt>{% tr "Language" %}</dt><dd>{% if sub.language == 'ar' %}العربية{% else %}English{% endif %}</dd>
+    <dt>{% tr "Received" %}</dt><dd>{{ sub.completed_at|default:sub.updated_at|date:"Y-m-d H:i" }} · {% tr "Version" %} {{ sub.form_version }}</dd>
+    {% if sub.tags %}<dt>{% tr "Tags" %}</dt><dd>{% for t in sub.tags %}<span class="pill">{{ t }}</span> {% endfor %}</dd>{% endif %}
+    <dt>{% tr "Owner" %}</dt><dd>{{ sub.owner.get_username|default:"-" }}</dd>
+    {% if sub.deal_id %}<dt>{% tr "Deal" %}</dt><dd><a href="{% url 'crm:deal' sub.deal_id %}">{{ sub.deal.title }}</a></dd>{% elif sub.contact_id %}<dt>{% tr "Contact" %}</dt><dd><a href="{% url 'crm:contact' sub.contact_id %}">{{ sub.contact.name }}</a></dd>{% endif %}
+    {% if sub.link %}<dt>{% tr "Personal links" %}</dt><dd><a href="{% url 'formbuilder:link' sub.link.pk %}">{{ sub.link.label|default:sub.link.pk }}</a></dd>{% endif %}
+    {% if sub.page %}<dt>{% tr "Page on the website" %}</dt><dd dir="ltr">{{ sub.page }}</dd>{% endif %}
+    {% if sub.consent_at %}<dt>{% tr "Consent given" %}</dt><dd>{{ sub.consent_at|date:"Y-m-d H:i" }}<div class="small muted" dir="auto">{{ sub.consent_text }}</div></dd>{% endif %}
+    <dt>{% tr "Email" %}</dt><dd class="small">{% if sub.results_emailed_at %}✓ {{ sub.results_emailed_at|date:"Y-m-d H:i" }}{% endif %} {% if sub.results_error %}<span class="fb-err">{{ sub.results_error }}</span>{% endif %} {% if sub.notify_error %}<span class="fb-err">{{ sub.notify_error }}</span>{% endif %}</dd>
+  </dl>
+  {% if sub.status == 'complete' %}<form method="post" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">{% csrf_token %}
+    <button class="btn sm" name="action" value="resend_team">{% tr "Send the team email again" %}</button>
+    {% if form.settings.respondent_email %}<button class="btn sm" name="action" value="resend_results" onclick="return confirm('{% tr "Send the results email again" %}?')">{% tr "Send the results email again" %}</button>{% endif %}</form>{% endif %}
+  </div></section>
+
+  {% if internal %}<section class="card" style="margin-top:16px;border-color:#e3c98f"><div class="hd">{% tr "Internal pre-score" %}</div><div class="bd">
+    <p class="help">{% tr "Only in the dashboard. Never sent to the person." %}</p>
+    <table class="list"><tbody>{% for c in internal %}<tr><td>{% tr c.label %}</td><td class="num"><b>{{ c.value }}</b></td></tr>{% endfor %}</tbody></table></div></section>{% endif %}
+
+  {% if public %}<section class="card" style="margin-top:16px"><div class="hd">{% tr "Results" %}</div><div class="bd">
+    <table class="list"><tbody>{% for c in public %}<tr><td>{% tr c.label %}</td><td class="num"><b>{{ c.value }}</b></td></tr>{% endfor %}</tbody></table></div></section>{% endif %}
+
+  <section class="card" style="margin-top:16px"><div class="hd">{% tr "Answers" %}</div>
+  {% for title, items in answers %}<div class="bd" style="border-top:1px solid var(--line)"><b>{{ title }}</b>
+    <table class="list" style="margin-top:6px"><tbody>{% for i in items %}<tr><td class="fb-code" style="width:50px">{{ i.key }}</td><td class="small" dir="auto">{{ i.label|truncatechars:140 }}<div dir="auto" style="font-weight:700;color:var(--text)">{{ i.answer }}</div></td>
+      <td class="small fb-code" style="white-space:nowrap">{{ i.values }}{% if i.unknown %} <span class="pill draft">{% tr "I don't know" %}</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+  {% endfor %}</section>
+
+  <form method="post" class="card" style="margin-top:16px">{% csrf_token %}<input type="hidden" name="action" value="note"><div class="hd">{% tr "Notes" %}</div><div class="bd">
+    <textarea name="note" rows="4" style="width:100%" dir="auto">{{ sub.note }}</textarea><p style="margin-top:8px"><button class="btn sm">{% tr "Save" %}</button></p></div></form>
+  {% if user.is_superuser %}<form method="post" style="margin-top:12px" onsubmit="return confirm('{% tr "Delete these answers" %}?')">{% csrf_token %}<button class="btn sm danger" name="action" value="delete">{% tr "Delete these answers" %}</button></form>{% endif %}
+</div>
+<section class="card"><div class="hd">{% tr "What the person saw" %}</div><div class="bd fb-results" {% if sub.language == 'ar' %}dir="rtl" lang="ar"{% endif %}>{{ results_html|safe }}</div></section>
+</div>
+{% endblock %}

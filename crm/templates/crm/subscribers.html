@@ -1,0 +1,16 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Newsletter" %}{% endblock %}{% block heading %}CRM · {% tr "Newsletter" %}{% endblock %}
+{% block actions %}<a class="btn" href="?export=csv">{% tr "Export subscribers (CSV)" %}</a>{% endblock %}
+{% block crm %}
+<p class="help" style="margin:0 0 12px">{% tr "People who signed up on the website and confirmed from the email we sent them. Confirmed subscribers are added to Contacts with marketing consent. Every newsletter you send must include each person's unsubscribe link (it is in the CSV)." %} {% tr "If you send from another service, export a fresh list before each send so people who unsubscribed are not emailed." %}</p>
+<div class="toolbar">
+<a class="btn sm{% if status == 'confirmed' %} primary{% endif %}" href="?status=confirmed">{% tr "Subscribed" %} · {{ counts.confirmed }}</a>
+<a class="btn sm{% if status == 'pending' %} primary{% endif %}" href="?status=pending">{% tr "Waiting for confirmation" %} · {{ counts.pending }}</a>
+<a class="btn sm{% if status == 'unsubscribed' %} primary{% endif %}" href="?status=unsubscribed">{% tr "Unsubscribed" %} · {{ counts.unsubscribed }}</a></div>
+<div class="card"><table class="list"><thead><tr><th>{% tr "Email" %}</th><th>{% tr "Language" %}</th><th>{% tr "Signed up on" %}</th><th>{% tr "Date" %}</th></tr></thead><tbody>
+{% for s in rows %}<tr><td class="small" dir="ltr" style="text-align:start">{% if s.contact %}<a href="{% url 'crm:contact' s.contact_id %}">{{ s.email }}</a>{% else %}{{ s.email }}{% endif %}</td>
+<td>{{ s.language|upper }}</td><td class="small muted" dir="ltr" style="text-align:start">{{ s.page|truncatechars:60 }}</td>
+<td class="small muted" dir="ltr" style="text-align:start">{{ s.confirmed_at|default:s.created_at|date:"Y-m-d" }}</td></tr>
+{% empty %}<tr><td colspan="4" class="empty">{% tr "Nobody here yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

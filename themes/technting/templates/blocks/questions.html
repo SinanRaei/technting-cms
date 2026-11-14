@@ -1,0 +1,9 @@
+{% from "layouts/_macros.html" import words with context %}
+<section class="section" id="{{ block.anchor or 'who' }}" aria-labelledby="{{ block_id }}-title">
+  <div class="wrap">
+    <div class="section-head reveal"><div><p class="eyebrow">{{ block.eyebrow }}</p><h2 id="{{ block_id }}-title">{{ words(block.title) }}</h2></div></div>
+    <div class="grid-3">
+      {% for q in block['items'] or [] %}<a class="card card-link reveal" href="{{ q.link.url if q.link else '#' }}"><span class="card-top"><span class="micro">{{ q.label }}</span><span class="mono card-index">{{ '%02d'|format(loop.index) }}</span></span><h3>{{ q.title }}</h3><p>{{ q.text }}</p><span class="text-link">{{ q.link.label if q.link else '' }} <span aria-hidden="true">{{ t('arrow') }}</span></span></a>{% endfor %}
+    </div>
+  </div>
+</section>

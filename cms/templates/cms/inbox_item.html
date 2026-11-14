@@ -1,0 +1,35 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Enquiry from" %} {{ sub.name }}{% endblock %}{% block heading %}{% tr "Enquiry from" %} {{ sub.name }}{% endblock %}
+{% block actions %}<a class="btn primary" href="mailto:{{ sub.email }}?subject={{ 'Re: your enquiry to Technting'|urlencode }}">{% tr "Reply by email" %}</a><a class="btn" href="{% url 'cms:inbox' %}">{% tr "Back to inbox" %}</a>{% endblock %}
+{% block content %}
+{% with deal=sub.deals.first %}{% if deal %}<div class="msg info" style="margin-bottom:14px">{% tr "This enquiry is in the CRM as a deal." %} <a href="{% url 'crm:deal' deal.pk %}"><b>{{ deal.title }}</b> →</a></div>{% endif %}{% endwith %}
+<div class="editor">
+  <div class="card"><div class="bd">
+    <div class="kv" style="margin-bottom:16px">
+      <span class="muted">{% tr "Name" %}</span><b>{{ sub.name }}</b>
+      <span class="muted">{% tr "Email" %}</span><a href="mailto:{{ sub.email }}" dir="ltr">{{ sub.email }}</a>
+      <span class="muted">{% tr "Organisation" %}</span><span>{% if sub.organisation %}{{ sub.organisation }}{% else %}{% tr "Not provided" %}{% endif %}</span>
+      <span class="muted">{% tr "Phone" %}</span><span dir="ltr">{% if sub.phone %}{{ sub.phone }}{% else %}{% tr "Not provided" %}{% endif %}</span>
+      <span class="muted">{% tr "Service" %}</span><span>{% if service_label %}{{ service_label }}{% else %}{% tr "Not chosen" %}{% endif %}</span>
+      <span class="muted">{% tr "Interest" %}</span><span>{% if sub.interest %}{% tr sub.interest %}{% else %}{% tr "Not specified" %}{% endif %}</span>
+      {% if sub.source %}<span class="muted">{% tr "Came from" %}</span><span>{% tr sub.get_source_display %}{% if sub.topic %}: <span dir="auto">{{ sub.topic }}</span>{% endif %}</span>{% endif %}
+      <span class="muted">{% tr "Language" %}</span><span>{{ sub.language|upper }}</span>
+      <span class="muted">{% tr "Sent from" %}</span><span class="small" dir="ltr">{% if sub.page %}<a href="{{ sub.page }}" target="_blank" rel="noopener">{{ sub.page }} ↗</a>{% else %}-{% endif %}</span>
+      <span class="muted">{% tr "Received" %}</span><span>{{ sub.created_at|date:"Y-m-d H:i" }}</span>
+      <span class="muted">{% tr "Email copy" %}</span><span>{% if sub.email_sent %}{% tr "emailed to the team" %}{% else %}<span class="pill off">{% tr "email not sent" %}</span>{% if sub.email_error %} <span class="small muted" dir="ltr">{{ sub.email_error }}</span>{% endif %}{% endif %}</span>
+    </div>
+    <div dir="auto" style="white-space:pre-wrap;padding:14px 16px;background:#f4f8f9;border-inline-start:3px solid var(--teal);border-radius:4px;font-size:15px">{{ sub.message }}</div>
+  </div></div>
+  <aside>{% if not sub.email_sent %}<form class="card" method="post" style="margin-bottom:14px">{% csrf_token %}<div class="hd">{% tr "Email copy" %}</div><div class="bd">
+    <p style="margin-top:0">{% tr "This enquiry was saved, but the email to the team was not sent." %} <span dir="ltr">{{ leads_email }}</span></p>
+    <button class="btn primary" name="action" value="resend">{% tr "Send the email again" %}</button></div></form>{% endif %}
+  <form class="card" method="post">{% csrf_token %}<div class="hd">{% tr "Handling" %}</div><div class="bd">
+    <label class="f"><span>{% tr "Internal note (not sent to the client)" %}</span><textarea name="note" dir="auto">{{ sub.note }}</textarea></label>
+    <div style="display:grid;gap:8px">
+      <button class="btn primary" name="action" value="read">{% tr "Save" %}</button>
+      {% if sub.status != 'archived' %}<button class="btn" name="action" value="archived">{% tr "Archive" %}</button>{% else %}<button class="btn" name="action" value="read">{% tr "Move back to open" %}</button>{% endif %}
+      <button class="btn" name="action" value="new">{% tr "Mark as new" %}</button>
+      <button class="btn danger" name="action" value="delete" onclick="return confirm('{% tr "Delete this enquiry permanently? This also removes the personal data it contains." %}')">{% tr "Delete permanently" %}</button>
+    </div></div></form></aside>
+</div>
+{% endblock %}

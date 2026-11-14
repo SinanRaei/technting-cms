@@ -1,0 +1,26 @@
+{% autoescape false %}# {{ site_name }}
+
+> {{ t('links_lead') }}{% if languages|length > 1 %} Arabic version: {{ site_url }}/ar/{% endif %}
+
+{% set services = entries('service') %}
+{% if services %}## {{ t('services') }}
+
+{% for s in services %}- [{{ s.name }}]({{ abs_url(entry_url('service', s.key)) }}): {{ s.summary }} {{ t('price') }}: {{ s.price or t('per_quote') }}.
+{% endfor %}
+{% endif %}
+{% set posts = entries('post')|sort(attribute='date', reverse=true)|list %}
+{% if posts %}## {{ t('blog') }}
+
+{% for p in posts[:30] %}- [{{ p.title }}]({{ abs_url(entry_url('post', p.key)) }}): {{ p.excerpt }}
+{% endfor %}
+{% endif %}
+## Pages
+
+{% for t_ in translations if t_.language.code == lang.code and not t_.noindex %}- [{{ t_.title }}]({{ abs_url(t_.url) }}){% if t_.seo_description %}: {{ t_.seo_description }}{% endif %}
+{% endfor %}
+
+## Contact
+
+- Email: {{ setting('contact_email', 'leads@example.com') }}
+- Privacy notice: {{ abs_url(url('privacy')) }}
+{% endautoescape %}

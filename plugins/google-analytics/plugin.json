@@ -1,0 +1,15 @@
+{
+ "label": "Google Analytics 4 (with consent)",
+ "version": "1.0",
+ "description": "Loads Google Analytics 4 only after the visitor accepts in a small bilingual banner. Nothing is sent to Google before that. Mention Google Analytics in the privacy notice before turning this on.",
+ "settings": [
+  {
+   "name": "measurement_id",
+   "label": "Measurement ID (starts with G-)",
+   "type": "text",
+   "label_ar": "معرّف القياس (يبدأ بـ G-)"
+  }
+ ],
+ "label_ar": "Google Analytics 4 (بعد موافقة الزائر)",
+ "description_ar": "يحمّل Google Analytics 4 فقط بعد أن يوافق الزائر في شريط صغير بلغتين، ولا يُرسل أي شيء إلى Google قبل ذلك. اذكروا Google Analytics في إشعار الخصوصية قبل تفعيله."
+}

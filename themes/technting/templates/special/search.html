@@ -1,0 +1,63 @@
+{% extends "layouts/shell.html" %}
+{% block content %}
+<section class="page-hero search-hero" aria-labelledby="page-title"><div class="wrap">
+<nav class="crumbs" aria-label="{{ t('breadcrumb') }}"><a href="{{ lang.home }}">{{ t('home') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ t('search') }}</span></nav>
+<h1 id="page-title">{{ t('search_title') }}</h1>
+<form class="search-form" role="search" action="{{ lang.home }}search/" method="get">
+  <label class="sr-only" for="q">{{ t('search') }}</label>
+  <input id="q" name="q" type="search" autocomplete="off" placeholder="{{ t('search_placeholder') }}" dir="auto">
+  <button class="button" type="submit">{{ t('search') }}</button>
+</form>
+<p class="search-status" id="search-status" aria-live="polite"></p>
+</div></section>
+<section class="section"><div class="wrap"><ol class="search-results" id="search-results"></ol></div></section>
+<script>
+(function () {
+  var INDEX = "{{ lang.home }}search-index.json", input = document.getElementById("q"), list = document.getElementById("search-results"),
+      status = document.getElementById("search-status"), data = null;
+  var T = {none: {{ t('search_none')|tojson }}, results: {{ t('search_results')|tojson }}, hint: {{ t('search_hint')|tojson }}};
+  // fold case, Arabic diacritics/tatweel and letter variants so "الذكاء" finds "الذّكاء" and "اداره" finds "إدارة"
+  function norm(s) {
+    return (s || "").toLowerCase().replace(/[ً-ْـ]/g, "").replace(/[إأآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه")
+      .replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/[^\p{L}\p{N}\s]/gu, " ");
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+  function search(q) {
+    var terms = norm(q).split(/\s+/).filter(function (w) { return w.length > 1; });
+    if (!terms.length) { list.innerHTML = ""; status.textContent = T.hint; return; }
+    var hits = [];
+    data.items.forEach(function (it) {
+      var t = norm(it.t), d = norm(it.d), x = norm(it.x), score = 0, all = true;
+      terms.forEach(function (w) {
+        var s = (t.indexOf(w) > -1 ? 5 : 0) + (d.indexOf(w) > -1 ? 2 : 0) + (x.indexOf(w) > -1 ? 1 : 0);
+        if (!s) all = false;
+        score += s;
+      });
+      if (all && score) hits.push([score, it]);
+    });
+    hits.sort(function (a, b) { return b[0] - a[0]; });
+    status.textContent = hits.length ? T.results.replace("{n}", hits.length) : T.none;
+    list.innerHTML = hits.slice(0, 40).map(function (h) {
+      var it = h[1];
+      return '<li><a href="' + esc(it.u) + '">' + (it.k ? '<span class="micro">' + esc(it.k) + '</span>' : '') + '<b>' + esc(it.t) + '</b>' +
+        (it.d ? '<span class="search-desc">' + esc(it.d) + '</span>' : '') + '</a></li>';
+    }).join("");
+  }
+  var q = new URLSearchParams(location.search).get("q") || "";
+  input.value = q;
+  fetch(INDEX).then(function (r) { return r.json(); }).then(function (j) {
+    data = j; search(input.value);
+    var timer;
+    input.addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        search(input.value);
+        var u = new URL(location.href); if (input.value) { u.searchParams.set("q", input.value); } else { u.searchParams.delete("q"); }
+        history.replaceState(null, "", u);
+      }, 150);
+    });
+  });
+  if (!q) input.focus();
+})();
+</script>
+{% endblock %}

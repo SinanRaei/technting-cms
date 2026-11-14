@@ -1,0 +1,31 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Find and replace" %}{% endblock %}{% block heading %}{% tr "Find and replace" %}{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:16px"><div class="bd">
+<p class="help" style="margin:0 0 12px">{% tr "Change a word or phrase everywhere on the site at once: pages, records and menus. Check the list of matches first. Every changed record keeps a revision you can restore, and the site is published after the change." %}</p>
+<form method="get" class="grid g2" style="gap:12px;align-items:end">
+  <label>{% tr "Find" %}<input type="text" name="find" value="{{ find }}" required minlength="2" dir="auto"></label>
+  <label>{% tr "Replace with" %}<input type="text" name="replace" value="{{ replace }}" dir="auto"></label>
+  <div class="small">{% tr "Look in" %}:
+    <label class="inline"><input type="checkbox" name="scope" value="pages"{% if "pages" in scope %} checked{% endif %}> {% tr "Pages" %}</label>
+    <label class="inline"><input type="checkbox" name="scope" value="entries"{% if "entries" in scope %} checked{% endif %}> {% tr "Records" %}</label>
+    <label class="inline"><input type="checkbox" name="scope" value="menus"{% if "menus" in scope %} checked{% endif %}> {% tr "Menus" %}</label>
+    <select name="lang" style="width:auto;margin-inline-start:8px"><option value="all">{% tr "All languages" %}</option><option value="en"{% if lang == "en" %} selected{% endif %}>{% tr "English" %}</option><option value="ar"{% if lang == "ar" %} selected{% endif %}>{% tr "Arabic" %}</option></select>
+  </div>
+  <div class="small">
+    <label class="inline"><input type="checkbox" name="case" value="1"{% if case %} checked{% endif %}> {% tr "Match case" %}</label>
+    <label class="inline"><input type="checkbox" name="links" value="1"{% if links %} checked{% endif %}> {% tr "Also change links and addresses" %}</label>
+    <button class="btn primary" style="margin-inline-start:8px">{% tr "Show matches" %}</button>
+  </div>
+</form></div></div>
+{% if searched %}
+<div class="card"><div class="hd">{% count total "matches" %} · {% count records "records" %}<span class="sp" style="flex:1"></span>
+{% if found %}<form method="post" onsubmit="return confirm(this.dataset.q)" data-q="{% tr 'Replace all matches and publish the site?' %}">{% csrf_token %}
+<input type="hidden" name="find" value="{{ find }}"><input type="hidden" name="replace" value="{{ replace }}">{% for s in scope %}<input type="hidden" name="scope" value="{{ s }}">{% endfor %}
+<input type="hidden" name="lang" value="{{ lang }}">{% if case %}<input type="hidden" name="case" value="1">{% endif %}{% if links %}<input type="hidden" name="links" value="1">{% endif %}
+<input type="hidden" name="confirm" value="1"><button class="btn primary">{% tr "Replace all" %}</button></form>{% endif %}</div>
+<table class="list"><tbody>{% for f in found %}<tr><td class="title" style="min-width:200px"><a href="{{ f.url }}">{{ f.label|truncatechars:70 }}</a> <span class="pill">{{ f.lang|upper }}</span></td>
+<td class="small" dir="auto">{% for s in f.snippets %}<div class="snip">{{ s }}</div>{% endfor %}</td><td class="num">{{ f.count }}</td></tr>
+{% empty %}<tr><td class="muted">{% tr "Nothing found." %}</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+{% endblock %}

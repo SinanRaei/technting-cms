@@ -1,0 +1,8 @@
+[Unit]
+Description=Reload nginx when Technting CMS redirects change
+
+[Path]
+PathChanged=/home/technting/technting-cms-var/redirects.conf
+
+[Install]
+WantedBy=multi-user.target

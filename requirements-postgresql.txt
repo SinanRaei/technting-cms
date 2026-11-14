@@ -1,0 +1,3 @@
+# Optional: PostgreSQL driver (TECHNTING_CMS_DB_ENGINE=postgresql). The binary package needs no compiler.
+-r requirements.txt
+psycopg[binary]>=3.2

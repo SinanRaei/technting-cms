@@ -1,0 +1,4 @@
+{% load cms_i18n %}<div class="f" style="margin-bottom:12px"><span style="display:block;font-weight:700;margin-bottom:4px">{{ label }}</span><div class="fb-pair">
+<label><small class="muted">{% tr "English" %}</small>{% if rows %}<textarea name="{{ name }}_en" rows="{{ rows }}" dir="ltr">{{ val.en|default:'' }}</textarea>{% else %}<input name="{{ name }}_en" value="{{ val.en|default:'' }}" dir="ltr">{% endif %}</label>
+<label class="ar"><small class="muted">{% tr "Arabic" %}</small>{% if rows %}<textarea name="{{ name }}_ar" rows="{{ rows }}" dir="rtl" lang="ar">{{ val.ar|default:'' }}</textarea>{% else %}<input name="{{ name }}_ar" value="{{ val.ar|default:'' }}" dir="rtl" lang="ar">{% endif %}</label>
+</div>{% if help %}<div class="help">{{ help }}</div>{% endif %}</div>

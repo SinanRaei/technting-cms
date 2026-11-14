@@ -1,0 +1,34 @@
+{% load static %}<!doctype html>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ title|default:site_name }} · {{ site_name }}</title>
+<link rel="icon" href="{% url 'cms:asset' 'img/favicon.ico' %}" sizes="48x48">
+<link rel="icon" href="{% url 'cms:asset' 'img/favicon.svg' %}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{% url 'cms:asset' 'img/apple-touch-icon.png' %}">
+<style>
+.lp-top{display:flex;align-items:center;gap:14px;justify-content:space-between;padding-block:22px}
+.lp-top img{height:30px;width:auto}.lp-langs a{margin-inline-start:12px;color:var(--deep);font-weight:700;text-decoration:none}
+.lp-banner{margin-bottom:18px;padding:12px 16px;border-radius:12px;background:#FDF1DC;color:#7A4D0B;font-weight:600}
+.lp-title{margin:8px 0 22px;font-size:clamp(26px,3.4vw,38px)}
+</style>
+<link rel="stylesheet" href="{% url 'cms:asset' 'css/theme.css' %}">
+<link rel="stylesheet" href="{% url 'cms:asset' 'css/forms.css' %}">
+</head>
+<body>
+<main class="wrap fr-shell" id="main">
+  <div class="lp-top"><img src="{% url 'cms:asset' 'img/logo-compact.svg' %}" alt="{{ site_name }}" width="120" height="30">
+  {% if langs|length > 1 and not gone %}<span class="lp-langs">{% for l in langs %}{% if l != lang %}<a href="?lang={{ l }}" lang="{{ l }}">{% if l == 'ar' %}العربية{% else %}English{% endif %}</a>{% endif %}{% endfor %}</span>{% endif %}</div>
+  {% if preview %}<p class="lp-banner">{% if lang == 'ar' %}معاينة: لا يُحفظ شيء ولا يُرسل أي بريد.{% else %}Preview: nothing is saved and no email is sent.{% endif %}</p>{% endif %}
+  {% if gone %}
+    <p class="fr-message" role="status">{{ gone }}</p>
+  {% else %}
+    <h1 class="lp-title">{{ title }}</h1>
+    <div class="form-runner" data-form-runner data-api="{{ config.api }}" data-slug="{{ config.slug }}" data-lang="{{ config.lang }}"{% if config.link %} data-link="{{ config.link }}"{% endif %}{% if config.preview %} data-preview="1"{% endif %}></div>
+    <script src="{% url 'cms:asset' 'js/form-runner.js' %}" defer></script>
+  {% endif %}
+  <p class="fine" style="padding-bottom:40px">{{ site_name }} · {{ site_host }}</p>
+</main>
+</body>
+</html>

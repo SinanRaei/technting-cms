@@ -1,0 +1,23 @@
+{% load static cms_i18n shield_tags %}<!doctype html>
+<html lang="{{ ui_lang }}" dir="{{ ui_dir }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">
+<title>{% tr "Sign in" %} · Technting CMS</title>
+<link rel="icon" href="{% static 'cms/img/favicon.ico' %}" sizes="48x48">
+<link rel="icon" href="{% static 'cms/img/favicon.svg' %}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{% static 'cms/img/apple-touch-icon.png' %}">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'cms/admin.css' %}?v=9">
+<style>.login .uilang{display:flex;justify-content:flex-end;gap:4px;margin:-6px 0 8px;font-size:13px}.login .uilang a{font-weight:700;text-decoration:none;padding:2px 8px;border-radius:6px;color:inherit}.login .uilang a.on{background:#ecebff;color:#4b3be6}.demo-note p{margin:0}.demo-note .demo-login{margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.1)}.demo-note .demo-login b{display:block;margin-bottom:4px}.demo-note .demo-login p+p{margin-top:2px}.demo-note code{font-size:13.5px}</style></head>
+<body><div class="login"><form class="box" method="post">{% csrf_token %}
+<nav class="uilang" aria-label="{% tr 'Interface language' %}"><a href="{{ ui_switch.en }}" lang="en" dir="ltr" class="{% if ui_lang == 'en' %}on{% endif %}">English</a><a href="{{ ui_switch.ar }}" lang="ar" dir="rtl" class="{% if ui_lang == 'ar' %}on{% endif %}">العربية</a></nav>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><span style="width:34px;height:34px;border-radius:8px;background:#0b0b1e;display:grid;place-items:center"><svg style="width:26px;height:26px" viewBox="0 0 276.72 276.72" aria-hidden="true" focusable="false"><path d="M203.91 243.96V198.36H170.01Q158.91 198.36 153.21 192.51Q147.51 186.66 147.51 175.56V32.76H96.81V75.96H72.81V115.56H96.81V174.06Q96.81 200.16 104.01 215.46Q111.21 230.76 127.26 237.36Q143.31 243.96 170.31 243.96Z" fill="#FFFFFF"/><path d="M164.31 115.56H203.91V75.96H164.31Z" fill="#7B6CFF"/></svg></span><div><h1>Technting CMS</h1><span class="muted" dir="ltr">{{ site_host }}</span></div></div>
+{% if demo_mode %}<div class="msg warning demo-note" style="margin-bottom:12px"><p>{% tr "This is a public demo. Everything resets every 2 hours. Do not enter real personal data." %}</p>
+{% if demo %}<div class="demo-login"><b>{% tr "Demo sign-in" %}</b>
+<p>{% tr "Username" %}: <bdi dir="ltr"><code>{{ demo.user }}</code></bdi></p>
+<p>{% tr "Password" %}: <bdi dir="ltr"><code>{{ demo.password }}</code></bdi></p></div>{% endif %}</div>{% endif %}
+{% if error %}<div class="msg error" style="margin-bottom:12px">{{ error }}</div>{% endif %}
+<label class="f"><span>{% tr "Username" %}</span><input type="text" name="username" autocomplete="username" required autofocus></label>
+<label class="f"><span>{% tr "Password" %}</span><input type="password" name="password" autocomplete="current-password" required></label>
+<label style="display:flex;align-items:center;gap:8px;margin:2px 0 14px;font-size:13.5px;cursor:pointer"><input type="checkbox" name="remember" value="1" style="width:auto;min-height:0;margin:0"> {% tr "Keep me signed in for 30 days" %}</label>
+{% turnstile_widget %}
+<button class="btn primary" style="width:100%;min-height:42px">{% tr "Sign in" %}</button>
+</form></div></body></html>

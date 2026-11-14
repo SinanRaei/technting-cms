@@ -1,0 +1,18 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{{ title }}{% endblock %}{% block heading %}CRM · {{ title }}{% endblock %}
+{% block crm %}
+<form method="post" class="card" style="max-width:860px">{% csrf_token %}
+  <div class="hd">{{ title }}</div>
+  <div class="bd">
+    {% if form.non_field_errors %}<div class="msg error" style="margin-bottom:12px">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}<label class="f {% if field.name == 'notes' or field.name == 'title' %}full{% endif %}"{% if field.field.widget.input_type == 'checkbox' %} style="display:flex;gap:8px;align-items:center"{% endif %}>
+        {% if field.field.widget.input_type == 'checkbox' %}{{ field }}<span style="margin:0">{{ field.label }}</span>{% else %}<span>{{ field.label }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% endif %}
+        {% for e in field.errors %}<div class="help" style="color:var(--danger)">{{ e }}</div>{% endfor %}</label>{% endfor %}
+      {% if kind == "deal" and not form.instance.pk %}<label class="f"><span>{% tr "Stage" %}</span><select name="stage">{% for k, l in stages %}{% if k in open_stages %}<option value="{{ k }}">{% tr l %}</option>{% endif %}{% endfor %}</select></label>{% endif %}
+    </div>
+    {% if kind == "contact" %}<p class="help">{% tr "Only record what you need to work with this person. Marketing emails need their explicit consent." %}</p>{% endif %}
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn primary">{% tr "Save" %}</button><a class="btn" href="javascript:history.back()">{% tr "Cancel" %}</a></div>
+  </div>
+</form>
+{% endblock %}

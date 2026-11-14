@@ -1,0 +1,10 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Search" %}{% endblock %}{% block heading %}CRM · {% tr "Search" %}{% endblock %}
+{% block crm %}
+{% if not q %}<p class="muted">{% tr "Type a name, email, phone, organisation or deal in the search box." %}</p>{% else %}
+<div class="grid g3">
+  <div class="card"><div class="hd">{% tr "Deals" %} <span class="pill">{{ deals|length }}</span></div><div class="bd">{% for d in deals %}<div style="margin-bottom:10px"><a href="{% url 'crm:deal' d.pk %}"><b>{{ d.title }}</b></a> <span class="st st-{{ d.stage }}">{% tr d.get_stage_display %}</span><div class="muted small">{% if d.contact %}{{ d.contact.name }}{% endif %}{% if d.organization %} · {{ d.organization.name }}{% endif %}</div></div>{% empty %}<p class="muted" style="margin:0">{% tr "Nothing found." %}</p>{% endfor %}</div></div>
+  <div class="card"><div class="hd">{% tr "Contacts" %} <span class="pill">{{ contacts|length }}</span></div><div class="bd">{% for c in contacts %}<div class="person" style="margin-bottom:10px"><span class="av">{{ c.initials }}</span><div><a class="nm" href="{% url 'crm:contact' c.pk %}">{{ c.name }}</a><div class="em">{{ c.email }}{% if c.organization %} · {{ c.organization.name }}{% endif %}</div></div></div>{% empty %}<p class="muted" style="margin:0">{% tr "Nothing found." %}</p>{% endfor %}</div></div>
+  <div class="card"><div class="hd">{% tr "Organisations" %} <span class="pill">{{ orgs|length }}</span></div><div class="bd">{% for o in orgs %}<div style="margin-bottom:10px"><a href="{% url 'crm:organization' o.pk %}"><b>{{ o.name }}</b></a><div class="muted small">{{ o.domain }}</div></div>{% empty %}<p class="muted" style="margin:0">{% tr "Nothing found." %}</p>{% endfor %}</div></div>
+</div>{% endif %}
+{% endblock %}

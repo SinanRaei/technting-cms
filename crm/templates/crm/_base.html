@@ -1,0 +1,19 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block head %}<link rel="stylesheet" href="{% static 'crm/crm.css' %}?v=6">{% endblock %}
+{% block content %}
+{% with p=request.resolver_match.url_name %}
+<nav class="crm-bar" aria-label="CRM">
+  <a class="tab {% if p == 'home' %}on{% endif %}" href="{% url 'crm:home' %}">{% tr "Overview" %}</a>
+  <a class="tab {% if p == 'prospects' or p == 'prospect' or p == 'prospect_new' or p == 'prospect_edit' or p == 'prospect_move' %}on{% endif %}" href="{% url 'crm:prospects' %}">{% tr "Prospects" %}</a>
+  <a class="tab {% if p == 'pipeline' %}on{% endif %}" href="{% url 'crm:pipeline' %}">{% tr "Pipeline" %}{% if crm_unanswered %}<span class="n" title="{% tr 'New, not answered yet' %}">{{ crm_unanswered }}</span>{% endif %}</a>
+  <a class="tab {% if p == 'deals' or p == 'deal' or p == 'deal_new' %}on{% endif %}" href="{% url 'crm:deals' %}">{% tr "Deals" %}</a>
+  <a class="tab {% if p == 'contacts' or p == 'contact' or p == 'contact_new' or p == 'contact_edit' %}on{% endif %}" href="{% url 'crm:contacts' %}">{% tr "Contacts" %}</a>
+  <a class="tab {% if p == 'organizations' or p == 'organization' or p == 'organization_new' or p == 'organization_edit' %}on{% endif %}" href="{% url 'crm:organizations' %}">{% tr "Organisations" %}</a>
+  <a class="tab {% if p == 'tasks' %}on{% endif %}" href="{% url 'crm:tasks' %}">{% tr "Tasks" %}{% if crm_overdue %}<span class="n" title="{% tr 'Overdue' %}">{{ crm_overdue }}</span>{% endif %}</a>
+  <a class="tab {% if p == 'subscribers' %}on{% endif %}" href="{% url 'crm:subscribers' %}">{% tr "Newsletter" %}</a>
+  {% if user.is_superuser %}<a class="tab {% if p == 'settings' %}on{% endif %}" href="{% url 'crm:settings' %}">{% tr "Settings" %}</a>{% endif %}
+  <form method="get" action="{% url 'crm:search' %}" role="search"><input type="search" name="q" value="{{ q|default:'' }}" placeholder="{% tr 'Search people, organisations, deals' %}" aria-label="{% tr 'Search' %}"></form>
+</nav>
+{% endwith %}
+{% block crm %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "layouts/shell.html" %}
+{% from "layouts/_macros.html" import words, icon, pixel_trail with context %}
+{% set s = page.entry %}
+{% set listing = url('services') %}
+{% block schema %}
+{% set offer = {"@type": "Offer", "priceCurrency": "USD", "price": s.price_min} if s.price_min else none %}
+{{ json_ld(dict({"@context": "https://schema.org", "@type": "Service", "name": s.name, "description": s.seo_description or s.summary or "",
+  "url": page.abs_url, "provider": {"@id": site_url ~ "/#organization"}, "inLanguage": lang.code}, **({"offers": offer} if offer else {}))) }}
+{{ json_ld({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": t('home'), "item": abs_url(lang.home)},
+  {"@type": "ListItem", "position": 2, "name": t('services'), "item": abs_url(listing if listing != '#' else lang.home)},
+  {"@type": "ListItem", "position": 3, "name": s.name, "item": page.abs_url}]}) }}
+{% endblock %}
+{% block content %}
+<section class="page-hero" aria-labelledby="page-title">
+  {{ pixel_trail('trail trail-page', [5, 3, 4]) }}
+  <div class="wrap">
+    <nav class="crumbs" aria-label="{{ t('breadcrumb') }}"><a href="{{ lang.home }}">{{ t('home') }}</a><span aria-hidden="true">/</span>{% if listing != '#' %}<a href="{{ listing }}">{{ t('services') }}</a><span aria-hidden="true">/</span>{% endif %}<span aria-current="page">{{ s.name }}</span></nav>
+    <span class="feature-icon page-icon">{{ icon(s.icon or 'spark', 28) }}</span>
+    <h1 id="page-title" class="words-in">{{ words(s.name) }}</h1>
+    {% if s.summary %}<p class="lead">{{ s.summary }}</p>{% endif %}
+  </div>
+</section>
+<section class="section"><div class="wrap service-layout">
+  <div class="legal service-body">{% if s.body %}{{ s.body|safe }}{% endif %}
+    {% set inc = (s.includes or [])|selectattr('name')|list %}
+    {% if inc %}<h2>{{ t('includes') }}</h2><ul class="ticks">{% for i in inc %}<li>{{ i.name }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <aside class="service-aside" aria-label="{{ t('price') }}">
+    <p class="micro">{{ t('price') }}</p>
+    <p class="service-price">{{ s.price or t('per_quote') }}</p>
+    <a class="button button-primary" href="#enquire">{{ t('ask') }}</a>
+    <p class="fine">{{ t('price_notes') }}</p>
+  </aside>
+</div></section>
+{% set ef_services = [] %}
+{% set ef_source, ef_ref, ef_title, ef_service, ef_about = 'service', s.key, t('ef_title_service'), s.key, s.name %}
+{% include "partials/enquiry_form.html" %}
+{% endblock %}

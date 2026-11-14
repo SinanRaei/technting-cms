@@ -1,0 +1,12 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "New page" %}{% endblock %}{% block heading %}{% tr "New page" %}{% endblock %}
+{% block content %}
+<form class="card" method="post" style="max-width:640px">{% csrf_token %}<div class="bd">
+<label class="f"><span>{% tr "Title" %}</span><input type="text" name="title" required autofocus></label>
+<label class="f"><span>{% tr "Address (slug)" %}</span><input type="text" name="slug" placeholder="{% tr 'Created from the title if empty' %}" dir="ltr"></label>
+<div class="grid g2">
+<label class="f"><span>{% tr "Language" %}</span><select name="language">{% for l in langs %}<option value="{{ l.code }}">{% tr l.name %}</option>{% endfor %}</select></label>
+<label class="f"><span>{% tr "Template" %}</span><select name="template">{% for k, tpl in templates.items %}<option value="{{ k }}" {% if k == 'default' %}selected{% endif %}>{{ tpl.label|tl:request }}</option>{% endfor %}</select></label>
+</div>
+<button class="btn primary">{% tr "Create and edit" %}</button></div></form>
+{% endblock %}

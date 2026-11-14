@@ -1,0 +1,88 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block title %}{{ spec.singular|tl:request }} {{ entry.key }}{% endblock %}
+{% block heading %}{{ spec.singular|tl:request }} · {{ entry.key }}{% endblock %}
+{% block actions %}{% if live_url and entry.is_published %}<a class="btn" href="{{ live_url }}" target="_blank" rel="noopener">{% tr "Live page ↗" %}</a>{% endif %}<a class="btn" href="{% url 'cms:entries' collection %}">{% tr "All" %} {{ spec.label|tl:request }}</a>{% if not author_mode %}<button class="btn" form="duplicate-form">{% tr "Duplicate" %}</button>{% endif %}{% endblock %}
+{% block content %}
+<nav class="tabs">{% for l in langs %}<a href="{% url 'cms:entry_edit' collection entry.pk l.code %}" class="{% if l.code == language.code %}on{% endif %}">{% tr l.name %}<span class="dot {% if l.code in has_tr %}has{% endif %}"></span></a>{% endfor %}</nav>
+<form method="post" id="entry-form" class="editor">{% csrf_token %}
+  <div>
+    <div class="card" style="margin-bottom:14px"><div class="hd">{% tr "text" %} · {% tr language.name %}</div><div class="bd" id="tr-fields" dir="{{ language.direction }}"></div></div>
+    <div class="card"><div class="hd">{% tr "Shared by all languages" %}</div><div class="bd" id="shared-fields"></div></div>
+    <input type="hidden" name="shared_json" id="shared_json"><input type="hidden" name="translated_json" id="translated_json">
+  </div>
+  <aside>
+    <div class="card"><div class="hd">{% tr "Publish" %}</div><div class="bd">
+      {% if author_mode %}
+      <p style="margin:0 0 10px">{% if entry.review_requested_at %}<span class="pill ok">{% tr "Sent for review" %}</span> <span class="muted small">{{ entry.review_requested_at|date:"M j, H:i" }}</span>{% else %}<span class="pill">{% tr "Draft" %}</span>{% endif %}</p>
+      <input type="hidden" name="order" value="{{ entry.order }}">
+      <button class="btn" style="width:100%;margin-bottom:8px" name="action" value="save">{% tr "Save draft" %}</button>
+      <button class="btn primary" style="width:100%" name="action" value="submit">{% tr "Send for review" %}</button>
+      <p class="help">{% tr "An editor checks your draft and publishes it. You can keep editing until then." %}</p>
+      {% else %}
+      {% if entry.review_requested_at and not entry.is_published %}<div class="msg info" style="margin-bottom:10px">{% tr "Sent for review by" %} <b>{{ entry.created_by.get_full_name|default:entry.created_by }}</b> · {{ entry.review_requested_at|date:"M j, H:i" }}. {% tr "Tick Visible and save to publish it." %}</div>{% endif %}
+      <label style="display:flex;gap:6px;align-items:center;margin-bottom:10px"><input type="checkbox" name="is_published" {% if entry.is_published %}checked{% endif %}> {% tr "Visible on the site" %}</label>
+      <label class="f"><span>{% tr "Publish at (optional)" %}</span><input type="datetime-local" name="publish_at" value="{% if entry.publish_at %}{{ entry.publish_at|date:'Y-m-d\TH:i' }}{% endif %}"><div class="help">{% tr "Leave empty to publish now. With a date, a visible entry appears on the site at that time." %}</div></label>
+      <label class="f"><span>{% tr "Hide from the site on (optional)" %}</span><input type="datetime-local" name="unpublish_at" value="{% if entry.unpublish_at %}{{ entry.unpublish_at|date:'Y-m-d\TH:i' }}{% endif %}"><div class="help">{% tr "For offers, events and announcements: the record disappears from the site at this time by itself." %}</div></label>
+      <label class="f"><span>{% tr "Order" %}</span><input type="number" name="order" value="{{ entry.order }}"></label>
+      <button class="btn primary" style="width:100%">{% tr "Save and publish" %}</button>
+      <p class="help">{% tr "Saving rebuilds the site, so the change is live in a few seconds." %}</p>
+      {% endif %}
+    </div></div>
+    {% if seo_checks %}<div class="card"><div class="hd">{% tr "SEO check" %} · {{ language.code|upper }} <span class="sp" style="flex:1"></span><span class="pill {% if seo_checks.score >= 80 %}ok{% elif seo_checks.score < 50 %}off{% endif %}">{{ seo_checks.score }}/100</span></div><div class="bd">
+      {% if seo_checks.snippet %}<div class="serp" dir="{{ language.direction }}"><div class="serp-url">{{ seo_checks.snippet.url }}</div><div class="serp-title">{{ seo_checks.snippet.title }}</div><div class="serp-desc">{{ seo_checks.snippet.description }}</div></div>{% endif %}
+      {% if seo_checks.social %}<p class="micro" style="margin:14px 0 6px">{% tr "When shared on LinkedIn or WhatsApp" %}</p>
+      <div class="og-card" dir="{{ language.direction }}">{% if seo_checks.social.image %}<img src="{{ seo_checks.social.image }}" alt="">{% else %}<div class="og-noimg">{% tr "The site's default image" %}</div>{% endif %}
+      <div class="og-body"><span dir="ltr">{{ seo_checks.social.domain }}</span><b>{{ seo_checks.social.title }}</b><small>{{ seo_checks.social.description }}</small></div></div>{% endif %}
+      {% if seo_checks.link_ideas %}<p class="micro" style="margin:14px 0 6px">{% tr "Link ideas" %}</p>
+      <p class="help" style="margin:0 0 6px">{% tr "These pages are mentioned in the text but not linked. Linking them helps readers and search engines." %}</p>
+      <ul class="link-ideas">{% for l in seo_checks.link_ideas %}<li><b dir="auto">{{ l.phrase }}</b>{% if l.search %} <span class="pill sched" title="{% tr 'People search Google for these words and find that page' %}">Google</span>{% endif %} → <code dir="ltr">{{ l.url }}</code> <button type="button" class="btn sm" data-copy-url="{{ l.url }}">{% tr "Copy" %}</button></li>{% endfor %}</ul>{% endif %}
+      {% if seo_checks.search %}<p class="micro" style="margin:14px 0 6px">{% tr "Searches that show this page on Google (28 days)" %}</p>
+      <table class="list"><thead><tr><th>{% tr "Search term" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+      {% for q in seo_checks.search %}<tr><td dir="auto" class="small">{{ q.query }}{% if q.page_two %} <span class="pill draft">{% tr "page 2" %}</span>{% endif %}</td><td class="num">{{ q.clicks }}</td><td class="num">{{ q.impressions }}</td><td class="num">{{ q.position }}</td></tr>{% endfor %}</tbody></table>
+      <p class="help">{% tr "Searches on page 2 (positions 11 to 20) are the quickest wins: use their words in a subheading and in the first paragraph." %}</p>{% endif %}
+      <ul class="checks">{% for c in seo_checks.items %}<li class="{% if c.ok %}ok{% elif c.warn %}warn{% else %}bad{% endif %}"><span aria-hidden="true">{% if c.ok %}✓{% elif c.warn %}!{% else %}✕{% endif %}</span> {% tr c.label %}{% if c.detail %} <span class="muted small" dir="ltr">({{ c.detail }})</span>{% endif %}</li>{% endfor %}</ul>
+      <p class="help">{% tr "Checked when you save. Aim for green on the main points; not every item applies to every page." %}</p>
+    </div></div>{% endif %}
+    {% if revisions %}<div class="card"><div class="hd">{% tr "Revisions" %}</div><div class="bd">
+      {% for r in revisions %}<div class="rev"><span class="sp">{{ r.created_at|date:"M j, H:i" }} · {{ r.created_by|default:"system" }} <span class="pill">{{ r.language|upper }}</span></span>{% if not forloop.first %}<a class="btn sm" href="{% url 'cms:revision_compare' r.pk %}">{% tr "Compare" %}</a><button class="btn sm" form="restore-{{ r.pk }}">{% tr "Restore" %}</button>{% endif %}</div>{% endfor %}
+    </div></div>{% endif %}
+    {% if not author_mode %}<div class="card"><div class="hd">{% tr "Danger zone" %}</div><div class="bd"><button class="btn sm danger" form="delete-form">{% tr "Delete" %} {{ spec.singular|tl:request }}</button></div></div>{% endif %}
+  </aside>
+</form>
+<form id="delete-form" method="post" action="{% url 'cms:entry_delete' collection entry.pk %}" onsubmit="return confirm('Delete {{ entry.key }} in every language?')">{% csrf_token %}</form>
+<form id="duplicate-form" method="post" action="{% url 'cms:entry_duplicate' collection entry.pk %}" onsubmit="return confirm('{% tr "Make a draft copy of this record?" %}')">{% csrf_token %}<input type="hidden" name="lang" value="{{ language.code }}"></form>
+{% for r in revisions %}<form id="restore-{{ r.pk }}" method="post" action="{% url 'cms:revision_restore' r.pk %}" onsubmit="return confirm('{% tr "Restore this revision?" %}')">{% csrf_token %}</form>{% endfor %}
+{{ shared_fields_json|json_script:"sf" }}{{ tr_fields_json|json_script:"tf" }}{{ shared_json|json_script:"sd" }}{{ translated_json|json_script:"td" }}{{ fallback_json|json_script:"fd" }}
+{% endblock %}
+{% block scripts %}<script>document.addEventListener("click",function(e){var b=e.target.closest("[data-copy-url]");if(b&&navigator.clipboard){navigator.clipboard.writeText(b.dataset.copyUrl).then(function(){b.textContent="✓"})}});</script>
+<script>window.TECHNTING_CMS = {mediaApi: "{% url 'cms:api_media' %}", uploadUrl: "{% url 'cms:media_upload' %}", entriesApi: "{% url 'cms:api_entries' 'COLL' %}", csrf: "{{ csrf_token }}", isAdmin: {{ user.is_superuser|yesno:"true,false" }}};</script>
+<script src="{% static 'cms/editor.js' %}?v=11"></script>
+<script>
+(function () {
+  function j(id) { return JSON.parse(JSON.parse(document.getElementById(id).textContent)); }
+  var dir = document.getElementById("tr-fields").getAttribute("dir");
+  var AS_SHARED = (function () { try { var v = sessionStorage.getItem("technting-cms-restore:entry:{{ entry.pk }}:{{ language.code }}"); return v ? JSON.parse(v).shared : null; } catch (e) { return null; } })();
+  var shared = TechntingCMS.fieldGroup(document.getElementById("shared-fields"), j("sf"), AS_SHARED || j("sd"), {dir: "ltr"});
+  var tdata = j("td"), fallback = j("fd");
+  var AS_KEY = "entry:{{ entry.pk }}:{{ language.code }}", restored = TechntingCMS.takeRestore(AS_KEY);
+  var tfields = j("tf");
+  if (!Object.keys(tdata).length && Object.keys(fallback).length) {
+    var host = document.getElementById("tr-fields");
+    host.appendChild(TechntingCMS.el("div", {class: "msg info", style: "margin-bottom:12px"}, ["No translation yet. The fields show the default language as a starting point: translate them, then save."]));
+    tdata = fallback;
+  }
+  if (restored) { tdata = restored.translated || tdata; }
+  var translated = TechntingCMS.fieldGroup(document.getElementById("tr-fields"), tfields, tdata, {dir: dir});
+  var form = document.getElementById("entry-form");
+  form.addEventListener("submit", function () {
+    document.getElementById("shared_json").value = JSON.stringify(shared.value());
+    document.getElementById("translated_json").value = JSON.stringify(translated.value());
+    TechntingCMS.dirty = false;
+  });
+  TechntingCMS.guardUnsaved(form);
+  TechntingCMS.autosave(AS_KEY, function () { return {shared: shared.value(), translated: translated.value()}; });
+  TechntingCMS.editLock(form, "entry", {{ entry.pk }}, "{{ language.code }}", "{{ lock_other|default:''|escapejs }}");
+  if (restored) { TechntingCMS.dirty = true; } else { TechntingCMS.offerAutosave(AS_KEY, {{ entry.updated_at|date:"U" }}000, form); }
+})();
+</script>
+{% endblock %}

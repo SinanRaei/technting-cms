@@ -1,0 +1,9 @@
+{% from "layouts/_macros.html" import head with context %}
+<section class="section band" id="{{ block.anchor or 'how' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <ol class="steps">
+      {% for s in block['items'] or [] %}<li class="step reveal"><span class="step-no" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span><h3>{{ s.title }}</h3>{% if s.text %}<p>{{ s.text }}</p>{% endif %}</li>{% endfor %}
+    </ol>
+  </div>
+</section>

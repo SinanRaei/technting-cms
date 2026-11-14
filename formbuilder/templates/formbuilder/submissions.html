@@ -1,0 +1,30 @@
+{% extends "formbuilder/_base.html" %}{% load cms_i18n %}
+{% block form %}
+<form class="toolbar" method="get">
+  <div class="langs">
+    <a class="pill {% if status == 'complete' %}ok{% endif %}" href="?status=complete">{% tr "Complete" %} ({{ counts.complete }})</a>
+    <a class="pill {% if status == 'draft' %}ok{% endif %}" href="?status=draft">{% tr "In progress" %} ({{ counts.draft }})</a>
+  </div>
+  <input type="hidden" name="status" value="{{ status }}"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search name, email, company' %}"><button class="btn">{% tr "Search" %}</button>
+  <span class="sp" style="flex:1"></span>{% if user.is_superuser %}<a class="btn" href="{% url 'formbuilder:export' form.pk %}">{% tr "Export CSV" %}</a>{% endif %}
+</form>
+<div class="card" style="overflow-x:auto"><table class="list">
+<thead><tr><th>{% tr "Name" %}</th>{% for c in shown %}<th>{% tr c.label %}</th>{% endfor %}<th>{% tr "Tags" %}</th><th>{% tr "Owner" %}</th><th>{% tr "Received" %}</th></tr></thead><tbody>
+{% for s, vals in rows %}<tr>
+  <td class="title"><a href="{% url 'formbuilder:submission' s.pk %}">{{ s.name|default:s.email|default:"-" }}</a><div class="small muted" dir="auto">{{ s.company }}{% if s.link %} · {{ s.link.label }}{% endif %}</div><div class="small muted" dir="ltr">{{ s.email }}</div></td>
+  {% for v in vals %}<td class="small">{{ v }}</td>{% endfor %}
+  <td class="small">{% for t in s.tags %}<span class="pill">{{ t }}</span> {% endfor %}</td>
+  <td class="small">{{ s.owner.get_username|default:"-" }}{% if s.deal_id %} · <a href="{% url 'crm:deal' s.deal_id %}">{% tr "Deal" %}</a>{% endif %}</td>
+  <td class="small muted">{{ s.completed_at|default:s.updated_at|date:"Y-m-d H:i" }}{% if s.notify_error or s.results_error %} <span class="pill off" title="{{ s.notify_error }} {{ s.results_error }}">{% tr "email not sent" %}</span>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="9" class="muted">{% tr "No answers yet." %}</td></tr>{% endfor %}
+</tbody></table></div>
+
+<section class="card" style="margin-top:16px;max-width:760px"><div class="hd">{% tr "Funnel, last 90 days" %}</div><div class="bd">
+<p class="help">{% tr "Counted only while Site stats is on; no cookies, no visitor ids." %}</p>
+<table class="list"><tbody>
+<tr><td>{% tr "Opened" %}</td><td class="num">{{ events.view }}</td></tr>
+<tr><td>{% tr "Started" %}</td><td class="num">{{ events.start }}</td></tr>
+{% for i, s, n in events.steps %}<tr><td>{% tr "Reached step" %} {{ i }} · {{ s.title.en|default:s.key }}</td><td class="num">{{ n }}</td></tr>{% endfor %}
+<tr><td><b>{% tr "Completed" %}</b></td><td class="num"><b>{{ events.complete }}</b></td></tr>
+</tbody></table></div></section>
+{% endblock %}

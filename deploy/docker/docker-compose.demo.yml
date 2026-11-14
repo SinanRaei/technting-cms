@@ -1,0 +1,35 @@
+# Public demo with Docker (see docs/INSTALL.md, "Running a public demo"):
+#   docker compose -f docker-compose.yml -f deploy/docker/docker-compose.demo.yml up -d --build
+# Set TECHNTING_CMS_DEMO_USER and TECHNTING_CMS_DEMO_PASSWORD in .env first. The scheduler rebuilds the demo when it
+# starts and then every 2 hours (manage.py demo_reset), and keeps publishing scheduled posts every 5 minutes; it makes
+# no nightly backups. The dashboard and the site listen on localhost only, for a reverse proxy with HTTPS in front.
+
+services:
+  app:
+    environment:
+      TECHNTING_CMS_DEMO_MODE: "1"
+    mem_limit: 768m
+
+  scheduler:
+    environment:
+      TECHNTING_CMS_DEMO_MODE: "1"
+    command:
+      - sh
+      - -c
+      - |
+        sleep 30
+        last=0
+        while :; do
+          now=$$(date +%s)
+          if [ $$((now - last)) -ge 7200 ]; then
+            timeout 600 python manage.py demo_reset || echo "scheduler: demo_reset failed or timed out"
+            last=$$now
+          fi
+          timeout 300 python manage.py publish_due || echo "scheduler: publish_due failed"
+          sleep 300
+        done
+
+  web:
+    ports: !override
+      - "127.0.0.1:18150:8000"
+      - "127.0.0.1:18151:8080"

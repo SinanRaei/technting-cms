@@ -1,0 +1,38 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Dashboard" %}{% endblock %}{% block heading %}{% tr "Dashboard" %}{% endblock %}
+{% block content %}
+{% if awaiting_review %}<div class="card" style="margin-bottom:16px;border-color:#01a99a"><div class="hd">{% tr "Waiting for your review" %} <span class="pill">{{ awaiting_review|length }}</span></div>
+<table class="list"><tbody>{% for e in awaiting_review %}<tr><td class="title"><a href="{% url 'cms:entry_edit' e.collection e.pk 'en' %}">{{ e.key }}</a> <span class="pill">{{ e.collection }}</span></td>
+<td class="muted small">{{ e.created_by.get_full_name|default:e.created_by }}</td><td class="muted small">{{ e.review_requested_at|date:"M j, H:i" }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% if health %}<a class="card" href="{% url 'cms:health' %}" style="display:flex;gap:12px;align-items:center;margin-bottom:16px;text-decoration:none;color:inherit;padding:14px 18px">
+<span class="pill {% if health.high %}off{% elif health.total %}{% else %}ok{% endif %}">{% tr "Site health" %}</span>
+<span class="sp">{% if health.total %}{% count health.total "items to check" %}{% if health.high %} · {% count health.high "important" %}{% endif %}{% else %}{% tr "No problems found" %}{% endif %} · {% count health.pages "pages checked" %}</span></a>{% endif %}
+{% if seo %}<a class="card" href="{% url 'cms:seo' %}" style="display:flex;gap:12px;align-items:center;margin-bottom:16px;text-decoration:none;color:inherit;padding:14px 18px">
+<span class="pill sched">Google</span><span class="sp">{% tr "Last 28 days" %}: {% tr "Clicks" %} {{ seo.clicks }} · {% tr "Average position" %} {{ seo.position|default:"-" }}{% if seo.page_two %} · {% tr "Searches on page 2" %} {{ seo.page_two }}{% endif %}</span>
+{% if seo.change is not None %}<small class="chg {% if seo.change > 0 %}up{% elif seo.change < 0 %}down{% endif %}" dir="ltr">{% if seo.change > 0 %}+{% endif %}{{ seo.change }}%</small>{% endif %}</a>{% endif %}
+{% if traffic %}<a class="card" href="{% url 'cms:stats' %}" style="display:flex;gap:12px;align-items:center;margin-bottom:16px;text-decoration:none;color:inherit;padding:14px 18px">
+<span class="pill ok">{% tr "Stats" %}</span><span class="sp">{% tr "Last 7 days" %}: {% count traffic.visitors "visitors" %} · {% count traffic.views "page views" %}</span>
+{% if traffic.change is not None %}<small class="chg {% if traffic.change > 0 %}up{% elif traffic.change < 0 %}down{% endif %}" dir="ltr">{% if traffic.change > 0 %}+{% endif %}{{ traffic.change }}%</small>{% endif %}</a>{% endif %}
+<div class="grid g4" style="margin-bottom:16px">
+  <a class="card stat" href="{% url 'cms:pages' %}" style="text-decoration:none;color:inherit"><b>{{ page_count }}</b><span>{% tr "Pages" %}</span></a>
+  {% for key, label, n in entry_counts %}<a class="card stat" href="{% url 'cms:entries' key %}" style="text-decoration:none;color:inherit"><b>{{ n }}</b><span>{{ label|tl:request }}</span></a>{% endfor %}
+  <a class="card stat" href="{% url 'cms:media' %}" style="text-decoration:none;color:inherit"><b>{{ media_count }}</b><span>{% tr "Media files" %}</span></a>
+</div>
+<div class="grid g2">
+  <div class="card"><div class="hd">{% tr "Recently edited pages" %} <span class="sp" style="flex:1"></span><a class="btn sm" href="{% url 'cms:page_new' %}">{% tr "+ New page" %}</a></div>
+    <table class="list"><tbody>
+    {% for t in recent_pages %}<tr><td class="title"><a href="{% url 'cms:page_edit' t.page_id t.language.code %}">{{ t.title }}</a> <span class="pill">{{ t.language.code|upper }}</span></td>
+      <td class="muted small">{% ago t.updated_at %}{% if t.updated_by %} · {{ t.updated_by }}{% endif %}</td></tr>
+    {% empty %}<tr><td class="muted">{% tr "No pages yet." %}</td></tr>{% endfor %}
+    </tbody></table></div>
+  <div class="card"><div class="hd">{% tr "Publishing" %}</div><div class="bd">
+    {% if last_publish %}<p style="margin-top:0">{% tr "Last publish:" %} <span class="pill {% if last_publish.ok %}ok{% else %}off{% endif %}">{% if last_publish.ok %}{% tr "OK" %}{% else %}{% tr "Failed" %}{% endif %}</span> {% ago last_publish.started_at %}</p>{% endif %}
+    {% for l in publish_logs %}<div class="rev"><span class="pill {% if l.ok %}ok{% else %}off{% endif %}">{% if l.ok %}{% tr "OK" %}{% else %}{% tr "Error" %}{% endif %}</span><span class="sp small">{{ l.message|pubmsg:request|truncatechars:90 }}</span><span class="muted small">{{ l.started_at|date:"M j, H:i" }}</span></div>
+    {% empty %}<p class="muted">{% tr "The site has not been published from Technting CMS yet." %}</p>{% endfor %}
+  </div></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="hd">{% tr "Recently edited records" %}</div>
+  <table class="list"><tbody>
+  {% for e in recent_entries %}<tr><td class="title"><a href="{% url 'cms:entry_edit' e.collection e.pk 'en' %}">{{ e.key }}</a> <span class="pill">{{ e.collection }}</span></td><td class="muted small">{% ago e.updated_at %}{% if e.updated_by %} · {{ e.updated_by }}{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

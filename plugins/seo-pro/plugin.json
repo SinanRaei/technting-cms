@@ -1,0 +1,25 @@
+{
+ "label": "Technting SEO",
+ "version": "1.0",
+ "description": "Shows how the site does in Google and Bing on the SEO page: clicks, impressions, position per page and search (English and Arabic), pages losing clicks, searches on page 2 worth improving, index status of key pages and monthly PageSpeed scores. Uses free Google and Bing APIs; keys are stored encrypted. Setup steps are on the SEO page.",
+ "label_ar": "Technting SEO",
+ "description_ar": "يعرض أداء الموقع في Google وBing في صفحة SEO: النقرات ومرات الظهور والترتيب لكل صفحة وكل عبارة بحث (بالعربية والإنجليزية)، والصفحات التي تخسر نقرات، وعبارات البحث في الصفحة الثانية التي تستحق التحسين، وحالة فهرسة الصفحات المهمة، ونتائج PageSpeed كل شهر. يستخدم واجهات Google وBing المجانية، وتُحفظ المفاتيح مشفّرة. خطوات الإعداد في صفحة SEO.",
+ "settings": [
+  {"name": "google_key", "type": "secret", "multiline": true, "format": "json",
+   "label": "Google service account key (JSON file)", "label_ar": "مفتاح حساب الخدمة من Google (ملف JSON)",
+   "help": "Choose the .json file you downloaded from Google Cloud. It is stored encrypted and never shown again.",
+   "help_ar": "اختاروا ملف ‎.json‎ الذي نزّلتموه من Google Cloud. يُحفظ مشفّراً ولا يظهر مرة أخرى."},
+  {"name": "property", "type": "text", "dir": "ltr",
+   "label": "Search Console property", "label_ar": "عنوان الموقع في Search Console",
+   "help": "Leave empty for https://example.com/ . For a domain property write sc-domain:example.com",
+   "help_ar": "اتركوه فارغاً لاستخدام ‎https://example.com/‎ . وإن كان الموقع مضافاً كنطاق فاكتبوا ‎sc-domain:example.com‎"},
+  {"name": "pagespeed_key", "type": "secret",
+   "label": "PageSpeed Insights API key", "label_ar": "مفتاح PageSpeed Insights",
+   "help": "From Google Cloud → APIs & Services → Credentials. Stored encrypted.",
+   "help_ar": "من Google Cloud ← APIs & Services ← Credentials. يُحفظ مشفّراً."},
+  {"name": "bing_key", "type": "secret",
+   "label": "Bing Webmaster Tools API key (optional)", "label_ar": "مفتاح Bing Webmaster Tools (اختياري)",
+   "help": "Bing Webmaster Tools → Settings → API access. Stored encrypted.",
+   "help_ar": "من Bing Webmaster Tools ← الإعدادات ← API access. يُحفظ مشفّراً."}
+ ]
+}

@@ -1,0 +1,11 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post" novalidate>{% csrf_token %}
+<h2>{% tr "Licence key" %}</h2>
+{% if licence_demo %}<p class="lead muted">{% tr "The public demo needs no licence key." %}</p>
+{% else %}<p class="lead muted">{% tr "Paste the free licence key from the e-mail that brought your download link. One licence covers one website." %}</p>
+<label class="f"><span>{% tr "Licence key" %}</span><textarea name="licence_key" rows="4" dir="ltr" spellcheck="false" autocomplete="off" required autofocus style="font-family:Consolas,monospace;word-break:break-all">{{ form.licence_key }}</textarea>
+<div class="help">{% tr "No key on technting.com yet? Fill in the download form there and it comes by e-mail." %}</div>
+{% if errors.licence_key %}<div class="err">{{ errors.licence_key }}</div>{% endif %}</label>
+<p class="muted small">{% tr "The key, a random id of this installation, the site address and the version are sent to licenses.technting.com to check it, now and twice a day." %}</p>{% endif %}
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'email' %}">{% tr "Back" %}</a><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>{% endblock %}

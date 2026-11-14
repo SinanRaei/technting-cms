@@ -1,0 +1,21 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post">{% csrf_token %}
+<h2>{% tr "Languages" %}</h2>
+<p class="lead muted">{% tr "Which languages will the site use?" %}</p>
+<label class="opt"><input type="radio" name="languages" value="en"{% if form.languages == "en" %} checked{% endif %}> <span>{% tr "English only" %}</span></label>
+<label class="opt"><input type="radio" name="languages" value="ar"{% if form.languages == "ar" %} checked{% endif %}> <span>{% tr "Arabic only" %}</span></label>
+<label class="opt"><input type="radio" name="languages" value="both"{% if form.languages == "both" %} checked{% endif %}> <span>{% tr "English and Arabic" %}</span></label>
+{% if errors.languages %}<div class="err">{{ errors.languages }}</div>{% endif %}
+<label class="f" id="default-row" style="margin-top:12px"><span>{% tr "Default language" %}</span>
+<select name="default"><option value="en"{% if form.default == "en" %} selected{% endif %}>English</option><option value="ar"{% if form.default == "ar" %} selected{% endif %}>العربية</option></select>
+<div class="help">{% tr "The default language lives at the site root; the other one gets its own prefix, such as /ar/." %}</div></label>
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'site' %}">{% tr "Back" %}</a><span class="sp"></span><button class="btn primary">{% tr "Continue" %}</button></div>
+</form>
+<script>
+(function () {
+  var row = document.getElementById("default-row");
+  function sync() { var c = document.querySelector('input[name="languages"]:checked'); row.style.display = c && c.value === "both" ? "" : "none"; }
+  document.querySelectorAll('input[name="languages"]').forEach(function (r) { r.addEventListener("change", sync); });
+  sync();
+})();
+</script>{% endblock %}

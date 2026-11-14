@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+{% from "layouts/_macros.html" import lang_switch, nav_links, cta_link, logo with context %}
+{% block styles %}
+<link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+{% endblock %}
+{% block body %}
+<a class="skip-link" href="#main">{{ t('skip') }}</a>
+{{ plugin_html('body_start_html') }}
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="{{ lang.home }}" aria-label="{{ site_name }}">{{ logo(width=148) }}</a>
+    <button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" data-open-label="{{ t('open_menu') }}" data-close-label="{{ t('close_menu') }}"><span class="menu-glyph" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">{{ t('open_menu') }}</span></button>
+    <nav class="primary-nav" id="primary-nav" aria-label="{{ t('main_nav') }}">
+      <div class="nav-links">{{ nav_links() }}</div>
+      <div class="nav-end"><a class="search-link" href="{{ lang.home }}search/" aria-label="{{ t('search') }}" title="{{ t('search') }}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M10.5 3a7.5 7.5 0 1 0 0 15a7.5 7.5 0 1 0 0-15ZM16 16l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg></a>{{ lang_switch() }}{{ cta_link() }}</div>
+    </nav>
+  </div>
+  <div class="scroll-progress" aria-hidden="true"></div>
+</header>
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-top">
+    <div class="footer-brand">
+      <a href="{{ lang.home }}" aria-label="{{ site_name }}">{{ logo(dark=true, width=160) }}</a>
+      <p>{{ t('tagline') }}</p>
+      <a class="footer-mail" href="#contact" data-contact-open aria-haspopup="dialog">{{ t('send_enquiry') }} <span aria-hidden="true">{{ t('arrow') }}</span></a>
+      {% set ci = contact_info() %}
+      {% if ci.phone or ci.wa_url %}<p class="footer-phone">{% if ci.phone %}<a href="tel:{{ ci.tel }}"><span class="sr-only">{{ t('phone') }}: </span><bdi dir="ltr">{{ ci.phone }}</bdi></a>{% endif %}{% if ci.wa_url %}<a href="{{ ci.wa_url }}" target="_blank" rel="noopener">{{ t('whatsapp') }}</a>{% endif %}</p>{% endif %}
+      {% set socials = social_links() %}
+      {% if socials %}<ul class="footer-social" aria-label="{{ t('social_label') }}">{% for s in socials %}<li><a href="{{ s.url }}" target="_blank" rel="noopener me" aria-label="{{ s.label }}" title="{{ s.label }}">{{ s.icon }}</a></li>{% endfor %}</ul>{% endif %}
+    </div>
+    <div class="footer-cols">
+    {% for col in menu('footer') %}<div class="footer-col"><span class="footer-label">{{ col.label }}</span>{% for item in col.children or [] %}<a href="{{ item.url }}"{% if item.contact %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ item.label }}</a>{% endfor %}</div>{% endfor %}
+    </div>
+  </div>
+  <div class="wrap"><div class="footer-bottom"><span>&copy; {{ site_name }}. {{ t('rights') }}</span><span class="footer-links"><a href="{{ url('privacy') }}">{{ t('privacy') }}</a>{{ lang_switch('') }}</span></div></div>
+</footer>
+{% include "partials/contact_dialog.html" %}
+<script src="{{ asset('js/site.js') }}" defer></script>
+{% endblock %}

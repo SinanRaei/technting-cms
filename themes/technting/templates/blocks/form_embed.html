@@ -1,0 +1,15 @@
+{#- A multi-step form built in the dashboard (Forms). The page only holds the place: form-runner.js loads the form
+    from the dashboard host and sends the answers there. Results are worked out on the server after the answers are
+    recorded, so nothing about scoring is in this page. -#}
+<section class="section fr-section" aria-labelledby="{{ 'fr-head-' ~ block.form if block.title else 'page-title' }}">
+<div class="wrap fr-shell">
+  {% if block.eyebrow %}<p class="eyebrow">{{ block.eyebrow }}</p>{% endif %}
+  {% if block.title %}<h2 id="fr-head-{{ block.form }}" class="fr-heading">{{ block.title }}</h2>{% endif %}
+  <div class="form-runner" data-form-runner data-api="{{ admin_url }}/api/forms/" data-slug="{{ block.form }}" data-lang="{{ lang.code }}"{% if preview %} data-preview="1"{% endif %}>
+    <noscript><p class="fr-message">{{ t('fr_noscript') }} <a href="mailto:{{ setting('contact_email', 'leads@example.com') }}" dir="ltr">{{ setting('contact_email', 'leads@example.com') }}</a></p></noscript>
+  </div>
+  {% if block.note %}<p class="fine">{{ block.note }}</p>{% endif %}
+</div>
+</section>
+<link rel="stylesheet" href="{{ asset('css/forms.css') }}">
+<script src="{{ asset('js/form-runner.js') }}" defer></script>

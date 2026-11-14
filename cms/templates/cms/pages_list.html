@@ -1,0 +1,17 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Pages" %}{% endblock %}{% block heading %}{% tr "Pages" %}{% endblock %}
+{% block actions %}<a class="btn primary" href="{% url 'cms:page_new' %}">{% tr "+ New page" %}</a>{% endblock %}
+{% block content %}
+<form class="toolbar" method="get"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search pages' %}"><button class="btn">{% tr "Search" %}</button></form>
+<div class="card"><table class="list">
+<thead><tr><th>{% tr "Title" %}</th><th>{% tr "Address" %}</th><th>{% tr "Template" %}</th><th>{% tr "Languages" %}</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr>
+  <td class="title">{% if r.main %}<a href="{% url 'cms:page_edit' r.page.pk r.main.language.code %}">{{ r.main.title }}</a>{% else %}{{ r.page }}{% endif %}{% if r.page.key %} <span class="pill">{{ r.page.key }}</span>{% endif %}</td>
+  <td class="muted small" dir="ltr">{% if r.main %}{{ r.main.url }}{% endif %}</td>
+  <td class="muted small">{% tr r.page.template %}</td>
+  <td><div class="langs">{% for l, t in r.trs %}<a class="pill {% if not t %}{% elif t.status == 'published' %}ok{% elif t.status == 'scheduled' %}sched{% else %}draft{% endif %}" href="{% url 'cms:page_edit' r.page.pk l.code %}" title="{% if t %}{% tr t.get_status_display %}{% else %}Not translated yet, click to add{% endif %}">{{ l.code|upper }}{% if not t %} +{% endif %}</a>{% endfor %}</div></td>
+  <td style="text-align:end">{% if r.page.key != 'home' and r.page.key != 'privacy' %}<form method="post" action="{% url 'cms:page_delete' r.page.pk %}" onsubmit="return confirm('{% tr "Delete this page in every language?" %}')">{% csrf_token %}<button class="btn sm danger">{% tr "Delete" %}</button></form>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="5" class="muted">{% tr "No pages found." %}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="muted small">{% tr "Areas and use cases have their own pages, generated from the Areas and Use cases collections." %}</p>
+{% endblock %}

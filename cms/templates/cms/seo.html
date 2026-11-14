@@ -1,0 +1,141 @@
+{% extends "cms/base.html" %}{% load cms_i18n humanize %}
+{% block title %}SEO{% endblock %}{% block heading %}SEO{% endblock %}
+{% block head %}<style>
+.chart .col.prev i{opacity:.4}
+.seo-src{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:16px}
+.seo-src .card{padding:12px 14px}.seo-src b{display:block;margin-bottom:4px}
+.seo-steps{margin:0 0 14px;padding-inline-start:22px;line-height:1.7}.seo-steps li{margin-bottom:4px}
+.cwv{font-variant-numeric:tabular-nums}
+</style>{% endblock %}
+{% block actions %}{% if user.is_superuser and on %}<form method="post" action="{% url 'cms:seo_refresh' %}" style="display:flex;gap:6px">{% csrf_token %}
+<button class="btn sm primary"{% if refreshing %} disabled{% endif %}>{% if refreshing %}{% tr "Refreshing…" %}{% else %}{% tr "Refresh now" %}{% endif %}</button>
+<button class="btn sm" name="pagespeed" value="1"{% if refreshing %} disabled{% endif %} title="{% tr 'Starts a new PageSpeed round; two pages are checked now, the rest every few minutes.' %}">{% tr "Check speed again" %}</button></form>{% endif %}{% endblock %}
+{% block content %}
+{% if not on %}<div class="card" style="margin-bottom:16px;border-color:#d4a72c"><div class="bd">{% tr "Technting SEO is off. Follow the setup steps below, then turn it on in Plugins." %} {% if user.is_superuser %}<a href="{% url 'cms:plugins' %}">{% tr "Plugins" %} →</a>{% endif %}</div></div>{% endif %}
+{% if key_problem %}<div class="card" style="margin-bottom:16px;border-color:#c0392b"><div class="bd">{% tr key_problem %}</div></div>{% endif %}
+
+<div class="seo-src">{% for s in sources %}<div class="card"><b>{% tr s.label %}</b>
+  {% if s.state == "ok" %}<span class="pill ok">{% tr "Connected" %}</span>{% elif s.state == "error" %}<span class="pill off">{% tr "Problem" %}</span>{% elif s.state == "never" %}<span class="pill sched">{% tr "Waiting for the first check" %}</span>{% else %}<span class="pill">{% tr "Not set up" %}</span>{% endif %}
+  {% if s.at %}<span class="muted small">{{ s.at|date:"Y-m-d H:i" }}</span>{% endif %}
+  {% if s.explain %}<p class="small" style="margin:6px 0 0">{% tr s.explain %}</p><p class="muted small" dir="ltr" style="margin:4px 0 0;text-align:start;overflow-wrap:anywhere">{{ s.error }}</p>{% endif %}
+</div>{% endfor %}</div>
+
+{% if search %}{% with t=search.totals %}
+<p class="muted small" style="margin:0 0 10px">{% tr "Google search" %} · <span dir="ltr">{{ search.period.start }} - {{ search.period.end }}</span> · {% tr "compared with the 28 days before" %}{% if search.when %} · {% tr "updated" %} {{ search.when|date:"Y-m-d H:i" }}{% endif %}</p>
+<div class="grid g4" style="margin-bottom:16px">
+  <div class="card stat"><b>{{ t.clicks|intcomma }}</b><span>{% tr "Clicks" %}</span>{% include "cms/_change.html" with c=t.clicks_change %}</div>
+  <div class="card stat"><b>{{ t.impressions|intcomma }}</b><span>{% tr "Times shown in Google" %}</span>{% include "cms/_change.html" with c=t.impressions_change %}</div>
+  <div class="card stat"><b>{{ t.ctr }}%</b><span>{% tr "Click rate (CTR)" %}</span>{% if t.ctr_before is not None %}<small class="muted" dir="ltr">{{ t.ctr_before }}%</small>{% endif %}</div>
+  <div class="card stat"><b>{{ t.position|default:"-" }}</b><span>{% tr "Average position" %}</span>{% if t.position_before %}<small class="muted" dir="ltr">{{ t.position_before }}</small>{% endif %}</div>
+</div>
+{% endwith %}
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Clicks and times shown per day" %}<span class="sp" style="flex:1"></span>
+  <span class="small muted"><i class="key v"></i>{% tr "Clicks" %} <i class="key pv"></i>{% tr "Times shown in Google" %}</span></div>
+  <div class="bd"><div class="chart" dir="ltr" role="img" aria-label="{% tr 'Clicks and times shown per day' %}">
+  {% for s in search.series %}<div class="col{% if not s.current %} prev{% endif %}" title="{{ s.day }}: {{ s.clicks }} / {{ s.impressions }}"><i class="pv" style="height:{{ s.h_impressions }}%"></i><i class="v" style="height:{{ s.h_clicks }}%"></i></div>{% endfor %}
+  </div><div class="chart-axis" dir="ltr"><span>{{ search.period.prev_start }}</span><span>{{ search.period.start }}</span><span>{{ search.period.end }}</span></div>
+  <p class="help" style="margin:6px 0 0">{% tr "Faded bars are the 28 days before, for comparison." %}</p></div></div>
+
+<div class="grid g2" style="margin-bottom:16px">
+  <div class="card"><div class="hd">{% tr "English and Arabic pages" %}</div><table class="list"><thead><tr><th>{% tr "Language" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">CTR</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+  {% for l in search.langs %}<tr><td>{% tr l.name %} <span class="muted small">({{ l.pages }})</span></td><td class="num">{{ l.clicks }}</td><td class="num">{{ l.impressions }}</td><td class="num">{{ l.ctr }}%</td><td class="num">{{ l.position|default:"-" }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="5">{% tr "No data yet." %}</td></tr>{% endfor %}</tbody></table></div>
+  <div class="card"><div class="hd">{% tr "Pages losing clicks" %}</div><table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Before" %}</th><th class="num">{% tr "Now" %}</th></tr></thead><tbody>
+  {% for r in search.losing %}<tr><td class="small" dir="ltr" style="text-align:start;overflow-wrap:anywhere"><a href="{{ r.page }}" target="_blank" rel="noopener">{{ r.path|truncatechars:60 }}</a></td><td class="num">{{ r.prev_clicks }}</td><td class="num">{{ r.clicks }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="3">{% tr "No page lost clicks. Good." %}</td></tr>{% endfor %}</tbody></table>
+  {% if search.losing %}<p class="help" style="margin:8px 14px">{% tr "Check that the page is still up to date, still answers the search, and still has links from newer articles." %}</p>{% endif %}</div>
+</div>
+
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Searches on page 2 worth improving" %}<span class="sp" style="flex:1"></span><span class="muted small">{% tr "Positions 11 to 20: a small push brings them to page 1." %}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Search term" %}</th><th class="num">{% tr "Position" %}</th><th class="num">{% tr "Shown" %}</th><th>{% tr "Page" %}</th></tr></thead><tbody>
+  {% for q in search.page_two %}<tr><td dir="auto">{{ q.query }}</td><td class="num">{{ q.position }}</td><td class="num">{{ q.impressions }}</td><td class="small" dir="ltr" style="text-align:start">{{ q.path|truncatechars:50 }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="4">{% tr "None right now." %}</td></tr>{% endfor %}</tbody></table>
+  {% if search.page_two %}<p class="help" style="margin:8px 14px">{% tr "Use the search words in a subheading and the first paragraph, answer the question more fully, and link to the page from related articles." %}</p>{% endif %}</div>
+
+{% if search.low_ctr %}<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Shown often but rarely clicked" %}<span class="sp" style="flex:1"></span><span class="muted small">{% tr "Rewrite the SEO title and description to match what people search for." %}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">CTR</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+  {% for r in search.low_ctr %}<tr><td class="small" dir="ltr" style="text-align:start">{{ r.path }}</td><td class="num">{{ r.impressions }}</td><td class="num">{{ r.ctr_pct }}%</td><td class="num">{{ r.position }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+
+<div class="grid g2" style="margin-bottom:16px">
+  <div class="card"><div class="hd">{% tr "Top searches" %}</div><table class="list"><thead><tr><th>{% tr "Search term" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+  {% for q in search.queries %}<tr><td dir="auto" class="small">{{ q.query }}</td><td class="num">{{ q.clicks }}</td><td class="num">{{ q.impressions }}</td><td class="num">{{ q.position }}{% if q.prev_position %} <small class="muted">({{ q.prev_position }})</small>{% endif %}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="4">{% tr "No data yet." %}</td></tr>{% endfor %}</tbody></table></div>
+  <div class="card"><div class="hd">{% tr "Pages with the most clicks" %}</div><table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+  {% for r in search.pages %}<tr><td class="small" dir="ltr" style="text-align:start;overflow-wrap:anywhere"><a href="{{ r.page }}" target="_blank" rel="noopener">{{ r.path|truncatechars:50 }}</a></td><td class="num">{{ r.clicks }}</td><td class="num">{{ r.impressions }}</td><td class="num">{{ r.position }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="4">{% tr "No data yet." %}</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endif %}
+
+{% if keywords and keywords.rows %}<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Articles and their focus keywords" %}<span class="sp" style="flex:1"></span>
+  <span class="muted small">{% if keywords.as_of %}{% tr "Google position on" %} <span dir="ltr">{{ keywords.as_of }}</span>{% endif %}{% if keywords.missing %} · {% tr "without a focus keyword:" %} {{ keywords.missing }}{% endif %}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Article" %}</th><th>{% tr "Focus keyword" %}</th><th class="num">{% tr "Position" %}</th><th class="num">{% tr "7 days" %}</th><th class="num">{% tr "28 days" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "SEO score" %}</th></tr></thead><tbody>
+  {% for r in keywords.rows %}<tr><td class="small"><a href="{{ r.edit }}" dir="auto">{{ r.title|truncatechars:60 }}</a> <span class="muted">{{ r.lang|upper }}</span></td>
+  <td class="small" dir="auto">{% if r.keyword %}{{ r.keyword }}{% if r.other_page %}<br><span class="muted">{% tr "Google shows another page:" %} <code dir="ltr">{{ r.other_page }}</code></span>{% endif %}{% else %}<span class="pill draft">{% tr "Not set" %}</span>{% endif %}</td>
+  <td class="num">{% if r.position %}{{ r.position }}{% elif r.keyword %}<span class="muted" title="{% tr 'Not in the first results yet' %}">-</span>{% endif %}</td>
+  <td class="num">{% if r.week is not None %}<small class="chg {% if r.week > 0 %}up{% elif r.week < 0 %}down{% endif %}" dir="ltr">{% if r.week > 0 %}+{% endif %}{{ r.week }}</small>{% endif %}</td>
+  <td class="num">{% if r.month is not None %}<small class="chg {% if r.month > 0 %}up{% elif r.month < 0 %}down{% endif %}" dir="ltr">{% if r.month > 0 %}+{% endif %}{{ r.month }}</small>{% endif %}</td>
+  <td class="num">{{ r.clicks }}</td>
+  <td class="num">{% if r.score is not None %}<span class="pill {% if r.score >= 80 %}ok{% elif r.score < 50 %}off{% else %}draft{% endif %}">{{ r.score }}</span>{% endif %}</td></tr>{% endfor %}</tbody></table>
+  <p class="help" style="margin:8px 14px">{% tr "Position is Google's average over 28 days; +3 means three places higher (better). Positions are kept every day, so the changes fill in over the first weeks." %}</p></div>{% endif %}
+
+{% if inspect %}<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Is Google showing our key pages?" %}<span class="sp" style="flex:1"></span>
+  <span class="pill {% if inspect.problems %}draft{% else %}ok{% endif %}">{{ inspect.indexed }}/{{ inspect.items|length }} {% tr "in Google" %}</span>
+  <span class="muted small">{{ inspect.when|date:"Y-m-d" }}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Page" %}</th><th>{% tr "Status" %}</th><th>{% tr "Details" %}</th><th class="num">{% tr "Last visit by Google" %}</th></tr></thead><tbody>
+  {% for i in inspect.items %}<tr><td class="small" dir="ltr" style="text-align:start">{{ i.path }}</td>
+  <td>{% if i.error %}<span class="pill off">{% tr "Could not check" %}</span>{% elif i.verdict == "PASS" %}<span class="pill ok">{% tr "In Google" %}</span>{% elif i.verdict == "FAIL" %}<span class="pill off">{% tr "Problem" %}</span>{% else %}<span class="pill draft">{% tr "Not in Google yet" %}</span>{% endif %}</td>
+  <td class="small">{% if i.error %}<span dir="ltr">{{ i.error }}</span>{% else %}{% tr i.coverage %}{% if i.canonical_differs %} · {% tr "Google picked a different main address:" %} <code dir="ltr">{{ i.google_canonical }}</code>{% endif %}{% endif %}</td>
+  <td class="num small">{{ i.crawled|default:"-" }}</td></tr>{% endfor %}</tbody></table>
+  <p class="help" style="margin:8px 14px">{% tr "Checked once a week: the home and blog pages and the newest articles in both languages. To ask Google to visit a page sooner, use URL inspection in Search Console." %}</p></div>{% endif %}
+
+{% if sitemaps %}<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Sitemap in Search Console" %}<span class="sp" style="flex:1"></span><span class="muted small">{{ sitemaps.when|date:"Y-m-d" }}</span></div>
+  {% if not sitemaps.ours %}<div class="bd" style="padding-bottom:0"><p class="small" style="margin:0"><span class="pill draft">{% tr "Not sent yet" %}</span> {% tr "Send the sitemap in Search Console → Sitemaps:" %} <code dir="ltr">{{ site_url }}/sitemap.xml</code></p></div>{% endif %}
+  {% if sitemaps.items %}<table class="list"><thead><tr><th>{% tr "Sitemap" %}</th><th class="num">{% tr "Last read by Google" %}</th><th class="num">{% tr "Addresses" %}</th><th class="num">{% tr "Errors" %}</th><th class="num">{% tr "Warnings" %}</th></tr></thead><tbody>
+  {% for s in sitemaps.items %}<tr><td class="small" dir="ltr" style="text-align:start">{{ s.path }}{% if s.pending %} <span class="pill sched">{% tr "waiting" %}</span>{% endif %}</td><td class="num small">{{ s.downloaded|default:"-" }}</td><td class="num">{{ s.urls }}</td>
+  <td class="num">{% if s.errors %}<span class="pill off">{{ s.errors }}</span>{% else %}0{% endif %}</td><td class="num">{% if s.warnings %}<span class="pill draft">{{ s.warnings }}</span>{% else %}0{% endif %}</td></tr>{% endfor %}</tbody></table>{% endif %}</div>{% endif %}
+
+{% if speed %}<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Speed on mobile (PageSpeed Insights)" %}<span class="sp" style="flex:1"></span>
+  <span class="muted small">{{ speed.month }}{% if speed.pending %} · {% tr "pages still waiting:" %} {{ speed.pending }}{% endif %}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Page" %}</th><th class="num">{% tr "Speed" %}</th><th class="num">{% tr "Accessibility" %}</th><th class="num">{% tr "Best practices" %}</th><th class="num">SEO</th><th class="num">LCP</th><th class="num">INP</th><th class="num">CLS</th></tr></thead><tbody>
+  {% for r in speed.rows %}<tr><td class="small" dir="ltr" style="text-align:start">{{ r.path }}{% if r.field.source == "origin" %} <span class="muted">*</span>{% endif %}</td>
+  {% if r.error %}<td colspan="7" class="small"><span class="pill off">{% tr "Could not check" %}</span> <span dir="ltr">{{ r.error }}</span></td>{% else %}
+  <td class="num"><b>{{ r.scores.performance|default:"-" }}</b>{% if r.perf_change %} <small class="chg {% if r.perf_change > 0 %}up{% else %}down{% endif %}" dir="ltr">{% if r.perf_change > 0 %}+{% endif %}{{ r.perf_change }}</small>{% endif %}</td>
+  <td class="num">{{ r.scores.accessibility|default:"-" }}</td><td class="num">{{ r.scores.best_practices|default:"-" }}</td><td class="num">{{ r.scores.seo|default:"-" }}</td>
+  {% if r.field %}<td class="num cwv"><span class="pill {% if r.ratings.lcp_ms == 'good' %}ok{% elif r.ratings.lcp_ms == 'poor' %}off{% else %}draft{% endif %}">{{ r.lcp_s|default:"-" }} s</span></td>
+  <td class="num cwv"><span class="pill {% if r.ratings.inp_ms == 'good' %}ok{% elif r.ratings.inp_ms == 'poor' %}off{% else %}draft{% endif %}">{{ r.field.inp_ms|default:"-" }} ms</span></td>
+  <td class="num cwv"><span class="pill {% if r.ratings.cls == 'good' %}ok{% elif r.ratings.cls == 'poor' %}off{% else %}draft{% endif %}">{{ r.field.cls|default:"-" }}</span></td>
+  {% else %}<td colspan="3" class="muted small">{% tr "Not enough real visits yet (lab test only)" %}</td>{% endif %}{% endif %}</tr>{% endfor %}</tbody></table>
+  <p class="help" style="margin:8px 14px">{% tr "Scores are out of 100 (90+ is good). LCP, INP and CLS come from real Chrome visitors over 28 days: green is good, amber needs work, red is poor. * means the whole site's figures, because the page has too few visits of its own. Checked once a month." %}</p></div>{% endif %}
+
+{% if bing %}<div class="card" style="margin-bottom:16px"><div class="hd">Bing<span class="sp" style="flex:1"></span><span class="muted small">{% tr "since" %} {{ bing.since }} · {% tr "Clicks" %}: {{ bing.totals.clicks }} · {% tr "Shown" %}: {{ bing.totals.impressions }}</span></div>
+  <table class="list"><thead><tr><th>{% tr "Search term" %}</th><th class="num">{% tr "Clicks" %}</th><th class="num">{% tr "Shown" %}</th><th class="num">{% tr "Position" %}</th></tr></thead><tbody>
+  {% for q in bing.queries|slice:":15" %}<tr><td dir="auto" class="small">{{ q.key }}</td><td class="num">{{ q.clicks }}</td><td class="num">{{ q.impressions }}</td><td class="num">{{ q.position|default:"-" }}</td></tr>
+  {% empty %}<tr><td class="muted" colspan="4">{% tr "No data yet." %}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+
+<details class="card"{% if not set_up %} open{% endif %}><summary class="hd" style="cursor:pointer">{% tr "How to connect Google, PageSpeed and Bing (free)" %}</summary><div class="bd">
+  <p class="micro" style="margin:0 0 6px">1 · Google Search Console</p>
+  <ol class="seo-steps">
+    <li>{% tr "Open console.cloud.google.com with the Google account that owns Search Console, and create a project (for example technting-cms-seo)." %}</li>
+    <li>{% tr "Go to APIs & Services → Library, search for “Google Search Console API” and press Enable. Do the same for “PageSpeed Insights API”." %}</li>
+    <li>{% tr "Go to APIs & Services → Credentials → Create credentials → Service account. Give it a name (for example technting-cms-seo) and press Done. It needs no roles." %}</li>
+    <li>{% tr "Open the new service account → Keys → Add key → Create new key → JSON. A .json file downloads. Keep it private." %}</li>
+    <li>{% tr "Copy the service account's email (it ends with iam.gserviceaccount.com)." %}{% if client_email %} <code dir="ltr">{{ client_email }}</code>{% endif %}</li>
+    <li>{% tr "Open search.google.com/search-console → Settings → Users and permissions → Add user. Paste the email and choose Full permission." %}</li>
+    <li>{% tr "Here in the dashboard: Plugins → Technting SEO → choose the .json file under “Google service account key”, turn the plugin on and save." %}</li>
+    <li>{% tr "Come back to this page and press Refresh now. Search data appears within a minute; Google's figures run about 3 days behind." %}</li>
+  </ol>
+  <p class="micro" style="margin:0 0 6px">2 · PageSpeed Insights</p>
+  <ol class="seo-steps">
+    <li>{% tr "In the same Google Cloud project: APIs & Services → Credentials → Create credentials → API key." %}</li>
+    <li>{% tr "Press Edit API key → API restrictions → Restrict key, choose PageSpeed Insights API and press Save." %}</li>
+    <li>{% tr "Copy the key and paste it in Plugins → Technting SEO → PageSpeed Insights API key. Pages are checked once a month, two at a time." %}</li>
+  </ol>
+  <p class="micro" style="margin:0 0 6px">3 · Bing ({% tr "optional" %})</p>
+  <ol class="seo-steps">
+    <li>{% tr "Open bing.com/webmasters and sign in. Choose Import from Google Search Console to add the site in one step." %}</li>
+    <li>{% tr "Open Settings (the gear) → API access → API Key → Generate, and copy the key." %}</li>
+    <li>{% tr "Paste it in Plugins → Technting SEO → Bing Webmaster Tools API key and save." %}</li>
+  </ol>
+  <p class="help" style="margin:0">{% tr "The key file and the keys are stored encrypted and are never shown again. To stop access at any time, delete the key in Google Cloud or remove the user in Search Console." %}{% if property %} · Search Console: <code dir="ltr">{{ property }}</code>{% endif %}</p>
+</div></details>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% from "layouts/_macros.html" import words, pixel_trail, icon with context %}
+{% set dark = block.style != 'light' %}
+{% set img = (media(block.image, '1600w') or media(block.image)) if block.image else none %}
+<section class="hero{% if dark %} hero-dark{% else %} hero-light{% endif %}" id="top" aria-labelledby="hero-title">
+  {% if dark %}<div class="hero-bg" aria-hidden="true"><i class="hero-grid"></i><i class="hero-glow"></i></div>{% endif %}
+  <div class="wrap hero-layout">
+    <div class="hero-copy">
+      {% if block.eyebrow %}<p class="eyebrow enter" style="--d:0">{{ block.eyebrow }}</p>{% endif %}
+      {% set n_words = (block.title or '').split()|length %}<h1 id="hero-title" class="words-in">{{ words(block.title) }}{% if block.title_highlight %} <em>{{ words(block.title_highlight, n_words) }}</em>{% endif %}</h1>
+      {% if block.lede %}<p class="hero-lede enter" style="--d:3">{{ block.lede }}</p>{% endif %}
+      {% if (block.primary and block.primary.url) or (block.secondary and block.secondary.url) %}<div class="actions enter" style="--d:4">
+        {% if block.primary and block.primary.url %}<a class="button button-primary" href="{{ block.primary.url }}"{% if block.primary.url == '#contact' %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ block.primary.label }} <span aria-hidden="true">{{ t('arrow') }}</span></a>{% endif %}
+        {% if block.secondary and block.secondary.url %}<a class="button button-ghost" href="{{ block.secondary.url }}"{% if block.secondary.url == '#contact' %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ block.secondary.label }}</a>{% endif %}
+      </div>{% endif %}
+      {% set points = (block.points or [])|selectattr('text')|list %}
+      {% if points %}<ul class="hero-points enter" style="--d:5">{% for p in points %}<li>{{ icon('check', 18) }}<span>{{ p.text }}</span></li>{% endfor %}</ul>{% endif %}
+      {% if block.note %}<p class="hero-note enter" style="--d:6">{{ block.note }}</p>{% endif %}
+    </div>
+    <div class="hero-visual enter" style="--d:2">
+      {% if img %}<img src="{{ img.url }}" alt="{{ img.alt }}" width="{{ img.width }}" height="{{ img.height }}" fetchpriority="high" decoding="async">
+      {% else %}{{ pixel_trail('trail trail-hero', [7, 5, 6, 4, 5, 3]) }}{% endif %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,14 @@
+{% from "layouts/_macros.html" import head, arrow with context %}
+<section class="section" id="{{ block.anchor or block_id }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="cards">
+      {% for c in block['items'] or [] %}{% set img = (media(c.image, '960w') or media(c.image)) if c.image else none %}{% set linked = c.link and c.link.url %}
+      <{{ 'a' if linked else 'article' }} class="card{% if linked %} card-link{% endif %} reveal"{% if linked %} href="{{ c.link.url }}"{% endif %}>
+        {% if img %}<img class="card-img" src="{{ img.url }}" alt="" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">{% endif %}
+        <div class="card-body">{% if c.label %}<span class="micro">{{ c.label }}</span>{% endif %}<h3>{{ c.title }}</h3>{% if c.text %}<p>{{ c.text }}</p>{% endif %}
+        {% if linked %}<span class="text-link">{{ c.link.label or t('read_more') }} {{ arrow() }}</span>{% endif %}</div>
+      </{{ 'a' if linked else 'article' }}>{% endfor %}
+    </div>
+  </div>
+</section>

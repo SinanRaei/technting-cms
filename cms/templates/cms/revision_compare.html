@@ -1,0 +1,11 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Compare revision" %}{% endblock %}{% block heading %}{% tr "Compare revision" %}{% endblock %}
+{% block actions %}<a class="btn" href="{{ back }}">{% tr "Back to the editor" %}</a>
+<form method="post" action="{% url 'cms:revision_restore' rev.pk %}" onsubmit="return confirm('{% tr "Restore this revision?" %}')">{% csrf_token %}<button class="btn primary">{% tr "Restore this revision" %}</button></form>{% endblock %}
+{% block content %}
+<p class="muted" style="margin:0 0 14px"><b dir="auto">{{ title }}</b> · {% tr "Revision from" %} <span dir="ltr">{{ rev.created_at|date:"Y-m-d H:i" }}</span> · {{ rev.created_by|default:"system" }}{% if rev.language %} · <span class="pill">{{ rev.language|upper }}</span>{% endif %}
+<br><span class="small"><del>{% tr "Removed since this revision" %}</del> · <ins>{% tr "Added since this revision" %}</ins></span></p>
+{% for c in changes %}<div class="card" style="margin-bottom:12px"><div class="hd"><span dir="ltr" class="small">{{ c.field }}</span><span class="sp" style="flex:1"></span><span class="pill{% if c.kind == 'added' %} ok{% elif c.kind == 'removed' %} off{% endif %}">{% if c.kind == 'added' %}{% tr "Added" %}{% elif c.kind == 'removed' %}{% tr "Removed" %}{% else %}{% tr "Changed" %}{% endif %}</span></div>
+<div class="bd diff" dir="auto">{{ c.html }}</div></div>
+{% empty %}<div class="card"><div class="bd"><span class="pill ok">{% tr "No differences: this revision matches the current version." %}</span></div></div>{% endfor %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "cms/setup/base.html" %}{% load cms_i18n %}
+{% block body %}<form method="post" novalidate>{% csrf_token %}
+<h2>{% tr "Outgoing email (optional)" %}</h2>
+<p class="lead muted">{% tr "Used for enquiry copies, invitations and password links. You can skip this and set it later under Settings, Email." %}</p>
+<div class="row">
+<label class="f"><span>{% tr "SMTP server" %}</span><input type="text" name="host" value="{{ form.host }}" dir="ltr" placeholder="smtp.example.com">{% if errors.host %}<div class="err">{{ errors.host }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Port" %}</span><input type="number" name="port" value="{{ form.port }}" dir="ltr" min="1" max="65535">{% if errors.port %}<div class="err">{{ errors.port }}</div>{% endif %}</label>
+</div>
+<label class="f"><span>{% tr "Security" %}</span><select name="security"><option value="ssl"{% if form.security == "ssl" %} selected{% endif %}>{% tr "SSL (usually port 465)" %}</option><option value="starttls"{% if form.security == "starttls" %} selected{% endif %}>{% tr "STARTTLS (usually port 587)" %}</option></select></label>
+<label class="f"><span>{% tr "SMTP username" %}</span><input type="text" name="username" value="{{ form.username }}" dir="ltr" autocomplete="off">{% if errors.username %}<div class="err">{{ errors.username }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "SMTP password" %}</span><input type="password" name="password" dir="ltr" autocomplete="new-password">
+{% if has_password %}<div class="help">{% tr "Leave empty to keep the password you typed before." %}</div>{% endif %}{% if errors.password %}<div class="err">{{ errors.password }}</div>{% endif %}</label>
+<label class="f"><span>{% tr "Sender name" %}</span><input type="text" name="from_name" value="{{ form.from_name }}" maxlength="80"></label>
+<label class="f"><span>{% tr "Send a test email to" %}</span><input type="email" name="test_to" value="{{ form.test_to }}" dir="ltr"></label>
+<div class="actions"><a class="btn ghost" href="{% url 'cms:setup_step' 'theme' %}">{% tr "Back" %}</a><button class="btn" name="action" value="test">{% tr "Send test email" %}</button><span class="sp"></span>
+<button class="btn ghost" name="action" value="skip">{% tr "Skip this step" %}</button><button class="btn primary" name="action" value="save">{% tr "Save and continue" %}</button></div>
+</form>{% endblock %}

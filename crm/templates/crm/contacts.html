@@ -1,0 +1,13 @@
+{% extends "crm/_base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Contacts" %}{% endblock %}{% block heading %}CRM · {% tr "Contacts" %}{% endblock %}
+{% block actions %}<a class="btn primary" href="{% url 'crm:contact_new' %}">{% tr "+ New contact" %}</a>{% endblock %}
+{% block crm %}
+<form method="get" class="toolbar"><input type="search" name="q" value="{{ q }}" placeholder="{% tr 'Search by name, email, phone or organisation' %}" style="max-width:360px"><button class="btn">{% tr "Search" %}</button><span class="muted small">{% count total "contacts" %}</span></form>
+<div class="card"><table class="list"><thead><tr><th>{% tr "Name" %}</th><th>{% tr "Organisation" %}</th><th>{% tr "Email" %}</th><th>{% tr "Phone" %}</th><th>{% tr "Deals" %}</th><th>{% tr "Source" %}</th></tr></thead><tbody>
+{% for c in contacts %}<tr><td class="title"><div class="person"><span class="av">{{ c.initials }}</span><div><a href="{% url 'crm:contact' c.pk %}">{{ c.name }}</a>{% if c.job_title %}<div class="muted small">{{ c.job_title }}</div>{% endif %}</div></div></td>
+<td>{% if c.organization %}<a href="{% url 'crm:organization' c.organization_id %}">{{ c.organization.name }}</a>{% else %}<span class="muted">-</span>{% endif %}</td>
+<td class="small" dir="ltr" style="text-align:start">{% if c.email %}<a href="mailto:{{ c.email }}">{{ c.email }}</a>{% endif %}</td><td class="small" dir="ltr" style="text-align:start">{{ c.phone }}</td>
+<td>{{ c.n_deals }}</td><td class="small">{% tr c.get_source_display %}</td></tr>
+{% empty %}<tr><td colspan="6" class="empty">{% tr "No contacts yet. People who send an enquiry from the website are added automatically." %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

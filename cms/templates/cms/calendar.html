@@ -1,0 +1,55 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Calendar" %}{% endblock %}{% block heading %}{% tr "Calendar" %}{% endblock %}
+{% block actions %}<div class="seg"><a class="btn sm" href="?month={{ prev }}" aria-label="{% tr 'Previous month' %}">‹</a><a class="btn sm" href="?">{% tr "Today" %}</a><a class="btn sm" href="?month={{ next }}" aria-label="{% tr 'Next month' %}">›</a></div>{% endblock %}
+{% block content %}
+<div class="cal-head"><h2 dir="auto">{% tr month|date:"F" %} {{ month|date:"Y" }}</h2>
+<span class="small muted"><i class="dot published"></i>{% tr "Published" %} <i class="dot scheduled"></i>{% tr "Scheduled" %} <i class="dot review"></i>{% tr "Waiting for review" %} <i class="dot draft"></i>{% tr "Draft" %}</span></div>
+<p class="help" style="margin:0 0 12px">{% tr "Drag a scheduled or draft item to another day to change its publication date. Published items stay where they are." %}</p>
+<div class="cal" id="cal">
+  {% for d in weekdays %}<div class="cal-wd">{% tr d %}</div>{% endfor %}
+  {% for w in weeks %}{% for c in w %}
+  <div class="cal-day{% if not c.in_month %} out{% endif %}{% if c.date == today %} today{% endif %}{% if c.date > today %} future{% endif %}" data-date="{{ c.date|date:'Y-m-d' }}">
+    <span class="cal-n">{{ c.date|date:"j" }}</span>
+    {% for i in c.items %}<a class="cal-item {{ i.state }}" href="{{ i.url }}" {% if i.movable %}draggable="true"{% endif %} data-kind="{{ i.kind }}" data-id="{{ i.id }}" title="{{ i.collection|tl:request }} · {{ i.title }}"><b dir="auto">{{ i.title|truncatechars:48 }}</b><small>{{ i.collection|tl:request }}{% for l in i.langs %} · {{ l|upper }}{% endfor %}</small></a>{% endfor %}
+  </div>{% endfor %}{% endfor %}
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card"><div class="hd">{% tr "Coming up" %}</div><table class="list"><tbody>
+  {% for i in upcoming %}<tr><td class="title"><a href="{{ i.url }}">{{ i.title|truncatechars:70 }}</a> <span class="pill">{{ i.collection|tl:request }}</span></td><td class="muted small" dir="ltr" style="text-align:end">{{ i.date|date:"D j M" }}</td></tr>
+  {% empty %}<tr><td class="muted">{% tr "Nothing scheduled this month." %}</td></tr>{% endfor %}</tbody></table></div>
+  <div class="card"><div class="hd">{% tr "Drafts without a date" %}</div><div class="bd" id="undated">
+  {% for i in undated %}<a class="cal-item {{ i.state }}" href="{{ i.url }}" draggable="true" data-kind="{{ i.kind }}" data-id="{{ i.id }}"><b dir="auto">{{ i.title|truncatechars:60 }}</b><small>{{ i.collection|tl:request }}</small></a>
+  {% empty %}<p class="muted" style="margin:0">{% tr "No drafts waiting." %}</p>{% endfor %}</div></div>
+</div>
+<div class="toast" id="cal-msg" role="status" hidden></div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var dragged = null, msg = document.getElementById("cal-msg");
+  var csrf = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || "{{ csrf_token }}";
+  function say(t) { msg.textContent = t; msg.hidden = false; setTimeout(function () { msg.hidden = true; }, 3500); }
+  document.querySelectorAll(".cal-item[draggable=true]").forEach(function (a) {
+    a.addEventListener("dragstart", function (e) { dragged = a; e.dataTransfer.effectAllowed = "move"; a.classList.add("dragging"); });
+    a.addEventListener("dragend", function () { a.classList.remove("dragging"); });
+  });
+  document.querySelectorAll(".cal-day.future").forEach(function (day) {
+    day.addEventListener("dragover", function (e) { if (dragged) { e.preventDefault(); day.classList.add("drop"); } });
+    day.addEventListener("dragleave", function () { day.classList.remove("drop"); });
+    day.addEventListener("drop", function (e) {
+      e.preventDefault(); day.classList.remove("drop");
+      if (!dragged) return;
+      var item = dragged; dragged = null;
+      fetch("{% url 'cms:calendar_move' %}", {method: "POST", credentials: "same-origin",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrf},
+        body: JSON.stringify({kind: item.dataset.kind, id: item.dataset.id, date: day.dataset.date})})
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (r.ok) { day.appendChild(item); say("{% tr 'Moved. The new date is saved.' %}"); }
+          else { say(r.message || "{% tr 'Something went wrong.' %}"); }
+        }).catch(function () { say("{% tr 'Something went wrong.' %}"); });
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% set img = media(block.image, '1600w') if block.image else none %}
+{% if img %}<figure class="media-block media-{{ block.size or 'normal' }}">
+{% if block.link and block.link.url %}<a href="{{ block.link.url }}">{% endif %}<img src="{{ img.url }}" alt="{{ block.alt or img.alt }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">{% if block.link and block.link.url %}</a>{% endif %}
+{% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+</figure>{% endif %}

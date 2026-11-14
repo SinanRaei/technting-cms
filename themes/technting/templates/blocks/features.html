@@ -1,0 +1,13 @@
+{% from "layouts/_macros.html" import head, icon, arrow with context %}
+<section class="section" id="{{ block.anchor or 'features' }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap">
+    {{ head(block) }}
+    <div class="features cols-{{ block.columns or '3' }}">
+      {% for f in block['items'] or [] %}<article class="feature reveal">
+        <span class="feature-icon">{{ icon(f.icon or 'spark') }}</span>
+        <h3>{{ f.title }}</h3>{% if f.text %}<p>{{ f.text }}</p>{% endif %}
+        {% if f.link and f.link.url %}<a class="text-link" href="{{ f.link.url }}">{{ f.link.label }} {{ arrow() }}</a>{% endif %}
+      </article>{% endfor %}
+    </div>
+  </div>
+</section>

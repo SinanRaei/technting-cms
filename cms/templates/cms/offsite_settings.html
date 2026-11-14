@@ -1,0 +1,108 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Offsite settings" %}{% endblock %}{% block heading %}{% tr "Offsite settings" %}{% endblock %}
+{% block actions %}<a class="btn" href="{% url 'cms:backups' %}">{% tr "Backups" %}</a>{% endblock %}
+{% block content %}
+{% if not enabled %}<p class="card bd" style="margin:0 0 16px">{% tr "The Technting Backup plugin is off, so nothing is copied yet. Turn it on in Plugins after saving these settings." %} <a href="{% url 'cms:plugins' %}">{% tr "Plugins" %}</a></p>{% endif %}
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 380px;align-items:start">
+<form class="card" method="post" autocomplete="off" id="offsite-form">{% csrf_token %}<div class="hd">{% tr "Where the copies go" %}</div><div class="bd">
+  <label class="f"><span>{% tr "Storage" %}</span><select name="provider" id="provider">
+    {% for k, label in providers.items %}<option value="{{ k }}" {% if provider == k %}selected{% endif %}>{% if k == 's3' %}{% tr "Other S3-compatible storage" %}{% else %}{{ label }}{% endif %}</option>{% endfor %}
+  </select></label>
+  <label class="f" data-for="gdrive"><span>{% tr "Google client ID" %}</span><input type="text" name="client_id" value="{{ drive.client_id }}" dir="ltr" placeholder="123456789012-abc123.apps.googleusercontent.com"></label>
+  <label class="f" data-for="gdrive"><span>{% tr "Google client secret" %}</span><input type="password" name="client_secret" dir="ltr" autocomplete="new-password">
+    {% if drive.has_secret %}<div class="help">{% tr "Leave empty to keep the saved secret." %}</div>{% endif %}</label>
+  <label class="f" data-for="gdrive"><span>{% tr "Folder in Google Drive" %}</span><input type="text" name="drive_folder" value="{{ drive.folder }}" dir="ltr" maxlength="60">
+    <div class="help">{% tr "Technting CMS creates this folder and can see only the files it puts there, nothing else in the Drive." %}</div></label>
+  <div class="f" data-for="gdrive">
+    {% if drive.pending %}<div style="padding:10px 12px;border-radius:8px;background:#e8f1fd">
+      <p style="margin-top:0">{% tr "Open this address on any phone or computer, enter the code, choose the Google account for the backups and press Allow:" %}</p>
+      <p style="font-size:1.1em"><a href="{{ drive.pending.url }}" target="_blank" rel="noopener" dir="ltr">{{ drive.pending.url }}</a> &nbsp; <code dir="ltr" style="font-size:1.3em;user-select:all">{{ drive.pending.user_code }}</code></p>
+      <button class="btn primary" name="action" value="gdrive_finish" formnovalidate>{% tr "I allowed access, finish connecting" %}</button>
+      <button class="btn" name="action" value="gdrive_connect" formnovalidate>{% tr "New code" %}</button></div>
+    {% elif drive.connected %}<p style="margin:0 0 8px">✓ {% tr "Google Drive is connected." %}{% if drive.connected != True %} <span dir="ltr">{{ drive.connected }}</span>{% endif %}</p>
+      <button class="btn" name="action" value="gdrive_connect" formnovalidate>{% tr "Connect again" %}</button>
+    {% else %}<button class="btn primary" name="action" value="gdrive_connect" formnovalidate>{% tr "Connect Google Drive" %}</button>
+      <div class="help">{% tr "Google shows a short code. You enter it at google.com/device to allow access." %}</div>{% endif %}
+  </div>
+  <label class="f" data-for="r2"><span>{% tr "Cloudflare account ID" %}</span><input name="account_id" value="{{ cfg.account_id }}" dir="ltr" maxlength="32" placeholder="0123456789abcdef0123456789abcdef">
+    <div class="help">{% tr "In Cloudflare: R2 → Overview, on the right." %}</div></label>
+  <label class="f" data-for="b2"><span>{% tr "Region" %}</span><input name="region" value="{{ cfg.region }}" dir="ltr" placeholder="us-west-004">
+    <div class="help">{% tr "Part of the bucket's endpoint: s3.REGION.backblazeb2.com" %}</div></label>
+  <label class="f" data-for="s3"><span>{% tr "Storage address (endpoint)" %}</span><input name="endpoint" value="{{ cfg.endpoint }}" dir="ltr" placeholder="https://s3.example.com"></label>
+  <label class="f" data-for="s3"><span>{% tr "Region" %}</span><input name="region" value="{{ cfg.region }}" dir="ltr" placeholder="auto"></label>
+  <label class="f" data-for="r2 b2 s3"><span>{% tr "Bucket name" %}</span><input name="bucket" value="{% if cfg.provider != 'gdrive' %}{{ cfg.bucket }}{% endif %}" dir="ltr" required placeholder="technting-cms-backups"></label>
+  <label class="f" data-for="r2 b2 s3"><span>{% tr "Folder in the bucket" %}</span><input name="prefix" value="{{ cfg.prefix|default:'technting-cms' }}" dir="ltr"></label>
+  <label class="f" data-for="r2 b2 s3"><span>{% tr "Access key ID" %}</span><input name="access_key" value="{{ cfg.access_key }}" dir="ltr" required></label>
+  <label class="f" data-for="r2 b2 s3"><span>{% tr "Secret access key" %}</span><input type="password" name="secret_key" dir="ltr" autocomplete="new-password" {% if not has_secret %}required{% endif %}>
+    {% if has_secret %}<div class="help">{% tr "Leave empty to keep the saved key." %}</div>{% endif %}</label>
+</div>
+
+<div class="hd">{% tr "Encryption passphrase" %}</div><div class="bd">
+  <p style="margin-top:0;padding:10px 12px;border-radius:8px;background:#fdf1dc;color:#6b4510"><b>{% tr "Important:" %}</b> {% tr "Backups are encrypted with this passphrase before they leave the server. Nobody can open them without it, not the storage company and not us. If you lose it, the offsite copies are lost too. Save it now in a password manager and give a second copy to another owner." %}</p>
+  {% if has_passphrase %}<p class="help">{% tr "A passphrase is saved. Fill these fields only to change it." %} <span dir="ltr" class="muted">({% tr "fingerprint" %} {{ cfg.key_id }})</span></p>{% endif %}
+  <label class="f"><span>{% tr "Passphrase (at least 12 characters)" %}</span><input type="password" name="passphrase" dir="ltr" autocomplete="new-password" minlength="12" {% if not has_passphrase %}required{% endif %}></label>
+  <label class="f"><span>{% tr "Passphrase again" %}</span><input type="password" name="passphrase2" dir="ltr" autocomplete="new-password" {% if not has_passphrase %}required{% endif %}></label>
+  <p class="help">{% tr "Suggestion (shown once, not saved):" %} <code dir="ltr" style="user-select:all">{{ suggestion }}</code></p>
+  <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" name="saved_passphrase" value="1" style="margin-top:3px">
+    <span>{% tr "I saved the passphrase somewhere safe. I understand that without it the offsite copies cannot be opened." %}</span></label>
+</div>
+
+<div class="hd">{% tr "How many copies to keep" %}</div><div class="bd">
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+    <label class="f"><span>{% tr "Daily" %}</span><input type="number" name="keep_daily" min="1" max="400" value="{{ keep.keep_daily }}"></label>
+    <label class="f"><span>{% tr "Weekly" %}</span><input type="number" name="keep_weekly" min="0" max="400" value="{{ keep.keep_weekly }}"></label>
+    <label class="f"><span>{% tr "Monthly" %}</span><input type="number" name="keep_monthly" min="0" max="400" value="{{ keep.keep_monthly }}"></label>
+  </div>
+  <p class="help">{% tr "The newest copy of each day, week and month is kept; older copies are deleted from the storage. The newest copy is never deleted." %}</p>
+  <label class="f"><span>{% tr "Storage limit (GB)" %}</span><input type="number" name="quota_gb" min="0" step="0.5" value="{{ quota_gb }}" style="max-width:140px">
+    <div class="help">{% tr "R2 and B2 are free up to 10 GB. You get a warning at 80%. Use 0 for no limit." %}</div></label>
+  <p class="help">{% tr "Technting CMS tests the connection (write, list, read, delete a small file) before saving. Keys are stored encrypted and never shown again." %}</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn primary" name="action" value="save">{% tr "Test and save" %}</button>
+    {% if can_remove %}<button class="btn danger" name="action" value="remove" formnovalidate onclick="return confirm('{% tr "Remove offsite settings? Copies already in the bucket stay there." %}')">{% tr "Remove offsite settings" %}</button>{% endif %}
+  </div>
+</div></form>
+
+<div class="card" data-for="gdrive"><div class="hd">{% tr "Set up Google Drive" %}</div><div class="bd">
+  <ol style="margin:0;padding-inline-start:20px;line-height:1.9">
+    <li>{% tr "Open console.cloud.google.com with the Google account that will keep the backups. Create a project, for example “Technting CMS backups”." %}</li>
+    <li>{% tr "APIs & Services → Library: search for Google Drive API and press Enable." %}</li>
+    <li>{% tr "Google Auth Platform → Branding: enter an app name (Technting CMS backups) and your email, then save." %}</li>
+    <li>{% tr "Audience: choose Internal if you use Google Workspace. Otherwise choose External and press Publish app. Do not leave it in Testing: Google stops the access after 7 days. This app only asks for its own files (drive.file), so Google does not need to review it." %}</li>
+    <li>{% tr "Clients → Create client. Application type: TVs and Limited Input devices. Copy the Client ID and the Client secret here." %}</li>
+    <li>{% tr "Press Connect Google Drive. Open google.com/device on your phone or computer, enter the code, choose the same account and press Allow. Then press “I allowed access”." %}</li>
+    <li>{% tr "Choose a passphrase, save it in a password manager, then press Test and save, and turn on Technting Backup in Plugins." %}</li>
+  </ol>
+  <p class="help" style="margin-bottom:0">{% tr "Free Google accounts have 15 GB shared with Gmail. Cloudflare R2 stays the better choice for large sites." %}</p>
+</div></div>
+
+<div class="card" data-for="r2 b2 s3"><div class="hd">{% tr "Set up Cloudflare R2 (free up to 10 GB)" %}</div><div class="bd">
+  <ol style="margin:0;padding-inline-start:20px;line-height:1.9">
+    <li>{% tr "Sign in to dash.cloudflare.com with the account that runs example.com and open R2 Object Storage. Cloudflare may ask you to add a payment card once to turn R2 on; the free tier is not charged." %}</li>
+    <li>{% tr "Create bucket: name it technting-cms-backups, location Automatic. Leave public access off." %}</li>
+    <li>{% tr "Back on the R2 page, open Manage API tokens → Create Account API token." %}</li>
+    <li>{% tr "Permission: Object Read & Write. Choose “Apply to specific buckets only” and pick technting-cms-backups. This key can then touch nothing else." %}</li>
+    <li>{% tr "Press Create. Copy the Access Key ID and the Secret Access Key here; Cloudflare shows the secret only once." %}</li>
+    <li>{% tr "Copy the account ID from the R2 overview page (or from the endpoint https://ACCOUNT_ID.r2.cloudflarestorage.com)." %}</li>
+    <li>{% tr "Choose a passphrase, save it in a password manager, then press Test and save, and turn on Technting Backup in Plugins." %}</li>
+  </ol>
+  <p class="help" style="margin-bottom:0">{% tr "Backblaze B2: create a private bucket, set its lifecycle to “Keep only the last version”, and create an application key for that bucket only (Read and Write). The keyID is the access key ID." %}</p>
+</div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var sel = document.getElementById("provider");
+  function show() {
+    document.querySelectorAll("[data-for]").forEach(function (el) {
+      var on = el.getAttribute("data-for").split(" ").indexOf(sel.value) >= 0;
+      el.style.display = on ? "" : "none";
+      el.querySelectorAll("input").forEach(function (i) { i.disabled = !on; });
+    });
+  }
+  sel.addEventListener("change", show);
+  show();
+})();
+</script>
+{% endblock %}

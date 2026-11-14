@@ -1,0 +1,24 @@
+{% extends "cms/base.html" %}{% load cms_i18n %}
+{% block title %}{% tr "Licence" %}{% endblock %}{% block heading %}{% tr "Licence" %}{% endblock %}
+{% block actions %}{% if lic.key_hint %}<form method="post">{% csrf_token %}<button class="btn" name="action" value="check">{% tr "Check now" %}</button></form>{% endif %}{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:16px"><div class="hd">{% tr "Technting CMS licence" %}<span style="flex:1"></span>
+  {% if lic.status == "demo" %}<span class="pill ok">{% tr "Public demo" %}</span>{% elif lic.ok %}<span class="pill ok">{% tr "Active" %}</span>{% else %}<span class="pill off">{% tr "Updates are off" %}</span>{% endif %}</div>
+<div class="bd">
+{% if lic.status == "demo" %}<p style="margin:0">{% tr "The public demo needs no licence key." %}</p>
+{% else %}
+  {% if lic_message %}<p style="margin-top:0;color:var(--bad,#b42318)">{% tr lic_message %}</p>{% endif %}
+  {% if lic.key_hint %}<p style="margin-top:0">{% tr "Licence key" %}: <code dir="ltr">{{ lic.key_hint }}</code></p>{% endif %}
+  {% if lic.ok and lic.grace_left is not None %}<p class="help">{% tr "The licence server could not be reached at the last check. Everything keeps working; days left before updates stop:" %} <b>{{ lic.grace_left }}</b></p>{% endif %}
+  <p class="muted small" style="margin:0">{% tr "Site address" %}: <bdi dir="ltr">{{ lic_domain }}</bdi> · {% tr "Installation id" %}: <code dir="ltr">{{ installation }}</code>{% if lic_checked %} · {% tr "Last check" %}: {% ago lic_checked %}{% endif %}</p>
+{% endif %}
+</div></div>
+{% if lic.status != "demo" %}
+<form method="post" class="card"><div class="hd">{% if lic.key_hint %}{% tr "Change the licence key" %}{% else %}{% tr "Add the licence key" %}{% endif %}</div><div class="bd">{% csrf_token %}
+  <p class="help" style="margin-top:0">{% tr "Paste the free licence key from the e-mail that brought your download link. One licence covers one website." %} {% tr "No key on technting.com yet? Fill in the download form there and it comes by e-mail." %}</p>
+  <textarea name="licence_key" rows="4" dir="ltr" spellcheck="false" autocomplete="off" required style="width:100%;font-family:Consolas,monospace;word-break:break-all"></textarea>
+  <p style="margin:12px 0 0"><button class="btn primary" name="action" value="save">{% tr "Save the key" %}</button></p>
+</div></form>
+<p class="muted small" style="margin-top:14px">{% tr "The key, a random id of this installation, the site address and the version are sent to licenses.technting.com to check it, now and twice a day." %} {% tr "Without a valid licence the site keeps working; only Settings, Updates is off." %}</p>
+{% endif %}
+{% endblock %}

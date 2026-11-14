@@ -1,0 +1,92 @@
+{% extends "cms/base.html" %}{% load static cms_i18n %}
+{% block title %}{{ t.title|default:"Page" }}{% endblock %}
+{% block heading %}{{ t.title|default:"New translation" }}{% endblock %}
+{% block actions %}{% if t.pk %}<a class="btn" href="{% url 'cms:page_preview' page.pk language.code %}" target="_blank" rel="noopener">{% tr "Preview ↗" %}</a>{% endif %}{% if t.pk and t.status == 'published' %}<a class="btn" href="https://example.com{{ t.url }}" target="_blank" rel="noopener">{% tr "Live page ↗" %}</a>{% endif %}{% if t.pk %}<button class="btn" form="duplicate-form">{% tr "Duplicate" %}</button>{% endif %}{% endblock %}
+{% block content %}
+<nav class="tabs">{% for l in langs %}<a href="{% url 'cms:page_edit' page.pk l.code %}" class="{% if l.code == language.code %}on{% endif %}">{% tr l.name %}<span class="dot {% if l.code in trs %}has{% endif %}"></span></a>{% endfor %}</nav>
+{% if created %}<div class="msgs"><div class="msg info">{% tr "This page has no {lang} version yet. The layout below is copied from the existing version: translate the text, then save." lang=language.name %}</div></div>{% endif %}
+<form method="post" id="page-form" class="editor">{% csrf_token %}
+  <div>
+    <input class="title-input" type="text" name="title" value="{{ t.title }}" placeholder="{% tr 'Page title' %}" required dir="{{ language.direction }}">
+    <div class="urlbar">{% tr "Address" %}: <span dir="ltr">https://{{ site_host }}{% if language.url_prefix %}/{{ language.url_prefix }}{% endif %}/</span>
+      {% if page.key == 'home' %}<span class="muted">{% tr "(home page)" %}</span>{% else %}<input type="text" name="slug" value="{{ t.slug }}" dir="ltr" size="24"><span>/</span>{% endif %}</div>
+    <div id="template-fields"></div>
+    <div id="blocks" dir="{{ language.direction }}" data-lang="{{ language.code }}"></div>
+    <input type="hidden" name="blocks_json" id="blocks_json">
+    <input type="hidden" name="page_data_json" id="page_data_json">
+  </div>
+  <aside>
+    <div class="card"><div class="hd">{% tr "Publish" %}</div><div class="bd">
+      <p style="margin-top:0">{% tr "Status:" %} <span class="pill {% if t.status == 'published' %}ok{% elif t.status == 'scheduled' %}sched{% else %}draft{% endif %}">{% tr t.get_status_display %}</span>
+      {% if t.status == 'scheduled' and t.publish_at %}<br><span class="small muted">{% tr "Goes live" %} {{ t.publish_at|date:"Y-m-d H:i" }}</span>{% endif %}{% if t.unpublish_at %}<br><span class="small muted">{% tr "Hidden from the site on" %} {{ t.unpublish_at|date:"Y-m-d H:i" }}</span>{% endif %}</p>
+      <div style="display:grid;gap:8px">
+        {% if t.status == 'published' %}<button class="btn primary" name="action" value="publish">{% tr "Update" %}</button>{% else %}<button class="btn primary" name="action" value="publish">{% tr "Publish" %}</button><button class="btn" name="action" value="save">{% tr "Save draft" %}</button>{% endif %}
+        <details><summary class="small" style="cursor:pointer">{% tr "Schedule" %}</summary><div style="display:flex;gap:6px;margin-top:6px"><input type="datetime-local" name="publish_at" value="{{ t.publish_at|date:'Y-m-d\TH:i' }}"><button class="btn sm" name="action" value="schedule">{% tr "Set" %}</button></div>
+        <label class="f" style="margin-top:8px"><span class="small">{% tr "Hide from the site on (optional)" %}</span><input type="datetime-local" name="unpublish_at" value="{% if t.unpublish_at %}{{ t.unpublish_at|date:'Y-m-d\TH:i' }}{% endif %}"></label></details>
+        {% if t.status == 'published' %}<button class="btn sm ghost danger" name="action" value="unpublish" onclick="return confirm('{% tr "Take this language version offline?" %}')">{% tr "Unpublish" %}</button>{% endif %}
+      </div></div></div>
+    <div class="card"><div class="hd">{% tr "Page" %}</div><div class="bd">
+      <label class="f"><span>{% tr "Template" %}</span><select name="template" id="template-select">{% for k, tpl in theme.templates.items %}<option value="{{ k }}" {% if k == page.template %}selected{% endif %}>{{ tpl.label|tl:request }}</option>{% endfor %}</select></label>
+      {% if page.key != 'home' %}<label class="f"><span>{% tr "Parent page" %}</span><select name="parent"><option value="">{% tr "None" %}</option>{% for p in other_pages %}<option value="{{ p.pk }}" {% if p.pk == page.parent_id %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label>{% endif %}
+    </div></div>
+    <div class="card"><div class="hd">{% tr "Search & sharing" %}</div><div class="bd">
+      <label class="f"><span>{% tr "SEO title" %}</span><input type="text" name="seo_title" value="{{ t.seo_title }}" maxlength="250" dir="{{ language.direction }}" data-count="60"></label>
+      <label class="f"><span>{% tr "Meta description" %}</span><textarea name="seo_description" maxlength="320" dir="{{ language.direction }}" data-count="160" style="min-height:70px">{{ t.seo_description }}</textarea></label>
+      <div class="f"><span class="flabel">{% tr "Share image (1200×630)" %}</span><div id="og-field"></div><input type="hidden" name="og_image" id="og_image" value="{{ t.og_image_id|default:'' }}"></div>
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="noindex" {% if t.noindex %}checked{% endif %}> {% tr "Hide from search engines" %}</label>
+    </div></div>
+    {% if revisions %}<div class="card"><div class="hd">{% tr "Revisions" %}</div><div class="bd">
+      {% for r in revisions %}<div class="rev"><span class="sp">{{ r.created_at|date:"M j, H:i" }} · {{ r.created_by|default:"system" }}{% if r.note %} <span class="muted">({{ r.note }})</span>{% endif %}</span>
+      {% if not forloop.first %}<a class="btn sm" href="{% url 'cms:revision_compare' r.pk %}">{% tr "Compare" %}</a><button class="btn sm" form="restore-{{ r.pk }}">{% tr "Restore" %}</button>{% endif %}</div>{% endfor %}
+    </div></div>{% endif %}
+  </aside>
+</form>
+<form id="duplicate-form" method="post" action="{% url 'cms:page_duplicate' page.pk %}" onsubmit="return confirm('{% tr "Make a draft copy of this page?" %}')">{% csrf_token %}</form>
+{% for r in revisions %}<form id="restore-{{ r.pk }}" method="post" action="{% url 'cms:revision_restore' r.pk %}" onsubmit="return confirm('{% tr "Restore this revision?" %}')">{% csrf_token %}</form>{% endfor %}
+{{ theme_json|json_script:"theme-data" }}{{ blocks_json|json_script:"blocks-data" }}{{ page_data_json|json_script:"page-data" }}{{ og_media|json_script:"og-media" }}
+{% endblock %}
+{% block scripts %}
+<script>window.TECHNTING_CMS = {mediaApi: "{% url 'cms:api_media' %}", uploadUrl: "{% url 'cms:media_upload' %}", entriesApi: "{% url 'cms:api_entries' 'COLL' %}", csrf: "{{ csrf_token }}", isAdmin: {{ user.is_superuser|yesno:"true,false" }}};</script>
+<script src="{% static 'cms/editor.js' %}?v=11"></script>
+<script>
+(function () {
+  var theme = JSON.parse(JSON.parse(document.getElementById("theme-data").textContent));
+  var blocks = JSON.parse(JSON.parse(document.getElementById("blocks-data").textContent));
+  var pageData = JSON.parse(JSON.parse(document.getElementById("page-data").textContent));
+  var AS_KEY = "page:{{ page.pk }}:{{ language.code }}", restored = TechntingCMS.takeRestore(AS_KEY);
+  if (restored) {
+    blocks = restored.blocks || blocks; pageData = restored.page_data || pageData;
+    Object.keys(restored.fields || {}).forEach(function (n) { var i = document.querySelector('#page-form [name="' + n + '"]'); if (i) i.value = restored.fields[n]; });
+  }
+  var ogMedia = JSON.parse(document.getElementById("og-media").textContent);
+  var dir = document.getElementById("blocks").getAttribute("dir");
+  var editor = TechntingCMS.blockEditor(document.getElementById("blocks"), theme, blocks, {dir: dir});
+  var tplHost = document.getElementById("template-fields");
+  var tplForm = null;
+  function renderTemplateFields() {
+    var key = document.getElementById("template-select").value;
+    var fields = (theme.templates[key] || {}).fields || [];
+    tplHost.innerHTML = "";
+    if (!fields.length) { tplForm = null; return; }
+    var card = TechntingCMS.el("div", {class: "card", style: "margin-bottom:14px"}, [TechntingCMS.el("div", {class: "hd"}, ["Template settings"])]);
+    var body = TechntingCMS.el("div", {class: "bd"}); card.appendChild(body); tplHost.appendChild(card);
+    tplForm = TechntingCMS.fieldGroup(body, fields, pageData, {dir: dir});
+  }
+  document.getElementById("template-select").addEventListener("change", renderTemplateFields);
+  renderTemplateFields();
+  TechntingCMS.imageField(document.getElementById("og-field"), ogMedia, function (m) { document.getElementById("og_image").value = m ? m.id : ""; });
+  TechntingCMS.counters(document);
+  var form = document.getElementById("page-form");
+  form.addEventListener("submit", function () {
+    document.getElementById("blocks_json").value = JSON.stringify(editor.value());
+    document.getElementById("page_data_json").value = JSON.stringify(tplForm ? tplForm.value() : {});
+    TechntingCMS.dirty = false;
+  });
+  TechntingCMS.guardUnsaved(form);
+  function fields() { var o = {}; ["title", "slug", "seo_title", "seo_description"].forEach(function (n) { var i = form.querySelector('[name="' + n + '"]'); if (i) o[n] = i.value; }); return o; }
+  TechntingCMS.autosave(AS_KEY, function () { return {blocks: editor.value(), page_data: tplForm ? tplForm.value() : {}, fields: fields()}; });
+  {% if t.pk %}TechntingCMS.editLock(form, "page", {{ t.pk }}, "{{ language.code }}", "{{ lock_other|default:''|escapejs }}");{% endif %}
+  if (restored) { TechntingCMS.dirty = true; } else { TechntingCMS.offerAutosave(AS_KEY, {% if t.pk %}{{ t.updated_at|date:"U" }}000{% else %}0{% endif %}, form); }
+})();
+</script>
+{% endblock %}

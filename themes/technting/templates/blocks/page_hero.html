@@ -1,0 +1,10 @@
+{% from "layouts/_macros.html" import pixel_trail, words with context %}
+<section class="page-hero" aria-labelledby="page-title">
+  {{ pixel_trail('trail trail-page', [5, 3, 4]) }}
+  <div class="wrap">
+    <nav class="crumbs" aria-label="{{ t('breadcrumb') }}"><a href="{{ lang.home }}">{{ t('home') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ page.title }}</span></nav>
+    {% if block.eyebrow %}<p class="eyebrow">{{ block.eyebrow }}</p>{% endif %}
+    <h1 id="page-title" class="words-in">{{ words(block.title or page.title) }}</h1>
+    {% if block.lead %}<p class="lead">{{ block.lead }}</p>{% endif %}{% if block.text %}<p class="intro">{{ block.text }}</p>{% endif %}
+  </div>
+</section>

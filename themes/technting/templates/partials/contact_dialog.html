@@ -1,0 +1,26 @@
+{% set email = setting('contact_email', 'leads@example.com') %}
+<dialog class="contact-dialog" id="contact-dialog" aria-labelledby="contact-dialog-title" aria-describedby="contact-dialog-intro"
+  data-msg-ready="{{ t('c_ready') }}" data-msg-checking="{{ t('c_checking') }}" data-msg-error="{{ t('c_error') }}"
+  data-msg-sending="{{ t('c_sending') }}" data-msg-check="{{ t('ef_check') }}" data-msg-send="{{ t('c_send') }} {{ t('arrow') }}"
+  data-msg-paused="{{ t('c_paused') }} &lt;a href=&quot;mailto:{{ email }}&quot;&gt;{{ email }}&lt;/a&gt;">
+  <div class="contact-dialog-shell">
+    <div class="contact-dialog-heading"><div><p class="eyebrow">{{ t('c_eyebrow') }}</p><h2 id="contact-dialog-title">{{ t('c_title') }}</h2><p id="contact-dialog-intro">{{ t('c_intro') }}</p></div><button class="contact-close" type="button" data-contact-close aria-label="{{ t('c_close') }}">×</button></div>
+    <form class="contact-form" id="contact-form" action="/api/contact" method="post">
+      <p class="contact-availability" id="contact-availability" role="status">{{ t('c_checking') }}</p>
+      <div class="contact-fields">
+        <label>{{ t('c_name') }} <span aria-hidden="true">*</span><input name="name" type="text" autocomplete="name" maxlength="100" required></label>
+        <label>{{ t('c_email') }} <span aria-hidden="true">*</span><input name="email" type="email" autocomplete="email" maxlength="254" required dir="ltr"></label>
+        <label>{{ t('c_org') }} <span aria-hidden="true">*</span><input name="organisation" type="text" autocomplete="organization" maxlength="120" minlength="2" required></label>
+        <label>{{ t('c_phone') }} <span aria-hidden="true">*</span><input name="phone" type="tel" autocomplete="tel" maxlength="40" dir="ltr" pattern="[+\(\)0-9 .\-]{6,40}" required></label>
+        <label class="contact-field-wide">{{ t('c_interest') }} <span aria-hidden="true">*</span><select name="interest" required><option value="">{{ t('ef_choose') }}</option>{% for v, k in [('Websites','c_i_web'),('Content','c_i_con'),('Marketing','c_i_mkt'),('Support','c_i_sup'),('Not sure yet','c_i_ns')] %}<option value="{{ v }}">{{ t(k) }}</option>{% endfor %}</select></label>
+        <label class="contact-field-wide">{{ t('c_message') }} <span aria-hidden="true">*</span><textarea name="message" rows="5" minlength="15" maxlength="4000" placeholder="{{ t('c_placeholder') }}" required></textarea></label>
+      </div>
+      <div class="contact-trap" aria-hidden="true"><label>Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <div class="ts-box" data-ts></div>
+      <p class="contact-privacy">{{ t('c_privacy_1') }} (<a href="{{ url('privacy') }}" target="_blank" rel="noopener">{{ t('privacy') }}</a>). {{ t('c_privacy_2') }}</p>
+      <p class="contact-status" id="contact-status" role="status" tabindex="-1" hidden></p>
+      <div class="contact-actions"><button class="button button-primary" type="submit" id="contact-submit" disabled>{{ t('c_send') }} <span aria-hidden="true">{{ t('arrow') }}</span></button></div>
+    </form>
+    <div class="contact-success" id="contact-success" hidden><span aria-hidden="true">✓</span><h3 tabindex="-1">{{ t('c_thanks') }}</h3><p>{{ t('c_thanks_text') }}</p><button class="button button-primary" type="button" data-contact-close>{{ t('c_close_btn') }}</button></div>
+  </div>
+</dialog>

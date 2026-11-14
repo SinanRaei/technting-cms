@@ -1,0 +1,8 @@
+[Unit]
+Description=Technting CMS scheduled publishing
+
+[Service]
+Type=oneshot
+User=technting
+WorkingDirectory=/home/technting/technting-cms
+ExecStart=/home/technting/technting-cms/.venv/bin/python manage.py publish_due

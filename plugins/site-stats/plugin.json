@@ -1,0 +1,8 @@
+{
+ "label": "Site stats (no cookies)",
+ "version": "1.0",
+ "description": "Counts visitors, pages, traffic sources (Google, LinkedIn, ChatGPT and others), countries and pages not found, and shows them under Stats in the dashboard. No cookies and no IP addresses are stored, so no consent banner is needed. Signed-in dashboard users are not counted.",
+ "label_ar": "إحصائيات الموقع (بدون ملفات تعريف الارتباط)",
+ "description_ar": "يعدّ الزوار والصفحات ومصادر الزيارات (Google وLinkedIn وChatGPT وغيرها) والدول والصفحات غير الموجودة، ويعرضها في «الإحصائيات» داخل لوحة التحكم. لا يحفظ ملفات تعريف ارتباط ولا عناوين IP، فلا حاجة لشريط موافقة. لا تُحسب زيارات المستخدمين المسجّلين في لوحة التحكم.",
+ "settings": []
+}

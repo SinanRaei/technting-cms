@@ -1,0 +1,18 @@
+{% from "layouts/_macros.html" import words, arrow, pixel_trail with context %}
+{% set img = (media(block.image, '1600w') or media(block.image)) if block.image else none %}
+<section class="section" id="{{ block.anchor or block_id }}"{% if block.title %} aria-labelledby="{{ block_id }}-title"{% endif %}>
+  <div class="wrap split-layout{% if block.image_side == 'start' %} media-start{% endif %}">
+    <div class="split-copy reveal">
+      {% if block.eyebrow %}<p class="eyebrow">{{ block.eyebrow }}</p>{% endif %}
+      {% if block.title %}<h2 id="{{ block_id }}-title">{{ words(block.title) }}</h2>{% endif %}
+      {% if block.text %}<p class="split-text">{{ block.text|nl2br }}</p>{% endif %}
+      {% set points = (block.points or [])|selectattr('text')|list %}
+      {% if points %}<ul class="ticks">{% for p in points %}<li>{{ p.text }}</li>{% endfor %}</ul>{% endif %}
+      {% if block.link and block.link.url %}<p class="split-more"><a class="button button-ghost" href="{{ block.link.url }}"{% if block.link.url == '#contact' %} data-contact-open aria-haspopup="dialog"{% endif %}>{{ block.link.label }} {{ arrow() }}</a></p>{% endif %}
+    </div>
+    <div class="split-media reveal">
+      {% if img %}<img src="{{ img.url }}" alt="{{ img.alt }}" width="{{ img.width }}" height="{{ img.height }}" loading="lazy" decoding="async">
+      {% else %}<div class="split-art">{{ pixel_trail('trail trail-art', [6, 4, 5, 3, 4]) }}</div>{% endif %}
+    </div>
+  </div>
+</section>

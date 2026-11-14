@@ -1,0 +1,76 @@
+{% extends "layouts/shell.html" %}
+{% set p = page.entry %}
+{% set author = entry('team', p.author) if p.author else none %}
+{% set cover = media(p.cover, '1600w') if p.cover else none %}
+{% set doc = outline(p.body) %}
+{% set minutes = [((doc.words / (180 if lang.code == 'ar' else 220)) + 0.5)|round|int, 1]|max %}
+{% set faq = (p.faq or [])|selectattr('question')|selectattr('answer')|list %}
+{% set modified = p.updated or page.updated_at.date().isoformat() %}
+{% block og_type %}article{% endblock %}
+{% block og_extra %}
+<meta property="article:published_time" content="{{ p.date }}">
+<meta property="article:modified_time" content="{{ modified }}">
+{% if author %}<meta property="article:author" content="{{ author.name }}">{% endif %}
+{% endblock %}
+{% block schema %}
+{% set person = {"@type": "Person", "name": author.name, "jobTitle": author.role or "", "worksFor": {"@id": site_url ~ "/#organization"}} if author else none %}
+{% if author and author.linkedin %}{% set _ = person.update({"sameAs": [author.linkedin]}) %}{% endif %}
+{{ json_ld({"@context": "https://schema.org", "@type": "BlogPosting", "headline": p.title, "description": p.seo_description or p.excerpt or "",
+  "datePublished": p.date, "dateModified": modified, "inLanguage": lang.code, "mainEntityOfPage": page.abs_url,
+  "image": cover.abs if cover else abs_url(asset('img/logo.svg')), "wordCount": doc.words,
+  "keywords": p.focus_keyword or "",
+  "author": person if person else {"@type": "Organization", "name": site_name},
+  "publisher": {"@id": site_url ~ "/#organization"}}) }}
+{{ json_ld({"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": t('home'), "item": abs_url(lang.home)},
+  {"@type": "ListItem", "position": 2, "name": t('blog'), "item": abs_url(url('blog'))},
+  {"@type": "ListItem", "position": 3, "name": p.title, "item": page.abs_url}]}) }}
+{% if faq %}{% set items = [] %}{% for q in faq %}{% set _ = items.append({"@type": "Question", "name": q.question, "acceptedAnswer": {"@type": "Answer", "text": q.answer}}) %}{% endfor %}
+{{ json_ld({"@context": "https://schema.org", "@type": "FAQPage", "inLanguage": lang.code, "mainEntity": items}) }}{% endif %}
+{% endblock %}
+{% block content %}
+<article class="post" aria-labelledby="page-title">
+<header class="page-hero"><div class="wrap">
+<nav class="crumbs" aria-label="{{ t('breadcrumb') }}"><a href="{{ lang.home }}">{{ t('home') }}</a><span aria-hidden="true">/</span><a href="{{ url('blog') }}">{{ t('blog') }}</a></nav>
+<div class="post-head">
+<h1 id="page-title">{{ p.title }}</h1>{% if p.excerpt %}<p class="lead">{{ p.excerpt }}</p>{% endif %}
+<p class="post-meta">{% if author %}<span>{{ t('by') }} <b dir="auto">{{ author.name }}</b></span>{% endif %}
+<span><time datetime="{{ p.date }}">{{ p.date|datefmt(lang.code) }}</time></span>
+{% if p.updated and p.updated != p.date %}<span>{{ t('updated_on') }} <time datetime="{{ p.updated }}">{{ p.updated|datefmt(lang.code) }}</time></span>{% endif %}
+<span>{% if lang.code == 'ar' %}{% if minutes == 1 %}دقيقة قراءة واحدة{% elif minutes == 2 %}دقيقتان للقراءة{% elif minutes <= 10 %}{{ minutes }} دقائق قراءة{% else %}{{ minutes }} دقيقة قراءة{% endif %}{% else %}{{ minutes }} {{ t('min_read') }}{% endif %}</span></p>
+</div></div></header>
+{% if cover %}<div class="wrap post-cover"><img src="{{ cover.url }}" alt="{{ cover.alt }}" width="{{ cover.width }}" height="{{ cover.height }}" fetchpriority="high"></div>{% endif %}
+<div class="wrap post-layout{% if doc.headings|length < 3 %} no-toc{% endif %}">
+{% if doc.headings|length >= 3 %}
+<aside class="post-toc" aria-labelledby="toc-title"><details open><summary id="toc-title" class="micro">{{ t('on_this_page') }}</summary>
+<ol>{% for h in doc.headings %}<li><a href="#{{ h.id }}">{{ h.text }}</a></li>{% endfor %}</ol></details></aside>
+{% endif %}
+<div class="legal post-body">{{ doc.html }}
+{% if faq %}<section class="post-faq" aria-labelledby="faq-title"><h2 id="faq-title">{{ t('faq') }}</h2>
+{% for q in faq %}<details><summary>{{ q.question }}</summary><p>{{ q.answer|nl2br }}</p></details>{% endfor %}</section>{% endif %}
+<section class="post-share" aria-labelledby="share-title"><p class="micro" id="share-title">{{ t('share') }}</p><div class="share-row">
+<a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.abs_url|urlencode }}" target="_blank" rel="noopener">LinkedIn</a>
+<a href="https://x.com/intent/post?url={{ page.abs_url|urlencode }}&amp;text={{ p.title|urlencode }}" target="_blank" rel="noopener">X</a>
+<a href="https://wa.me/?text={{ (p.title ~ ' ' ~ page.abs_url)|urlencode }}" target="_blank" rel="noopener">WhatsApp</a>
+<a href="mailto:?subject={{ p.title|urlencode }}&amp;body={{ page.abs_url|urlencode }}">{{ t('share_email') }}</a>
+<button type="button" data-copy="{{ page.abs_url }}" data-done="{{ t('link_copied') }}">{{ t('copy_link') }}</button></div>
+<script>document.querySelector('[data-copy]').addEventListener('click',function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(function(){b.textContent=b.dataset.done}).catch(function(){prompt('',b.dataset.copy)})});</script></section>
+{{ plugin_html('post_end_html') }}
+{% set svcs = (p.services or [])|map('string')|list %}
+{% if svcs %}<section class="post-services" aria-labelledby="svc-title"><h2 id="svc-title">{{ t('services_in_article') }}</h2><div class="post-svc-grid">
+{% for k in svcs %}{% set s = entry('service', k) %}{% if s %}<a class="post-svc" href="{{ entry_url('service', k) }}"><b>{{ s.name }}</b><span>{{ s.summary }}</span></a>{% endif %}{% endfor %}
+</div></section>{% endif %}
+{% if author %}{% set ph = media(author.photo, '480w') if author.photo else none %}<section class="post-author" aria-label="{{ t('by') }} {{ author.name }}">{% if ph %}<img src="{{ ph.url }}" alt="" width="72" height="72" loading="lazy">{% endif %}
+<div><p class="micro">{{ t('by') }}</p><p class="post-author-name"><b dir="auto">{{ author.name }}</b></p>{% if author.role %}<p class="post-author-role">{{ author.role }}</p>{% endif %}{% if author.focus %}<p class="post-author-focus">{{ author.focus }}</p>{% endif %}</div></section>{% endif %}
+</div>
+</div>
+</article>
+{% set ef_services = [] %}{% for k in svcs %}{% set s = entry('service', k) %}{% if s %}{% set _ = ef_services.append((s.key, s.name)) %}{% endif %}{% endfor %}
+{% set ef_source, ef_ref, ef_title, ef_service, ef_about = 'article', p.key, t('ef_title_post'), '', p.title %}
+{% include "partials/enquiry_form.html" %}
+{% set same = (entries('post')|rejectattr('key', 'equalto', p.key)|selectattr('area', 'equalto', p.area)|sort(attribute='date', reverse=true)|list) if p.area else [] %}
+{% set rest = entries('post')|rejectattr('key', 'equalto', p.key)|rejectattr('key', 'in', same|map(attribute='key')|list)|sort(attribute='date', reverse=true)|list %}
+{% set others = (same + rest)[:3] %}
+{% if others %}<section class="section band"><div class="wrap"><div class="section-head"><div><p class="eyebrow">{{ t('blog') }}</p><h2>{{ t('more_posts') }}</h2></div></div>
+{% include "partials/post_cards.html" %}<p style="margin-top:24px"><a class="button button-ghost" href="{{ url('blog') }}">{{ t('all_articles') }} {{ t('arrow') }}</a></p></div></section>{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>{{ site_name }} · {{ t('blog') }}</title>
+<link>{{ abs_url(lang.home) }}blog/</link>
+<atom:link href="{{ abs_url(lang.home) }}blog/feed.xml" rel="self" type="application/rss+xml"/>
+<description>{{ t('tagline') }}</description>
+<language>{{ lang.code }}</language>
+{% for p in (entries('post')|sort(attribute='date', reverse=true)|list)[:30] %}
+<item><title>{{ p.title }}</title><link>{{ abs_url(entry_url('post', p.key)) }}</link><guid>{{ abs_url(entry_url('post', p.key)) }}</guid><pubDate>{{ p.date|rfc822 }}</pubDate><description>{{ p.get('excerpt') or '' }}</description></item>
+{% endfor %}
+</channel>
+</rss>

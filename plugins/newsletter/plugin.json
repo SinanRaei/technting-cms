@@ -1,0 +1,13 @@
+{
+ "label": "Newsletter sign-up",
+ "version": "1.0",
+ "description": "Adds a short sign-up box at the end of every article. People confirm from an email before they count (double opt-in), and confirmed subscribers appear in CRM → Newsletter and in Contacts with marketing consent. Needs email set up (Settings → Email). Mention the newsletter in the privacy notice before turning this on.",
+ "label_ar": "الاشتراك في النشرة البريدية",
+ "description_ar": "يضيف مربع اشتراك قصيراً في نهاية كل مقال. يؤكّد الشخص اشتراكه من رسالة بالبريد قبل أن يُحسب، ويظهر المشتركون المؤكَّدون في CRM ← النشرة البريدية وفي جهات الاتصال مع موافقة على التسويق. يحتاج إلى تفعيل البريد (الإعدادات ← البريد). اذكروا النشرة في إشعار الخصوصية قبل التفعيل.",
+ "settings": [
+  {"name": "title_en", "label": "Heading (English)", "label_ar": "العنوان (بالإنجليزية)", "type": "text", "dir": "ltr", "help": "Default: Get new insights by email", "help_ar": "الافتراضي: Get new insights by email"},
+  {"name": "title_ar", "label": "Heading (Arabic)", "label_ar": "العنوان (بالعربية)", "type": "text", "dir": "rtl", "help": "Default: تصلكم مقالاتنا الجديدة بالبريد", "help_ar": "الافتراضي: تصلكم مقالاتنا الجديدة بالبريد"},
+  {"name": "text_en", "label": "Short text (English)", "label_ar": "نص قصير (بالإنجليزية)", "type": "text", "dir": "ltr"},
+  {"name": "text_ar", "label": "Short text (Arabic)", "label_ar": "نص قصير (بالعربية)", "type": "text", "dir": "rtl"}
+ ]
+}
